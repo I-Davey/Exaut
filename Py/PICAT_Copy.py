@@ -1,6 +1,5 @@
 #from PyQt5.QtWidgets import QApplication, QMainWindow
 
-from tkinter import Button
 from PyQt5 import QtCore,QtGui,QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5 import QtGui
@@ -891,15 +890,12 @@ class DB_Window(QMainWindow,PICAT_SQL_gui.Ui_PICAT_SM):
             formdesc = ReadSQL(f"select formdesc from forms where formname='{self.title}'")[0][0]
         self.setWindowTitle(formdesc)
         self.edit_mode = False
-        self.cur_seq = None
 
         # File Tree
         self.actionOpen_Files_Explorer.triggered.connect(self.Open_File_Tree)
 
         # Add EXE
         self.actionAdd_exe.triggered.connect(self.Add_EXE)
-
-        self.actionAdd_Seq.triggered.connect(self.Add_Seq)
 
         
         #add URL
@@ -964,19 +960,13 @@ class DB_Window(QMainWindow,PICAT_SQL_gui.Ui_PICAT_SM):
 
         self.Refresh()
 
-    
+
 
     def actionEdit_mode_toggled(self,state):
         if state:
             self.edit_mode = True
         else:
             self.edit_mode = False
-    def Add_Seq(self):
-        if self.cur_seq:
-            ctypes.windll.user32.MessageBoxW(0,"Please stop current sequence first","FAIL",0)
-            return
-        self.cur_seq = Create_sequence(self)
-        self.cur_seq.show()
 
     def Copy_File(self):
         curtab = self.SM_Tabs.currentIndex()
@@ -1733,9 +1723,6 @@ class DB_Window(QMainWindow,PICAT_SQL_gui.Ui_PICAT_SM):
                 return
             if self.edit_mode:
                 self.edit_button(bseq,pname,tname,bname,objn,mode)
-                return
-            if self.cur_seq:
-                self.cur_seq.add_button(bseq,pname,tname,bname,objn,mode)
                 return
             for pf in range(len(bseq)):
                 if str(bseq[pf][2])=="bat":
@@ -3343,7 +3330,6 @@ class DB_Window(QMainWindow,PICAT_SQL_gui.Ui_PICAT_SM):
 
 
 
-
         
 
             
@@ -4065,6 +4051,7 @@ class Edit_Popup(QDialog):
         self.parent = parent
         self.bseq = bseq[0]
         db_columns = ["folderpath","filename","type","source","target","databasepath","databasename","keypath","keyfile","runsequence","treepath"]
+        db_buttons_columns = ["buttonsequence","columnnum","buttondesc","buttongroup","active","treepath"]
         item_dict = {}
         self.qlineeditdict = {}
         for item in range(len(self.bseq)):
@@ -4235,311 +4222,14 @@ class Edit_Popup(QDialog):
         logger.debug(query)
         return query
 
-class Create_sequence(QDialog):
-    def __init__(self, parent):
-        self.finished = False
-        self._parent = parent
-        self.orderedbuttons = []
-        super().__init__(parent)
-        
-        self.setWindowTitle("Sequence Builder")
-        self.mainmainlayout = QVBoxLayout()
-        self.mainlayout = QFormLayout()
-        self.layout = QFormLayout()
-        self.setLayout(self.mainmainlayout)
-        self.button_items = []
-        font = QtGui.QFont()
-        font.setBold(True)
-        self.resize(300,400)
-
-
-        self.button_name = QtWidgets.QLineEdit(self)
-        self.button_name.setPlaceholderText("Enter Button Name")
-
-        self.button_tabs = QtWidgets.QComboBox(self)
-
-
-        self.tablist = self.get_tabs()
-        self.button_tabs.addItems(self.tablist)
-        self.button_tabs.setCurrentIndex(self._parent.SM_Tabs.currentIndex())
-
-        #        button_tabs.setFixedWidth(20)
-        #        button_tabs.adjustSize()
-
-        self.info_grid = QGridLayout()
-        self.info_grid.setSpacing(10)
-        self.info_grid.setContentsMargins(10, 10, 10, 10)
-        self.info_grid.addWidget(self.button_name, 0, 0)
-        self.info_grid.addWidget(self.button_tabs, 0, 1)
-        self.mainlayout.addRow(self.info_grid)
-
-
-        self.btn1x = QtCore.pyqtSignal(int)
-        self.btn1y = QtCore.pyqtSignal(int)
-
-        select_btn_text = QtWidgets.QLabel("Select Buttons you want to use on main tab")
-        select_btn_text.setFont(font)
-        self.mainlayout.addRow(select_btn_text)
-        self.mainlayout.addRow(self.layout)
-        self.mainmainlayout.addLayout(self.mainlayout)
-        self.button_save = QtWidgets.QPushButton("Save")
-        self.button_save.clicked.connect(self.on_click_save)
-        #add button save to very bottom right of app
-        self.mainmainlayout.addWidget(self.button_save)
-        self.mainmainlayout.addStretch()
-        self.mainmainlayout.addWidget(self.button_save)
 
 
 
-
-
-
-    def on_click_save(self):
-        if not self.check_data():
-            return
-        logger.success(f"length of ordered buttons: {len(self.orderedbuttons)} \nlength of button_items: {len(self.button_items)}" )
-        ordered_button_items = []
-        for item in self.orderedbuttons:
-            for item2 in self.button_items:
-                if item[1] == item2["btn_item"]:
-                    ordered_button_items.append(item2)
-                    break
-        for item in ordered_button_items:
-            logger.debug(item["bname"])
-        logger.success(f"ordered_button_items: {len(ordered_button_items)}")
-
-        #buttons generation first
-        buttons_table_dict = {"formname" : "","tab" : "","buttonname" : ""}
-        buttons_table_dict["formname"] = self._parent.title
-        buttons_table_dict["tab"] = self.button_tabs.currentText()
-        buttons_table_dict["buttonname"] = self.button_name.text()
-
-        #batchsequence generation
-        batchsequence_table_dict = {"formname" : "","tab" : "","buttonname" : "","type": "", "source": ""}
-        batchsequence_table_dict["formname"] = self._parent.title
-        batchsequence_table_dict["tab"] = self.button_tabs.currentText()
-        batchsequence_table_dict["buttonname"] = self.button_name.text()
-        batchsequence_table_dict["type"] = "assignseries"
-        batchsequence_table_dict["source"] = self.button_name.text()
-
-        button_series_table_arr = []
-        button_series_base_dict = {"formname" : "","tab" : "","buttonname" : "","assignname": "", "runsequence": 0}
-        button_series_base_dict["formname"] = self._parent.title
-        button_series_base_dict["assignname"] = self.button_name.text()
-
-        for item in range(len(ordered_button_items)):
-            button_series_base_dict_copy = button_series_base_dict.copy()
-            button_series_base_dict_copy["tab"] = ordered_button_items[item]["tname"]
-            button_series_base_dict_copy["buttonname"] = ordered_button_items[item]["bname"]
-            button_series_base_dict_copy["runsequence"] = item
-            button_series_table_arr.append(button_series_base_dict_copy)
-        final_query_arr = []
-        final_query_arr.append(self.make_insert_query(buttons_table_dict, "buttons"))
-        final_query_arr.append( self.make_insert_query(batchsequence_table_dict, "batchsequence"))
-        for item in button_series_table_arr:
-            final_query_arr.append(self.make_insert_query(item, "buttonseries"))
-        
-        
-        for item in range(len(final_query_arr)):
-            print(f"{final_query_arr[item]}")
-            WriteSQL(final_query_arr[item])
-        self.finished = True
-        self.close()
-    def check_data(self):
-        errormessage = ""
-        is_fail = False
-        if self.button_name.text() == "":
-            logger.error("Button name is empty")
-            errormessage += "Button name is empty\n"
-            is_fail = True
-        if self.button_tabs.currentText() == "":
-            logger.error("Tab is empty")
-            errormessage += "Button tab is empty\n"
-            is_fail = True
-        if len(self.orderedbuttons) == 0:
-            logger.error("No buttons selected")
-            errormessage += "No buttons selected\n"     
-            is_fail = True
-        if is_fail:  
-            errormsg = QMessageBox()
-            errormsg.setIcon(QMessageBox.Critical)
-            errormsg.setText("Error: missing info")
-            errormsg.setInformativeText(errormessage)
-            errormsg.setWindowTitle("Error")
-            #spawn error message over self app
-            errormsg.move(int(self.pos().x()+self.frameGeometry().width()/8), int(self.pos().y()+self.frameGeometry().height()/4))
-
-            errormsg.exec_()
-            return False
-        else:
-            return True
-        
-
-    def make_insert_query(self, dict, table):
-        query = "INSERT INTO " + table + " ("
-        for item in dict:
-            query += item + ", "
-        query = query[:-2]
-        query += ") VALUES ("
-        for item in dict:
-            query += f"'{dict[item]}', "
-        query = query[:-2]
-        query += ")"
-        return query
-
-            
-            
-        
-        
-
-
-    def get_tabs(self):
-        #using self._parent.ReadSQL
-        #SELECT formname, tab, tabsequence FROM tabs where formname is 
-
-        tabs = ReadSQL(f"SELECT tab FROM tabs where formname = '{self._parent.title}' ORDER BY tabsequence") 
-        tablist = []
-        for tab in tabs:
-            tablist.append(tab[0])
-        return(tablist)
-
-    def add_button(self,bseq,pname,tname,bname,objn,mode):
-        new_button = DragButton(bname, self)
-        new_button.fake_init(self, bname)
-        new_button_x = QPushButton("X")
-        #run function self.clicked and send the button obj
-        new_button_x.setFixedWidth(20)
-        new_button_x.adjustSize()
-
-        new_button_x.setStyleSheet("color: red; font-weight: bold;")
-        
-        grid = QGridLayout()
-        grid.addWidget(new_button, 0, 0)
-        grid.addWidget(new_button_x, 0, 1)
-        self.layout.addRow(grid)
-        x = len(self.orderedbuttons)
-        arr = [x, new_button, new_button_x]
-        dict_data = {"arrpos":x,"bseq":bseq,"pname":pname,"tname":tname,"bname":bname,"objn":objn,"mode":mode, "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid}
-        self.orderedbuttons.append(arr)
-        self.button_items.append(dict_data)
-        new_button_x.clicked.connect(lambda: self.remove_button(dict_data))
-    
-    def remove_button(self, data_dict):
-        self.layout.removeRow(data_dict["grid"])
-        self.button_items.remove(data_dict)
-        for item in self.orderedbuttons:
-            if item[1] == data_dict["btn_item"]:
-                self.orderedbuttons.remove(item)
-                break
-        self.resizeEvent(QtGui.QResizeEvent(self.size(), QtCore.QSize()))
-
-
-
-    def closeEvent(self, event):
-        if self.finished:
-            self._parent.Refresh()
-            event.accept()
-            return
-        qm = QtWidgets.QMessageBox()
-        qm.setText("Are you sure you want to exit the sequence builder?")
-        qm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        qm.setDefaultButton(QtWidgets.QMessageBox.No)
-        qm.setWindowTitle("Exit?")
-        ret = qm.exec_()
-        if ret == QtWidgets.QMessageBox.Yes:
-            self._parent.cur_seq = None
-            event.accept()
-        else:
-            event.ignore()
-    
-
-
-    def reset_layout(self, buttons):
-        #remove from layout
-        for item in self.button_items:
-
-            item["grid"].removeWidget(item["btn_item"])
-            item["grid"].removeWidget(item["x_btn"])
-            self.layout.removeRow(item["grid"])
-
-        self.orderedbuttons = buttons
-        for item in buttons:
-            grid = QGridLayout()
-            grid.addWidget(item[1], 0, 0)
-            grid.addWidget(item[2], 0, 1)
-            self.layout.addRow(grid)
-            #replace grid in button_items
-            for button in self.button_items:
-                if button["btn_item"] == item[1]:
-                    button["grid"] = grid
-                    break
-    
-
-        #add to layout
-
-    
-class DragButton(QPushButton):
-
-    def fake_init(self, parent_, bname):
-        self.parent_ = parent_
-        self.bname = bname
-
-    def mousePressEvent(self, event):
-        self.__mousePressPos = None
-        self.__mouseMovePos = None
-        if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
-    
-        super(DragButton, self).mousePressEvent(event)
-
-    def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
-            # adjust offset from clicked point to origin of widget
-            self.show()
-            currPos = self.mapToGlobal(self.pos())
-            globalPos = event.globalPos()
-            self.raise_()
-            diff = globalPos - self.__mouseMovePos
-            diff.setX(0)
-
-            newPos = self.mapFromGlobal(currPos + diff)
-            logger.trace(f"{newPos.x()}, {newPos.y()}, {self.parent_.height()}")
-            if newPos.y() < 80:
-                newPos.setY(80)
-            if newPos.y() > self.parent_.height() - 75:
-                newPos.setY(self.parent_.height() - 75)
-            self.__mouseMovePos = globalPos
-            self.move(newPos)
-            for item in self.parent_.button_items:
-                if item["btn_item"] == self:
-                    item["x"] = newPos.x()
-                    item["y"] = newPos.y()
-                    item["x_btn"].move(newPos.x()+self.width(), newPos.y())
-
-        super(DragButton, self).mouseMoveEvent(event)
-
-    def mouseReleaseEvent(self, event):
-        if self.__mousePressPos is not None:
-            buttons = []
-            for item in self.parent_.button_items:
-
-                
-                #add item to buttons array ordered by y position
-                buttons.append([item['btn_item'].y(), item['btn_item'], item['x_btn']])
-
-            buttons.sort(key=lambda x: x[0])
-            self.parent_.reset_layout(buttons)
-            moved = event.globalPos() - self.__mousePressPos 
-            if moved.manhattanLength() > 3:
-                event.ignore()
-        super(DragButton, self).mouseReleaseEvent(event)
 
 def main():
     app = QApplication(sys.argv)
     form = DB_Window()
     form.show()
-    
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

@@ -1,0 +1,10 @@
+graph:{
+  title:"classes"
+  layoutalgorithm:dfs
+  late_edge_labels:yes
+  port_sharing:no
+  manhattan_edges:yes
+  node: {title:"PICAT.DB_Window"  label:"\fbDB_Window\fn\n\f________________________\n\f08Main_Table\n\f08SM_Grid\n\f08SM_ScrollArea\n\f08SM_ScrollAreaContents\n\f08SM_ScrollGrid\n\f08TabGrid\n\f08button\n\f08conn\n\f08curTab\n\f08cursor\n\f08dbs\n\f08filename : str\n\f08files\n\f08folders : str\n\f08keyfiles\n\f08lasttab : str\n\f08mtini_acctnum : str\n\f08mtini_broker : str\n\f08src : str\n\f08tab\n\f08title : str, list\n\f08trg : str\n\f________________________\n\f10AboutMsg()\n\f10AboutMsg_Try()\n\f10Add_EXE()\n\f10Change_Ini_AcctNum()\n\f10Change_Ini_Broker()\n\f10ConglomerateFields()\n\f10ConglomeratePK()\n\f10ConglomerateStatements()\n\f10ConglomerateUpdate()\n\f10Create_Button_Dialog()\n\f10ExportExcel()\n\f10File_Tree_Refresh()\n\f10ImportExcel()\n\f10MT_Event()\n\f10Open_App()\n\f10Open_File_Tree()\n\f10Open_Ini_Dialog()\n\f10PG_Function()\n\f10ReadPG()\n\f10Refresh()\n\f10RunPS1()\n\f10SQL_To_PG()\n\f10Scrape()\n\f10WritePG()\n\f10createOrdBackup()\n\f10createOrdCreate()\n\f10getEmoji()\n\f10get_tab_change()\n\f10isNumeric()\n\f10isSQLiteText()\n\f10makeCreatePG()\n\f10on_CellChange()\n\f10on_DeleteRec()\n\f10on_InsertRec()\n\f10on_button_change()\n\f10on_click_button()\n\f10on_click_button_plus()\n\f10on_tab_change()"
+  shape:box
+  }
+}

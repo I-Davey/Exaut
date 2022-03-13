@@ -156,15 +156,63 @@ class Ui_PICAT_SM(object):
         self.actionExport_to_Excel.setObjectName("actionExport_to_Excel")
         self.actionRefresh = QtWidgets.QAction(PICAT_SM)
         self.actionRefresh.setObjectName("actionRefresh")
+        self.actionTabsize = QtWidgets.QAction(PICAT_SM)
+        self.actionTabsize.setObjectName("actionTabsize")
         self.actionOpen_Files_Explorer = QtWidgets.QAction(PICAT_SM)
         self.actionOpen_Files_Explorer.setObjectName("actionOpen_Files_Explorer")
+
+
         self.actionAdd_exe = QtWidgets.QAction(PICAT_SM)
         self.actionAdd_exe.setObjectName("actionAdd_exe")
+
+        self.actionAdd_url = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_url.setObjectName("actionAdd_url")
+
+        self.actionAdd_Folder = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_Folder.setObjectName("actionAdd_Folder")
+
+        self.actionAdd_Seq = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_Seq.setObjectName("actionAdd_Seq")
+
+        self.actionCopy = QtWidgets.QAction(PICAT_SM)
+        self.actionCopy.setObjectName("actionCopy")
+
+        self.actionTab = QtWidgets.QAction(PICAT_SM)
+        self.actionTab.setObjectName("actionTab")
+
+        self.actionTabUrl = QtWidgets.QAction(PICAT_SM)
+        self.actionTabUrl.setObjectName("actionTabUrl")
+
+
+        self.actionTabFolder = QtWidgets.QAction(PICAT_SM)
+        self.actionTabFolder.setObjectName("actionTabFolder")
+
+        self.actionOpenTabUrl = QtWidgets.QAction(PICAT_SM)
+        self.actionOpenTabUrl.setObjectName("actionOpenTabUrl")
+
+
         self.actionAbout = QtWidgets.QAction(PICAT_SM)
         self.actionAbout.setObjectName("actionAbout")
+
+        self.actionEdit_mode = QtWidgets.QAction('Edit Mode', PICAT_SM, checkable=True)
+
+
         self.menuFile.addAction(self.actionOpen_Files_Explorer)
-        self.menuFile.addAction(self.actionAdd_exe)
+        self.menuEdit.addAction(self.actionAdd_Seq)
+        self.menuFile.addAction(self.actionOpenTabUrl)
+        self.menuEdit.addAction(self.actionEdit_mode)
+        self.menuEdit.addAction(self.actionCopy)
+        self.menuEdit.addAction(self.actionAdd_exe)
+        self.menuEdit.addAction(self.actionAdd_url)
+        self.menuEdit.addAction(self.actionAdd_Folder)
+        self.menuEdit.addAction(self.actionTab)
+        self.menuEdit.addAction(self.actionTabUrl)
+        self.menuEdit.addAction(self.actionTabFolder)
+
+
+
         self.menuView.addAction(self.actionRefresh)
+        self.menuView.addAction(self.actionTabsize)
         self.menuTools.addAction(self.actionImport_from_Excel)
         self.menuTools.addAction(self.actionExport_to_Excel)
         self.menuHelp.addAction(self.actionAbout)
@@ -204,9 +252,23 @@ class Ui_PICAT_SM(object):
         self.actionExport_to_Excel.setShortcut(_translate("PICAT_SM", "Ctrl+E"))
         self.actionRefresh.setText(_translate("PICAT_SM", "Refresh"))
         self.actionRefresh.setShortcut(_translate("PICAT_SM", "Ctrl+R"))
+        self.actionTabsize.setText(_translate("PICAT_SM", "Change Tab Size"))
         self.actionOpen_Files_Explorer.setText(_translate("PICAT_SM", "Open Files Explorer"))
         self.actionOpen_Files_Explorer.setShortcut(_translate("PICAT_SM", "Ctrl+O"))
+        self.actionOpenTabUrl.setText(_translate("PICAT_SM", "Open Tab URL"))
+        self.actionOpenTabUrl.setShortcut(_translate("PICAT_SM", "Ctrl+U"))
         self.actionAdd_exe.setText(_translate("PICAT_SM", "Add .exe"))
         self.actionAdd_exe.setShortcut(_translate("PICAT_SM", "Ctrl+A"))
         self.actionAbout.setText(_translate("PICAT_SM", "About"))
+        self.actionCopy.setText(_translate("PICAT_SM", "Copy File"))
+        self.actionTab.setText(_translate("PICAT_SM", "Add Tab"))
+        self.actionAdd_Folder.setText(_translate("PICAT_SM", "Add Folder"))
+
+        self.actionTabUrl.setText(_translate("PICAT_SM", "Add Tab URL"))
+
+        self.actionTabFolder.setText(_translate("PICAT_SM", "Add Tab Folder"))
+        self.actionEdit_mode.setText(_translate("PICAT_SM", "Edit Mode"))
+
+        self.actionAdd_url.setText(_translate("PICAT_SM", "Add URL"))
+        self.actionAdd_Seq.setText(_translate("PICAT_SM", "Add Sequence"))
 

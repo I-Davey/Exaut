@@ -1,0 +1,18 @@
+[SQLCONN]
+connectionpath = D:\PICAT_SGX\
+connection = PICAT_SGX.db
+
+[APPLICATION VARIABLES]
+signalsprefix = icatsignals
+pg_pass = Airhead21PSQL
+
+
+
+[PICAT_SGX]
+form=SGX
+
+[PICAT_COPY]
+form=COPY1
+
+[PICAT_SQL]
+form=PICAT
