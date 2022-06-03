@@ -4,3 +4,6 @@ dist/
 .vscode/
 
 *.ini
+*.session
+Picat_SGX.spec
+*.db
