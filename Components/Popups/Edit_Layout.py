@@ -318,7 +318,9 @@ class Edit_Layout(QDialog):
                         tab = self.tab_data_dict[item]["tab"]
                         formname = self.title
                         buttonname = item2["buttonname"]
-                        columnum = item2["columnnum"] if item2["columnnum"] not in ( None, 0) else 1
+
+                        columnum = item2["columnnum"] if item2["columnnum"] not in ( None, 0, '') else 1
+
                         if columnum == 1:
                             columnum = 2
                         #update button set columnum = columnum - 1
@@ -344,7 +346,9 @@ class Edit_Layout(QDialog):
                         tab = self.tab_data_dict[item]["tab"]
                         formname = self.title
                         buttonname = item2["buttonname"]
-                        columnum = item2["columnnum"] if item2["columnnum"] not in (None, 0) else 1
+
+                        columnum = item2["columnnum"] if item2["columnnum"] not in (None, 0, '', ' ') else 1
+
 
                         #update button set columnum = columnum + 1
                         self.ReadSQL(f"update buttons set columnnum = {columnum + 1} where formname = '{formname}' and tab = '{tab}' and buttonname = '{buttonname}'")

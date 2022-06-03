@@ -1,4 +1,6 @@
+
 from .__important.PluginInterface import PluginInterface
+
 import os
 import ctypes
 import webbrowser
@@ -6,7 +8,8 @@ import subprocess
 class drive_query_example(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"source":3, "buttonname":11, "target":4}
-    type_types = {"url_type":["selection", "Select URL Type", ["Classic URL", "URL OneNote", "URL OneNote Desktop", "URL Telegram",  "URL TradingView", "MS Edge"]], "source":["text", "Enter URL"], "__Name":"URL"}
+
+    type_types = {"__Name":"URL"}
 
     callname = "dqe"
     hooks_handler = ["log"]
