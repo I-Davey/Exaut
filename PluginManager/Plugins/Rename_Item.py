@@ -1,6 +1,4 @@
-
 from .__important.PluginInterface import PluginInterface
-
 import os
 import shutil
 class Rename_Item(PluginInterface):

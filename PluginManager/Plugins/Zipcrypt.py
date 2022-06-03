@@ -23,9 +23,6 @@ class Zipcrypt(PluginInterface):
     def main(self,source, destination, password) -> bool:
         curdir = getcwd()
         with tempfile.TemporaryDirectory() as tmpdir:
-
-            source = source.replace("\\", "/")
-
             move_from_fullpath = source.split("/")[:-1]
             #combine move_from_fullpath into string seperated by "\\"
             move_from_fullpath = "/".join(move_from_fullpath) + "/"

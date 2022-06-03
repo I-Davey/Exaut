@@ -1,6 +1,4 @@
-
 from .__important.PluginInterface import PluginInterface
-
 import os
 import ctypes
 import shutil
@@ -12,6 +10,7 @@ class example(PluginInterface):
 
     callname = "example"
     hooks_handler = ["log"]
+
 
 
     def load_self(self, hooks):

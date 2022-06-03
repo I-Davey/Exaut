@@ -318,9 +318,7 @@ class Edit_Layout(QDialog):
                         tab = self.tab_data_dict[item]["tab"]
                         formname = self.title
                         buttonname = item2["buttonname"]
-
-                        columnum = item2["columnnum"] if item2["columnnum"] not in ( None, 0, '') else 1
-
+                        columnum = item2["columnnum"] if item2["columnnum"] not in ( None, 0) else 1
                         if columnum == 1:
                             columnum = 2
                         #update button set columnum = columnum - 1
@@ -346,9 +344,7 @@ class Edit_Layout(QDialog):
                         tab = self.tab_data_dict[item]["tab"]
                         formname = self.title
                         buttonname = item2["buttonname"]
-
-                        columnum = item2["columnnum"] if item2["columnnum"] not in (None, 0, '', ' ') else 1
-
+                        columnum = item2["columnnum"] if item2["columnnum"] not in (None, 0) else 1
 
                         #update button set columnum = columnum + 1
                         self.ReadSQL(f"update buttons set columnnum = {columnum + 1} where formname = '{formname}' and tab = '{tab}' and buttonname = '{buttonname}'")
@@ -412,8 +408,14 @@ class Edit_Layout(QDialog):
                 self.SM_ScrollAreaContents.setObjectName(f"SM_ScrollAreaContents_{i}_{x-1}")
                 self.SM_ScrollGrid = QGridLayout(self.SM_ScrollAreaContents)
                 self.SM_ScrollGrid.setObjectName(f"SM_ScrollGrid_{i}_{x-1}")
+                #align grid to top
+
+                
                 self.SM_Grid =  QGridLayout()
                 self.SM_Grid.setObjectName(f"SM_Grid_{i}_{x-1}")
+                self.SM_Grid.setRowStretch(1000, 3)
+
+
                 for x1, button in enumerate(self.tab_data_dict[item]["buttons"]):
                     bname = button["buttonname"]
                     bcolumn = button["columnnum"] if button["columnnum"] else 0
