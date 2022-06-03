@@ -23,10 +23,15 @@ class git_commit_msg(PluginInterface):
         if summary is None:
             self.logger.warning("no summary given, cancelling commit")
             return False
+        command_0 = f"git add --all"
+
         command = f"git commit -am \"{summary}\""
         curdir = os.getcwd()
         os.chdir(dir)
+        os.system(command_0)
+        self.logger.success(f"{command_0} executed in {dir}")
         os.system(command)
-        os.chdir(curdir)
         self.logger.success(f"{command} executed in {dir}")
+        os.chdir(curdir)
+
         return True
