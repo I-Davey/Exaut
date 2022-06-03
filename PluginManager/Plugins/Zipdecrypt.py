@@ -1,4 +1,6 @@
-from .PluginInterface import PluginInterface
+
+from .__important.PluginInterface import PluginInterface
+
 import ctypes
 import shutil
 import win32api

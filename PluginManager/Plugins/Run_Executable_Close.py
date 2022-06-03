@@ -1,5 +1,7 @@
 from asyncio.subprocess import PIPE
-from .PluginInterface import PluginInterface
+
+from .__important.PluginInterface import PluginInterface
+
 import os
 import subprocess
 import ctypes
