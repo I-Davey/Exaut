@@ -1,0 +1,1346 @@
+"""
+import os
+import ctypes
+import shutil
+import psutil
+import winshell
+from win32com.client import Dispatch
+import sys
+import win32api
+import glob
+from loguru import logger
+import psycopg2
+
+def run(parent_, bseq, bname, pname, tname, ReadSQL,WriteSQL, addSlash, copyDir, runExcel, runRange, runQuery):
+    for pf in range(len(bseq)):
+        if str(bseq[pf][2])=="bat":
+            if os.path.exists(str(bseq[pf][0])+"\\"+str(bseq[pf][1]))==True:
+                os.system("\""+str(bseq[pf][0])+"\\"+str(bseq[pf][1])+"\"")
+            else:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" does not exist?","Failed bat: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="sql":
+            eng = ReadSQL("select * from sqlengine")
+            if len(eng)<=0:
+                ctypes.windll.user32.MessageBoxW(0,"No record exists in sqlengine table?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                bseq[pf][0] = addSlash(str(bseq[pf][0]))
+                path = str(eng[0][0])+" "+str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" \".read '"+str(bseq[pf][0])+"\\\\"+str(bseq[pf][1])+"'\""
+                if os.path.exists(str(eng[0][0]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(eng[0][0])+" does not exist?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][0])+"\\"+str(bseq[pf][1]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" does not exist?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    try:
+                        #os.rename(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][5])+"\\"+str(bseq[pf][6]))
+                        os.system(path)
+                    except OSError as e:
+                        ctypes.windll.user32.MessageBoxW(0,path+" error running .sql file, permission issue? \\"+str(bseq[pf][9]),"",1)
+        elif str(bseq[pf][2])=="sqlinput":
+            eng = ReadSQL("select * from sqlengine")
+            if len(eng)<=0:
+                ctypes.windll.user32.MessageBoxW(0,"No record exists in sqlengine table?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                bseq[pf][0] = addSlash(str(bseq[pf][0]))
+                path = str(eng[0][0])+" "+str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" \".read '"+str(bseq[pf][0])+"\\\\"+str(bseq[pf][1])+"'\""
+                if os.path.exists(str(eng[0][0]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(eng[0][0])+" does not exist?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][0])+"\\"+str(bseq[pf][1]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" does not exist?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    variables = bseq[pf][3]
+                    if variables==None or variables=="":
+                        ctypes.windll.user32.MessageBoxW(0,"No variables specified in source?","Failed sql: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    else:
+                        variables = variables.split('|')
+                        txt = open(str(bseq[pf][0])+"\\"+str(bseq[pf][1])).read()
+                        for i in range(len(variables)):
+                            txt = txt.replace("%var"+str(i+1)+"%",variables[i])
+                        os.system("type NUL > "+str(bseq[pf][0])+"\\%%%"+str(bseq[pf][1]))
+                        if os.path.exists(str(bseq[pf][0])+"\\%%%"+str(bseq[pf][1]))==True:
+                            newtxt = open(str(bseq[pf][0])+"\\%%%"+str(bseq[pf][1]),'w+')
+                            newtxt.write(txt)
+                            newtxt.close()
+                        try:
+                            path = str(eng[0][0])+" "+str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" \".read '"+str(bseq[pf][0])+"\\\\%%%"+str(bseq[pf][1])+"'\""
+                            os.system(path)
+                            os.remove(str(bseq[pf][0])+"\\%%%"+str(bseq[pf][1]))
+                        except OSError as e:
+                            ctypes.windll.user32.MessageBoxW(0,path+" error running .sql file, permission issue? \\"+str(bseq[pf][9]),"",1)
+        elif str(bseq[pf][2])=="pg":
+            if str(bseq[pf][4])=="" or str(bseq[pf][4])=="None":
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials provided?","Failed pg: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(str(bseq[pf][0])+"\\"+str(bseq[pf][1]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" does not exist?","Failed pg: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                try:
+                    parent_.PG_Function(str(bseq[pf][0])+"\\"+str(bseq[pf][1]),str(bseq[pf][4]),"",str(bseq[pf][9]),0)
+                except OSError as e:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" error running .sql file, permission issue?"," \\"+str(bseq[pf][9]),1)
+        elif str(bseq[pf][2])=="pginput":
+            if str(bseq[pf][4])=="" or str(bseq[pf][4])=="None":
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials provided?","Failed pginput: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(str(bseq[pf][0])+"\\"+str(bseq[pf][1]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" does not exist?","Failed pginput: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.PG_Function(str(bseq[pf][0])+"\\"+str(bseq[pf][1]),str(bseq[pf][4]),str(bseq[pf][3]),str(bseq[pf][9]),1)
+        elif str(bseq[pf][2])=="srtg":
+            if os.path.exists(str(bseq[pf][0])+"\\$Srtg.bat")==True:
+                os.system("rm "+str(bseq[pf][0])+"\\$Srtg.bat")
+            if os.path.exists(str(bseq[pf][0])+"\\"+str(bseq[pf][1]))==True:
+                txt = open(str(bseq[pf][0])+"\\"+str(bseq[pf][1])).read()
+                txt = txt.replace("%Source%",str(bseq[pf][3]))
+                txt = txt.replace("%Target%",str(bseq[pf][4]))
+                os.system("type NUL > "+str(bseq[pf][0])+"\\$Srtg.bat")
+                if os.path.exists(str(bseq[pf][0])+"\\$Srtg.bat")==True:
+                    newtxt = open(str(bseq[pf][0])+"\\$Srtg.bat",'w')
+                    newtxt.write(txt)
+                    newtxt.close()
+                    os.system(str(bseq[pf][0])+"\\$Srtg.bat")
+                else:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\$Srtg.bat did not create?","Failed srtg: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1])+" does not exist?","Failed srtg: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="RARa":
+            key = ''
+            if os.path.exists(str(bseq[pf][7])+"\\"+str(bseq[pf][8]))==True:
+                key = open(str(bseq[pf][7])+"\\"+str(bseq[pf][8])).read()
+                if key=='':
+                    ctypes.windll.user32.MessageBoxW(0,"Key not provided within "+str(bseq[pf][7])+"\\"+str(bseq[pf][8])+".","Failed RARa: "+bname+"! \\"+str(bseq[pf][9]),1)
+                else:
+                    src = str(bseq[pf][3])
+                    trg = str(bseq[pf][4])
+                    if os.path.exists(trg)==False:
+                        os.system("mkdir \""+trg+"\"")
+                    if os.path.exists(src)==False:
+                        if src==None or src=="None":
+                            src = "source"
+                        ctypes.windll.user32.MessageBoxW(0,src+" does not exist?","Failed RARa: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    elif os.path.exists(trg)==False:
+                        if trg==None or trg=="None":
+                            trg = "target"
+                        ctypes.windll.user32.MessageBoxW(0,trg+" does not exist?","Failed RARa: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    else:
+                        ibase = os.path.basename(src)
+                        shutil.copytree(src,"C:\\"+ibase)
+                        os.system("WinRAR a -u -r -p"+key+" \""+str(bseq[pf][4])+"\\"+str(bseq[pf][1])+"\" \"C:\\"+ibase+"\*.*\"")
+                        shutil.rmtree("C:\\"+ibase)
+            else:
+                keypath = bseq[pf][7]
+                keyfile = bseq[pf][8]
+                if keypath==None or keypath=="None":
+                    keypath = "keypath "
+                if keyfile==None or keyfile=="None":
+                    keyfile = "keyfile"
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][7])+"\\"+str(bseq[pf][8])+" does not exist?","Failed RARa: "+bname+"! \\"+str(bseq[pf][9]),0)
+        if str(bseq[pf][2])=="RARe":
+            key = ''
+            if os.path.exists(str(bseq[pf][7])+"\\"+str(bseq[pf][8]))==True:
+                key = open(str(bseq[pf][7])+"\\"+str(bseq[pf][8])).read()
+                if key=='':
+                    ctypes.windll.user32.MessageBoxW(0,"Key not provided within "+str(bseq[pf][7])+"\\"+str(bseq[pf][8])+".","Failed RARa: "+bname+"! \\"+str(bseq[pf][9]),1)
+                else:
+                    val = str(bseq[pf][3])+"\\"+str(bseq[pf][1])
+                    trg = str(bseq[pf][4])
+                    if os.path.exists(trg)==False:
+                        if trg==None or trg=="None":
+                            trg = "target"
+                        os.system("mkdir \""+trg+"\"")
+                    if os.path.exists(trg)==False:
+                        if trg==None or trg=="None":
+                            trg = "target"
+                        ctypes.windll.user32.MessageBoxW(0,trg+" does not exist?","Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    if os.path.exists(val)==True:
+                        temp_dir = os.path.dirname(trg)+"\\"+os.path.basename(trg)+"\\$$temp$$"
+                        if os.path.exists(temp_dir)==True:
+                            try:
+                                shutil.rmtree(temp_dir)
+                            except:
+                                ctypes.windll.user32.MessageBoxW(0,"Failed to delete "+temp_dir+", permission issue?","Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        if os.path.exists(temp_dir)==False:
+                            try:
+                                os.system("mkdir \""+temp_dir+"\"")
+                            except Exception as e:
+                                ctypes.windll.user32.MessageBoxW(0,"Failed to recreate "+temp_dir+", "+str(e),"Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        try:
+                            os.system("WinRAR x -ep1 -r -o+ \""+val+"\" \""+temp_dir+"\" -p"+key)
+                        except Exception as e:
+                            ctypes.windll.user32.MessageBoxW(0,"Failed to run WinRAR x -ep1 -r -o+ \""+val+"\" \""+temp_dir+"\" -p{password}, "+str(e),"Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        #os.system("WinRAR x -ep1 -r -o+ \""+val+"\" \""+trg+"\" -p"+key)
+                        for d in os.listdir(temp_dir):
+                            try:
+                                copyDir(os.path.join(temp_dir,str(d)),trg)##########
+                            except Exception as e:
+                                ctypes.windll.user32.MessageBoxW(0,"Failed to copy "+os.path.join(temp_dir,str(d))+" to "+trg+", "+str(e),"Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        try:
+                            shutil.rmtree(temp_dir)
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Failed to delete "+temp_dir+", permission issue?","Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    else:
+                        source = str(bseq[pf][3])
+                        rarfile = str(bseq[pf][1])
+                        val = ""
+                        if source==None or source=="None":
+                            source = "source "
+                            val = source
+                        if rarfile==None or rarfile=="None":
+                            val += "filename"
+                        ctypes.windll.user32.MessageBoxW(0,val+" does not exist?","Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                keypath = str(bseq[pf][7])
+                keyfile = str(bseq[pf][8])
+                if keypath==None or keypath=="None":
+                    keypath = "keypath "
+                if keyfile==None or keyfile=="None":
+                    keyfile = "keyfile"
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][7])+"\\"+str(bseq[pf][8])+" does not exist?","Failed RARe: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="RARa1":
+            if os.path.exists(str(bseq[pf][7])+"\\"+str(bseq[pf][8]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][7])+"\\"+str(bseq[pf][8])+" does not exist?","Failed RARa1: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                key = open(str(bseq[pf][7])+"\\"+str(bseq[pf][8])).read()
+                if key=='':
+                    ctypes.windll.user32.MessageBoxW(0,"Key not provided within "+str(bseq[pf][7])+"\\"+str(bseq[pf][8])+"?","Failed RARa1: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    key = str(key)
+                    ibase = os.path.basename(str(bseq[pf][3]))
+                    if os.path.exists(str(bseq[pf][3]))==False:
+                        ctypes.windll.user32.MessageBoxW(0,"Source "+str(bseq[pf][3])+" does not exist?","Failed RARa1: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    elif os.path.exists(str(bseq[pf][4]))==False:
+                        ctypes.windll.user32.MessageBoxW(0,"Target "+str(bseq[pf][4])+" does not exist?","Failed RARa1: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    else:
+                        os.system("WinRAR a -ep1 -u -r -p"+key+" \""+str(bseq[pf][4])+"\\"+str(bseq[pf][1])+"\" \""+str(bseq[pf][3])+"\*.*\"")
+                        for root, dirs, files in os.walk(str(bseq[pf][3])):
+                            for f in files:
+                                os.remove(str(bseq[pf][3])+"\\"+f)
+                            for d in dirs:
+                                shutil.rmtree(str(bseq[pf][3])+"\\"+d)
+        elif str(bseq[pf][2])=="RARe1":
+            if os.path.exists(str(bseq[pf][7])+"\\"+str(bseq[pf][8]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][7])+"\\"+str(bseq[pf][8])+" does not exist?","Failed RARe1: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                key = open(str(bseq[pf][7])+"\\"+str(bseq[pf][8])).read()
+                if key=='':
+                    ctypes.windll.user32.MessageBoxW(0,"Key not provided within "+str(bseq[pf][7])+"\\"+str(bseq[pf][8])+"?","Failed RARe1: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    key = str(key)
+                    if os.path.exists(str(bseq[pf][4]))==False:
+                        os.system("mkdir \""+str(bseq[pf][4])+"\"")
+                    if os.path.exists(str(bseq[pf][3])+"\\"+str(bseq[pf][1]))==True:
+                        temp_dir = str(bseq[pf][4])+"\\$$temp$$"
+                        if os.path.exists(temp_dir)==False:
+                            os.system("mkdir \""+temp_dir+"\"")
+                            os.system("WinRAR x -ep1 -r -o+ \""+str(bseq[pf][3])+"\\"+str(bseq[pf][1])+"\" \""+temp_dir+"\" -p"+key)
+                            for d in os.listdir(temp_dir):
+                                copyDir(os.path.join(temp_dir,str(d)),str(bseq[pf][4])+"\\"+str(d))
+                            try:
+                                shutil.rmtree(temp_dir)
+                            except:
+                                ctypes.windll.user32.MessageBoxW(0,"Failed to delete "+temp_dir+", permission issue?","Failed RARe1: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            try:
+                                os.remove(str(bseq[pf][3])+"\\"+str(bseq[pf][1]))
+                            except OSError as e:
+                                ctypes.windll.user32.MessageBoxW(0,"Failed to delete "+str(bseq[pf][3])+"\\"+str(bseq[pf][1])+", permission issue?","Failed RARe1: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="rdstini":
+            if os.path.exists(bseq[pf][4])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" target does not exist?","Failed rdstini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                try:
+                    shutil.rmtree(bseq[pf][4])
+                except:
+                    ctypes.windll.user32.MessageBoxW(0,"Problem removing "+bseq[pf][4]+"?","Failed rdstini: "+bname+"! \\"+str(bseq[pf][9]),0)
+                spath = os.path.realpath(sys.argv[0])
+                spath = os.path.dirname(spath)+"\\"
+                spath = addSlash(spath)
+                if bseq[pf][4]!=None and bseq[pf][4]!="":
+                    WriteSQL("attach database '"+spath+"PICAT_SM_connect.db' as PCONNECT")
+                    WriteSQL("delete from PCONNECT.buttons where treepath = '"+bseq[pf][4]+"'")
+                    WriteSQL("update buttons set active = null where treepath = '"+bseq[pf][4]+"'")
+                    WriteSQL("detach database PCONNECT")
+        elif str(bseq[pf][2])=="stini":
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed stini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.Open_Ini_Dialog("MT4",pname,tname,bname,str(bseq[pf][0]),str(bseq[pf][9]),str(bseq[pf][4]),0)
+        elif str(bseq[pf][2])=="stinimt5":
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed stini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.Open_Ini_Dialog("MT5",pname,tname,bname,str(bseq[pf][0]),str(bseq[pf][9]),str(bseq[pf][4]),0)
+        elif str(bseq[pf][2])=="mtini":
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed mtini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.Open_Ini_Dialog("MT4",pname,tname,bname,str(bseq[pf][0]),str(bseq[pf][9]),str(bseq[pf][4]),1)
+        elif str(bseq[pf][2])=="mtinimt5":
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed mtini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.Open_Ini_Dialog("MT5",pname,tname,bname,str(bseq[pf][0]),str(bseq[pf][9]),str(bseq[pf][4]),1)
+        elif str(bseq[pf][2])=="prochr":
+            if bseq[pf][3]==None or bseq[pf][3]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Source not specified?","Failed prochr: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                dbyes = ""
+                if type(bseq[pf][5])!=None and type(bseq[pf][6])!=None:
+                    dbyes = str(bseq[pf][5])+"\\"+str(bseq[pf][6])
+                parent_.Open_Ini_Dialog("MT4",pname,tname,bname,str(bseq[pf][3]),str(bseq[pf][9]),dbyes,3,str(bseq[pf][1]),str(bseq[pf][0]))
+        elif str(bseq[pf][2])=="prochrmt5":
+            if bseq[pf][3]==None or bseq[pf][3]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Source not specified?","Failed prochr: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                dbyes = ""
+                if type(bseq[pf][5])!=None and type(bseq[pf][6])!=None:
+                    dbyes = str(bseq[pf][5])+"\\"+str(bseq[pf][6])
+                parent_.Open_Ini_Dialog("MT5",pname,tname,bname,str(bseq[pf][3]),str(bseq[pf][9]),dbyes,3,str(bseq[pf][1]),str(bseq[pf][0]))
+        elif str(bseq[pf][2])=="proini":
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed profileini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.Open_Ini_Dialog("MT4",pname,tname,bname,str(bseq[pf][3]),str(bseq[pf][9]),str(bseq[pf][4]),4,str(bseq[pf][1]),str(bseq[pf][0]))
+        elif str(bseq[pf][2])=="proinimt5":
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed profileini: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.Open_Ini_Dialog("MT5",pname,tname,bname,str(bseq[pf][3]),str(bseq[pf][9]),str(bseq[pf][4]),4,str(bseq[pf][1]),str(bseq[pf][0]))
+        elif str(bseq[pf][2])=="mtfinish" or str(bseq[pf][2])=="mt5finish":
+            mt = "MQL4"
+            if str(bseq[pf][2])=="mt5finish":
+                mt = "MQL5"
+            if bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"Target not specified?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                if os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    path = str(bseq[pf][5])+"\\"+str(bseq[pf][6])
+                    temp_path = path
+                    if temp_path[:1]=="\\":
+                        temp_path = temp_path[1:]
+                    attach_path = temp_path.replace("\\","\\\\")
+                    temp00 = str(bseq[pf][4])
+                    if temp00[-1:]=="\\":
+                        temp00 = temp00[:-1]
+                    if os.path.exists(temp00)==False:
+                        ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    else:
+                        #print("attach database '"+attach_path+"' as COMBOT")
+                        WriteSQL("attach database '"+attach_path+"' as COMBOT")
+                        #os.system("pause")
+                        try:
+                            get_data = ReadSQL("select brokerid,acctnum from COMBOT.brokeraccountserver where running = 1 and serverpath = '"+temp00+"'")
+                            if len(get_data)<=0:
+                                ctypes.windll.user32.MessageBoxW(0,"Could not find record in brokeraccountserver for "+temp00+"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            elif get_data[0][0]==None or get_data[0][0]=="":
+                                ctypes.windll.user32.MessageBoxW(0,"Invalid brokerid in brokeraccountserver for "+temp00+"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            elif get_data[0][1]==None or get_data[0][1]=="" or get_data[0][1]==0:
+                                ctypes.windll.user32.MessageBoxW(0,"Invalid acctnum in brokeraccountserver for "+temp00+"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            
+                            else:
+                                #print("\""+temp00+"\\"+mt+"\\Files\\PICAT_Close.exe\" "+get_data[0][0]+" "+str(get_data[0][1])+" \""+temp00+"\" \""+path+"\"")
+                                win32api.WinExec("\""+temp00+"\\"+mt+"\\Files\\PICAT_Close.exe\" "+get_data[0][0]+" "+str(get_data[0][1])+" \""+temp00+"\" \""+path+"\"")
+                            #os.system("pause")
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Problem running \""+temp00+"\\"+mt+"\\Files\\PICAT_Close.exe\"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        #print("detach database COMBOT")
+                        WriteSQL("detach database COMBOT")
+                        #os.system("pause")
+        elif str(bseq[pf][2])=="mtcls":
+            temp00 = str(bseq[pf][0])
+            if os.path.exists(temp00)==False:
+                ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed mtcls: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists("C:\\Windows\\nircmd.exe")==False:
+                ctypes.windll.user32.MessageBoxW(0,"C:\\Windows\\nircmd.exe does not exist?","Failed mtcls: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                cmd = "C:\\Windows\\nircmd.exe closeprocess "+str(bseq[pf][0])+"\\terminal.exe"
+                os.system(cmd)
+        elif str(bseq[pf][2])=="mt5cls":
+            temp00 = str(bseq[pf][0])
+            if os.path.exists(temp00)==False:
+                ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed mt5cls: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists("C:\\Windows\\nircmd.exe")==False:
+                ctypes.windll.user32.MessageBoxW(0,"C:\\Windows\\nircmd.exe does not exist?","Failed mt5cls: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                cmd = "C:\\Windows\\nircmd.exe closeprocess "+str(bseq[pf][0])+"\\terminal64.exe"
+                os.system(cmd)
+        elif str(bseq[pf][2])=="mtcla":
+            if os.path.exists("C:\\Windows\\nircmd.exe")==False:
+                ctypes.windll.user32.MessageBoxW(0,"C:\\Windows\\nircmd.exe does not exist?","Failed mtcla: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                for pid in (process.pid for process in psutil.process_iter() if process.name()=="terminal.exe"):
+                    os.system("C:\\Windows\\nircmd.exe closeprocess "+psutil.Process(pid).cmdline()[0])
+        elif str(bseq[pf][2])=="mt5cla":
+            if os.path.exists("C:\\Windows\\nircmd.exe")==False:
+                ctypes.windll.user32.MessageBoxW(0,"C:\\Windows\\nircmd.exe does not exist?","Failed mt5cla: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                for pid in (process.pid for process in psutil.process_iter() if process.name()=="terminal64.exe"):
+                    os.system("C:\\Windows\\nircmd.exe closeprocess "+psutil.Process(pid).cmdline()[0])
+        elif str(bseq[pf][2])=="shcutport" or str(bseq[pf][2])=="shcutportmt5":
+            target = ""
+            if str(bseq[pf][2])=="shcutportmt5":
+                target = "64"
+            temp00 = bseq[pf][0]
+            if os.path.exists(bseq[pf][0]+"\\terminal"+target+".exe")==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][0]+"\\terminal"+target+".exe does not exist?","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                if os.path.exists(bseq[pf][0]+"\\terminal"+target+".exe")==True:
+                    target = bseq[pf][0]+"\\terminal"+target+".exe"
+                argue = ""
+                if str(bseq[pf][2])=="shcutport":
+                    argue = "/portable"
+                name = os.path.basename(temp00)
+                desktop = winshell.desktop()
+                path = os.path.join(desktop,name+".lnk")
+                wDir = temp00
+                icon = bseq[pf][0]+"\\terminal.ico"
+                shell = Dispatch('WScript.Shell')
+                shortcut = shell.CreateShortCut(path)
+                shortcut.Targetpath = target
+                shortcut.WorkingDirectory = wDir
+                shortcut.Arguments = argue
+                shortcut.IconLocation = icon
+                shortcut.save()
+        elif str(bseq[pf][2])=="shcutportstart" or str(bseq[pf][2])=="shcutportstartmt5":
+            target = ""
+            if str(bseq[pf][2])=="shcutportstartmt5":
+                target = "64"
+            temp00 = bseq[pf][0]
+            if os.path.exists(bseq[pf][0]+"\\terminal"+target+".exe")==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][0]+"\\terminal"+target+".exe does not exist?","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                if os.path.exists(bseq[pf][0]+"\\terminal"+target+".exe")==True:
+                    target = bseq[pf][0]+"\\terminal"+target+".exe"
+                argue = "/portable config\start.ini"
+                name = os.path.basename(temp00)
+                desktop = winshell.desktop()
+                path = os.path.join(desktop,name+".lnk")
+                wDir = temp00
+                icon = bseq[pf][0]+"terminal.ico"
+                shell = Dispatch('WScript.Shell')
+                shortcut = shell.CreateShortCut(path)
+                shortcut.Targetpath = target
+                shortcut.WorkingDirectory = wDir
+                shortcut.Arguments = argue
+                shortcut.IconLocation = icon
+                shortcut.save()
+        elif str(bseq[pf][2])=="shcutportcpu0" or str(bseq[pf][2])=="shcutportcpu0start" or str(bseq[pf][2])=="shcutportcpu0mt5" or str(bseq[pf][2])=="shcutportcpu0startmt5":
+            target = ""
+            if str(bseq[pf][2])=="shcutportcpu0mt5" or str(bseq[pf][2])=="shcutportcpu0startmt5":
+                target = "64"
+            temp00 = bseq[pf][0]
+            if os.path.exists(temp00)==False:
+                ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                if os.path.exists(bseq[pf][0]+"\\terminal"+target+".exe")==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][0]+"\\terminal"+target+".exe does not exist?","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    name = os.path.basename(temp00)
+                    if os.path.exists(bseq[pf][0]+"\\"+name+".bat")==True:
+                        os.remove(bseq[pf][0]+"\\"+name+".bat")
+                    f = open(bseq[pf][0]+"\\"+name+".bat","w+")
+                    append = ""
+                    if str(bseq[pf][2])=="shcutportcpu0start":
+                        append = " config\start.ini"
+                    f.write("C:\Windows\system32\cmd.exe /c start \"Process Monitor\" /affinity 1 \""+bseq[pf][0]+"\\terminal"+target+".exe\""+append+" /portable")
+                    f.close()
+                    desktop = winshell.desktop()
+                    path = os.path.join(desktop,name+".lnk")
+                    target = bseq[pf][0]+"\\"+name+".bat"
+                    wDir = temp00
+                    argue = "/portable"
+                    icon = bseq[pf][0]+"\\terminal.ico"
+                    shell = Dispatch('WScript.Shell')
+                    shortcut = shell.CreateShortCut(path)
+                    shortcut.Targetpath = target
+                    shortcut.WorkingDirectory = wDir
+                    shortcut.Arguments = argue
+                    shortcut.IconLocation = icon
+                    shortcut.save()
+        elif str(bseq[pf][2])=="pexce":
+            eng = ReadSQL("select * from sqlengine")
+            if len(eng)<=0:
+                ctypes.windll.user32.MessageBoxW(0,"No record exists in sqlengine table?","Failed pexce: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                temp00 = str(bseq[pf][0])
+                if os.path.exists(temp00)==False:
+                    ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed pexce: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed pexce: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    runExcel(1,str(bseq[pf][0])+"\\"+str(bseq[pf][1]),str(eng[0][0]),str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][0]),str(bseq[pf][3]),0,1)
+        elif str(bseq[pf][2])=="pexim":
+            eng = ReadSQL("select * from sqlengine")
+            if len(eng)<=0:
+                ctypes.windll.user32.MessageBoxW(0,"No record exists in sqlengine table?","Failed pexim: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                temp00 = str(bseq[pf][0])
+                if os.path.exists(temp00)==False:
+                    ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed pexim: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(eng[0][0]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(eng[0][0])+" does not exist?","Failed pexim: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed pexim: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    runExcel(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1]),str(eng[0][0]),str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][0]),str(bseq[pf][3]),0,0)
+        elif str(bseq[pf][2])=="pexir":
+            eng = ReadSQL("select * from sqlengine")
+            if len(eng)<=0:
+                ctypes.windll.user32.MessageBoxW(0,"No record exists in sqlengine table?","Failed pexir: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                temp00 = str(bseq[pf][0])
+                if os.path.exists(temp00)==False:
+                    ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed pexir: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(eng[0][0]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(eng[0][0])+" does not exist?","Failed pexir: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed pexir: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    runRange(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][3]),str(bseq[pf][0])+"\\"+str(bseq[pf][1]))
+                    #runExcel(0,str(bseq[pf][0])+"\\"+str(bseq[pf][1]),str(eng[0][0]),str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][0]),str(bseq[pf][3]),1,0)
+        elif str(bseq[pf][2])=="pexqu":
+            eng = ReadSQL("select * from sqlengine")
+            if len(eng)<=0:
+                ctypes.windll.user32.MessageBoxW(0,"No record exists in sqlengine table?","Failed pexqu: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                temp00 = str(bseq[pf][0])
+                if os.path.exists(temp00)==False:
+                    ctypes.windll.user32.MessageBoxW(0,temp00+" folderpath does not exist?","Failed pexqu: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" does not exist?","Failed pexqu: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif os.path.exists(str(bseq[pf][3]))==False:
+                    ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][3])+" does not exist?","Failed pexqu: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif bseq[pf][1]==None or bseq[pf][1]=="":
+                    ctypes.windll.user32.MessageBoxW(0,"No file specified in filename?","Failed pexqu: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    queryname = os.path.basename(str(bseq[pf][3]))[:-4]
+                    runQuery(temp00+"\\"+str(bseq[pf][1]),str(eng[0][0]),str(bseq[pf][3]),str(bseq[pf][5])+"\\"+str(bseq[pf][6]),queryname)
+        elif str(bseq[pf][2])=="exe" or str(bseq[pf][2])=="py":
+            if bseq[pf][4]!=None and str(bseq[pf][4])!="":
+                val = str(bseq[pf][3])+"~"+str(bseq[pf][4])
+            else:
+                val = str(bseq[pf][3])
+            parent_.Open_App(str(bseq[pf][2]),str(bseq[pf][0]),str(bseq[pf][1]),val)
+        elif str(bseq[pf][2])=="dellocdb":
+            temp00 = str(bseq[pf][0])
+            #temp00 = temp00[:-1]
+            if os.path.exists(temp00)==False:
+                ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed dellocdb: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                pathinst = str(bseq[pf][0])+"\\MQL4\\Files"
+                if os.path.exists(pathinst)==False:
+                    ctypes.windll.user32.MessageBoxW(0,pathinst+" contains no MQL4\\Files directory?","Failed dellocdb: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    filelist = glob.glob(pathinst+"\\*.db")
+                    for file in filelist:
+                        try:
+                            if os.path.basename(file)!="Error.db":
+                                os.remove(file)
+                        except OSError as e:
+                            logger.error("Failed to delete "+file+", permission issue?")
+        elif str(bseq[pf][2])=="dellocdbmt5":
+            temp00 = str(bseq[pf][0])
+            #temp00 = temp00[:-1]
+            if os.path.exists(temp00)==False:
+                ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed dellocdb: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                pathinst = str(bseq[pf][0])+"\\MQL5\\Files"
+                if os.path.exists(pathinst)==False:
+                    ctypes.windll.user32.MessageBoxW(0,pathinst+" contains no MQL5\\Files directory?","Failed dellocdbmt5: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    filelist = glob.glob(pathinst+"\\*.db")
+                    for file in filelist:
+                        try:
+                            if os.path.basename(file)!="Error.db":
+                                os.remove(file)
+                        except OSError as e:
+                            logger.debug("Failed to delete "+file+", permission issue?")
+        elif str(bseq[pf][2])=="createdb" or str(bseq[pf][2])=="alterdb":
+            temp00 = str(bseq[pf][5])
+            if os.path.exists(temp00)==False:
+                ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                copysuccess = True
+                if str(bseq[pf][2])=="alterdb":
+                    if os.path.exists(str(bseq[pf][5])+"\\"+bseq[pf][6])==False:
+                        #ctypes.windll.user32.MessageBoxW(0,path+bseq[pf][6]+" does not exist?","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+                            logger.warning(str(bseq[pf][5])+"\\"+bseq[pf][6]+" does not exist? Button: "+bname+"\\"+str(bseq[pf][9]))
+                            copysuccess = False
+                    else:
+                        try:
+                            logger.warning("copy \""+str(bseq[pf][5])+"\\"+bseq[pf][6]+"\" \""+str(bseq[pf][5])+"\\"+bseq[pf][6][0:-3]+"_bak.db\"")
+                            os.system("copy \""+str(bseq[pf][5])+"\\"+bseq[pf][6]+"\" \""+str(bseq[pf][5])+"\\"+bseq[pf][6][0:-3]+"_bak.db\"")
+                            #shutil.copy2(path+bseq[pf][6],path+bseq[pf][6][0:-3]+"_bak.db")
+                        except Exception as e:
+                            logger.error(str(e))
+                            ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+bseq[pf][6]+" failed to backup.","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+                            copysuccess = False
+                if copysuccess==True:
+                    statements = ReadSQL("select mastdbtbls.databasefile,mastdbtbls.tbl_name,masttbls.sql,masttbls.fields,masttbls.reqpopulate "+
+                                        "from mastdbtbls inner join masttbls on masttbls.tbl_name = mastdbtbls.tbl_name where "+
+                                        "mastdbtbls.databasefile = '"+bseq[pf][6]+"'")
+                    #print(statements)
+                    warning = ""
+                    for i in range(len(statements)):
+                        createtable = statements[i][2][0:13]
+                        createtable = createtable.upper()
+                        if createtable=="CREATE TABLE ":
+                            statements[i][2] = statements[i][2][0:13]+"IF NOT EXISTS NEWDB."+statements[i][2][13:]
+                        path = bseq[pf][5]
+                        dbpath = addSlash(path)
+                        #print("attach database '"+dbpath+bseq[pf][6]+"' as NEWDB")
+                        WriteSQL("attach database '"+dbpath+"\\\\"+bseq[pf][6]+"' as NEWDB")
+                        WriteSQL("pragma foreign_keys = off")
+                        WriteSQL("begin transaction")
+                        WriteSQL(statements[i][2])
+                        old_exist = ReadSQL("select distinct tbl_name from NEWDB.sqlite_master where tbl_name = '"+statements[i][1]+"'")
+                        if str(bseq[pf][2])=="alterdb":
+                            WriteSQL("drop table if exists NEWDB._"+statements[i][1]+"_old")
+                            
+                            if len(old_exist)>0:
+                                WriteSQL("alter table NEWDB."+statements[i][1]+" rename to _"+statements[i][1]+"_old")
+                            #print(statements[i][2])
+                            WriteSQL(statements[i][2])
+                            if statements[i][3]!=None:
+                                if len(old_exist)>0:
+                                    WriteSQL("insert into NEWDB."+statements[i][1]+"("+statements[i][3]+") select "+statements[i][3]+
+                                            " from _"+statements[i][1]+"_old")
+                            if statements[i][4]!=None and statements[i][4]!="" and statements[i][4]!="None":
+                                prefix = statements[i][4][0:6]
+                                prefix = prefix.upper()
+                                if prefix=="UPDATE":
+                                    statements[i][4] = statements[i][4][0:7]+"NEWDB."+statements[i][4][7:]
+                                    WriteSQL(statements[i][4])
+                                else:
+                                    WriteSQL(statements[i][4])
+                            #WriteSQL("drop table if exists NEWDB._"+statements[i][1]+"_old")
+                        WriteSQL("commit")
+                        
+                        if str(bseq[pf][2])=="alterdb" and len(old_exist)>0:
+                            old_cnt = ReadSQL("select count(*) from NEWDB._"+statements[i][1]+"_old")
+                            new_cnt = ReadSQL("select count(*) from NEWDB."+statements[i][1])
+                            if len(old_cnt)>0 and len(new_cnt)>0:
+                                if new_cnt[0][0]<=0 and old_cnt[0][0]>0:
+                                    warning += path+bseq[pf][6]+": Failed to copy data from _"+statements[i][1]+"_old to "+statements[i][1]+"\n"
+                                else:
+                                    WriteSQL("drop table if exists NEWDB._"+statements[i][1]+"_old")
+                            else:
+                                WriteSQL("drop table if exists NEWDB._"+statements[i][1]+"_old")
+                        WriteSQL("pragma foreign_keys = on")
+                        #if str(bseq[pf][2])=="alterdb":
+                        #    WriteSQL("vacuum NEWDB")
+                        WriteSQL("detach database NEWDB")
+                    if str(bseq[pf][2])=="alterdb" and copysuccess==True:
+                        path = bseq[pf][5]
+                        dbpath = addSlash(path)
+                        WriteSQL("attach database '"+dbpath+"\\\\"+bseq[pf][6]+"' as NEWDB")
+                        WriteSQL("vacuum NEWDB")
+                        WriteSQL("detach database NEWDB")
+                    if warning!="":
+                        ctypes.windll.user32.MessageBoxW(0,warning,"Warning: "+str(bseq[pf][2]),0)
+        elif str(bseq[pf][2])=="createpg" or str(bseq[pf][2])=="alterpg":
+            if str(bseq[pf][3])=="" or bseq[pf][3]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in source field.","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in target field.","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                pg_data_src = str(bseq[pf][3])
+                pg_data_src = pg_data_src.split('|')
+                pg_data_trg = str(bseq[pf][4])
+                pg_data_trg = pg_data_trg.split('|')
+                parent_.conn = psycopg2.connect(dbname=pg_data_trg[0],user=pg_data_trg[1],password=PG_PASS,host=pg_data_trg[2],port=pg_data_trg[3])
+                parent_.cursor = parent_.conn.cursor()
+                statements = ReadSQL("select * from pgtables where hostip = '"+str(pg_data_src[2])+"' and port = "+str(pg_data_src[3])+
+                                    " and username = '"+str(pg_data_src[1])+"' and password = '"+str(pg_data_src[4])+"' and dbname = '"+
+                                    str(pg_data_src[0])+"'")
+                warning = ""
+                
+                if str(bseq[pf][2])=="alterpg":
+                    parent_.WritePG("begin transaction")
+                    all_tables = parent_.ReadPG("select table_name from information_schema.tables where table_schema = 'public'")
+                    all_table_names = []
+                    for i in range(len(all_tables)):
+                        all_table_names.append(str(all_tables[i][0]))
+                        all_constraints = parent_.ReadPG("select constraint_name from information_schema.table_constraints where table_schema = 'public' and table_name = '"+
+                                                    str(all_tables[i][0])+"' and (constraint_type = 'FOREIGN KEY' or constraint_type = 'PRIMARY KEY')")
+                        for j in range(len(all_constraints)):
+                            parent_.WritePG("alter table "+str(all_tables[i][0])+" drop constraint if exists "+str(all_constraints[j][0])+" cascade")
+                    parent_.WritePG("commit")
+                    parent_.WritePG("begin transaction")
+                    for i in range(len(statements)):
+                        if statements[i][5][:1]=="\"" and statements[i][5][-1:]=="\"":
+                            temp = str(statements[i][5][1:-1])
+                        else:
+                            temp = str(statements[i][5])
+                        if all_table_names.count("_"+temp+"_old")<1:
+                            parent_.WritePG("alter table if exists "+str(statements[i][5])+" rename to _"+temp+"_old")
+                    parent_.WritePG("commit")
+                creation = statements
+                parent_.WritePG("begin transaction")
+                while len(creation)>0:
+                    references = creation[0][6].split("REFERENCES ")
+                    if len(references)>1:
+                        all_exist = True
+                        references.pop(0)
+                        for t in range(len(references)):
+                            table_ref = references[t].split('(')[0]
+                            does_exist = parent_.ReadPG("select table_name from information_schema.tables where table_schema = 'public' and table_name = '"+str(table_ref)+"'")
+                            if len(does_exist)<1:
+                                all_exist = False
+                                creation.append(creation[0])
+                                creation.pop(0)
+                                break
+                        if all_exist==True:
+                            parent_.WritePG(creation[0][6])
+                            creation.pop(0)
+                    else:
+                        parent_.WritePG(creation[0][6])
+                        creation.pop(0)
+                parent_.WritePG("commit")
+                statements = ReadSQL("select * from pgtables where hostip = '"+str(pg_data_src[2])+"' and port = "+str(pg_data_src[3])+
+                                    " and username = '"+str(pg_data_src[1])+"' and password = '"+str(pg_data_src[4])+"' and dbname = '"+
+                                    str(pg_data_src[0])+"'")
+                if str(bseq[pf][2])=="alterpg":
+                    parent_.WritePG("begin transaction")
+                    for i in range(len(statements)):
+                        is_fk = statements[i][6].lower()
+                        if is_fk.find('foreign key')==-1:
+                            if statements[i][5][:1]=="\"" and statements[i][5][-1:]=="\"":
+                                temp = str(statements[i][5][1:-1])
+                            else:
+                                temp = str(statements[i][5])
+                            if statements[i][7]!=None:
+                                parent_.WritePG("insert into "+str(statements[i][5])+"("+str(statements[i][7])+") select "+str(statements[i][7])+
+                                            " from _"+temp+"_old")
+                            if statements[i][8]!=None and statements[i][8]!="" and statements[i][8]!="None":
+                                statements[i][8] = str(statements[i][8])
+                                parent_.WritePG(str(statements[i][8]))
+                            old_cnt = parent_.ReadPG("select count(*) from _"+temp+"_old")
+                            new_cnt = parent_.ReadPG("select count(*) from "+str(statements[i][5]))
+                            if len(old_cnt)>0 and len(new_cnt)>0:
+                                if new_cnt[0][0]<=0 and old_cnt[0][0]>0:
+                                    warning += str(bseq[pf][4])+": Failed to copy data from _"+temp+"_old to "+str(statements[i][5])+"\n"
+                                else:
+                                    parent_.WritePG("drop table if exists _"+temp+"_old")
+                            else:
+                                parent_.WritePG("drop table if exists _"+temp+"_old")
+                    for i in range(len(statements)):
+                        is_fk = statements[i][6].lower()
+                        if is_fk.find('foreign key')>=0:
+                            if statements[i][5][:1]=="\"" and statements[i][5][-1:]=="\"":
+                                temp = str(statements[i][5][1:-1])
+                            else:
+                                temp = str(statements[i][5])
+                            if statements[i][7]!=None:
+                                parent_.WritePG("insert into "+str(statements[i][5])+"("+str(statements[i][7])+") select "+str(statements[i][7])+
+                                            " from _"+temp+"_old")
+                            if statements[i][8]!=None and statements[i][8]!="" and statements[i][8]!="None":
+                                statements[i][8] = str(statements[i][8])
+                                parent_.WritePG(str(statements[i][8]))
+                            old_cnt = parent_.ReadPG("select count(*) from _"+temp+"_old")
+                            new_cnt = parent_.ReadPG("select count(*) from "+str(statements[i][5]))
+                            if len(old_cnt)>0 and len(new_cnt)>0:
+                                if new_cnt[0][0]<=0 and old_cnt[0][0]>0:
+                                    warning += str(bseq[pf][4])+": Failed to copy data from _"+temp+"_old to "+str(statements[i][5])+"\n"
+                                else:
+                                    parent_.WritePG("drop table if exists _"+temp+"_old")
+                            else:
+                                parent_.WritePG("drop table if exists _"+temp+"_old")
+                    parent_.WritePG("commit")
+                '''
+                parent_.WritePG("begin transaction")
+                for i in range(len(statements)):
+                    parent_.WritePG(statements[i][6])
+                    old_exist = parent_.ReadPG("select table_name from information_schema.tables where table_schema = 'public' and table_name = '"+str(statements[i][5])+"'")
+                    if statements[i][5][:1]=="\"" and statements[i][5][-1:]=="\"":
+                        temp = str(statements[i][5][1:-1])
+                    else:
+                        temp = str(statements[i][5])
+                    if str(bseq[pf][2])=="alterpg":
+                        #parent_.WritePG("alter table if exists _"+temp+"_old disable trigger all")
+                        if len(old_exist)>0:
+                            print(statements[i][6])
+                            parent_.WritePG(statements[i][6])
+                            if statements[i][7]!=None:
+                                if len(old_exist)>0:
+                                    parent_.WritePG("insert into "+str(statements[i][5])+"("+str(statements[i][7])+") select "+str(statements[i][7])+
+                                                " from _"+temp+"_old")
+                            if statements[i][8]!=None and statements[i][8]!="" and statements[i][8]!="None":
+                                statements[i][8] = str(statements[i][8])
+                                parent_.WritePG(str(statements[i][8]))
+                    
+                    if str(bseq[pf][2])=="alterpg" and len(old_exist)>0:
+                        old_cnt = parent_.ReadPG("select count(*) from _"+temp+"_old")
+                        new_cnt = parent_.ReadPG("select count(*) from "+str(statements[i][5]))
+                        if len(old_cnt)>0 and len(new_cnt)>0:
+                            if new_cnt[0][0]<=0 and old_cnt[0][0]>0:
+                                warning += str(bseq[pf][4])+": Failed to copy data from _"+temp+"_old to "+str(statements[i][5])+"\n"
+                            else:
+                                parent_.WritePG("drop table if exists _"+temp+"_old")
+                        else:
+                            parent_.WritePG("drop table if exists _"+temp+"_old")
+                parent_.WritePG("commit")
+                if str(bseq[pf][2])=="alterpg":
+                    parent_.WritePG("begin transaction")
+                    for i in range(len(statements)):
+                        if statements[i][5][:1]=="\"" and statements[i][5][-1:]=="\"":
+                            temp = str(statements[i][5][1:-1])
+                        else:
+                            temp = str(statements[i][5])
+                        parent_.WritePG("drop table if exists _"+temp+"_old")
+                    parent_.WritePG("commit")
+                '''
+                #if str(bseq[pf][2])=="alterdb":
+                #    parent_.WritePG("vacuum")
+                parent_.conn.close()
+        elif str(bseq[pf][2])=="deletedb":
+            temp00 = str(bseq[pf][5]+"\\"+bseq[pf][6])
+            if os.path.exists(temp00)==False:
+                #ctypes.windll.user32.MessageBoxW(0,temp00+" does not exist?","Failed deletedb: "+bname+"! \\"+str(bseq[pf][9]),1)
+                print(temp00+" does not exist? Button: "+bname+"\\"+str(bseq[pf][9]))
+            else:
+                try:
+                    os.remove(temp00)
+                except OSError as e:
+                    print("except")
+                    msg = "Failed to delete "+temp00+", permission issue?"
+                    ctypes.windll.user32.MessageBoxW(0,msg,"Failed to delete DB \\"+str(bseq[pf][9]),0)
+        
+        elif str(bseq[pf][2])=="rename":
+            if bseq[pf][1]=="" or bseq[pf][1]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No new name specified?","Failed rename: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(str(bseq[pf][3]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][3])+" does not exist?","Failed rename: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(str(bseq[pf][4]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][4])+" does not exist?","Failed rename: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                os.rename(str(bseq[pf][3]),str(bseq[pf][4])+"\\"+str(bseq[pf][1]))
+
+        elif str(bseq[pf][2])=="postfield":
+            all_dbs = ReadSQL("select * from mastdbs")
+            for i in range(len(all_dbs)):
+                writeTable(all_dbs[i][0],all_dbs[i][1])
+        elif str(bseq[pf][2])=="scrape":
+            parent_.Scrape(bseq[pf][3])
+        elif str(bseq[pf][2])=="copy":
+            file_name  = bseq[pf][1] 
+            file_source = bseq[pf][3]
+            file_destination = bseq[pf][4]
+            run_sequence = bseq[pf][9]
+            new_name = bseq[pf][6] if bseq[pf][6] else file_name
+            copy_exec = parent_.type_copy(bname,file_name,file_source,file_destination, run_sequence, new_name)
+            if copy_exec:
+                logger.success(f"Copied {file_name} from {file_source} to {file_destination} as {new_name}")
+            else:
+                logger.error(f"Failed to copy {file_name} from {file_source} to {file_destination} as {new_name}")
+            
+        elif str(bseq[pf][2])=="copyd":
+            if os.path.exists(bseq[pf][3]+"\\"+bseq[pf][1])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+"\\"+bseq[pf][1]+" source does not exist?","Failed copyd: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(bseq[pf][4])==False:
+                os.system("mkdir \""+bseq[pf][4]+"\"")
+                if os.path.exists(bseq[pf][4])==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" target does not exist?","Failed copyd: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    if os.path.exists(bseq[pf][4]+"\\"+bseq[pf][1])==False:
+                        try:
+                            shutil.copy2(bseq[pf][3]+"\\"+bseq[pf][1],bseq[pf][4])
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+bseq[pf][1]+" to "+bseq[pf][4]+"?","Failed copyd: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    else:
+                        if os.stat(bseq[pf][3]+"\\"+bseq[pf][1]).st_mtime-os.stat(bseq[pf][4]+"\\"+bseq[pf][1]).st_mtime>=1:
+                            try:
+                                shutil.copy2(bseq[pf][3]+"\\"+bseq[pf][1],bseq[pf][4]+"\\"+bseq[pf][1])
+                            except:
+                                ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+bseq[pf][1]+" to "+bseq[pf][4]+"\\"+bseq[pf][1]+"?","Failed copyd: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                if os.path.exists(bseq[pf][4]+"\\"+bseq[pf][1])==False:
+                    try:
+                        shutil.copy2(bseq[pf][3]+"\\"+bseq[pf][1],bseq[pf][4])
+                    except:
+                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+bseq[pf][1]+" to "+bseq[pf][4]+"?","Failed copyd: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    if os.stat(bseq[pf][3]+"\\"+bseq[pf][1]).st_mtime-os.stat(bseq[pf][4]+"\\"+bseq[pf][1]).st_mtime>=1:
+                        try:
+                            shutil.copy2(bseq[pf][3]+"\\"+bseq[pf][1],bseq[pf][4]+"\\"+bseq[pf][1])
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+bseq[pf][1]+" to "+bseq[pf][4]+"\\"+bseq[pf][1]+"?","Failed copyd: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="copyext":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(bseq[pf][4])==False:
+                os.system("mkdir \""+bseq[pf][4]+"\"")
+                if os.path.exists(bseq[pf][4])==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" target does not exist?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    for basename in os.listdir(bseq[pf][3]):
+                        curext = bseq[pf][1]
+                        if curext==None or curext=="":
+                            curext = "*.*"
+                        if getExt(basename,curext)==True:
+                            if os.path.isfile(bseq[pf][3]+"\\"+basename):
+                                if os.path.exists(bseq[pf][4]+"\\"+basename)==False:
+                                    try:
+                                        shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4])
+                                    except:
+                                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+                                else:
+                                    try:
+                                        shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4]+"\\"+basename)
+                                    except:
+                                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"\\"+basename+"?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                for basename in os.listdir(bseq[pf][3]):
+                    curext = bseq[pf][1]
+                    if curext==None or curext=="":
+                        curext = "*.*"
+                    if getExt(basename,curext)==True:
+                        if os.path.isfile(bseq[pf][3]+"\\"+basename):
+                            if os.path.exists(bseq[pf][4]+"\\"+basename)==False:
+                                try:
+                                    shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4])
+                                except:
+                                    ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            else:
+                                try:
+                                    shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4]+"\\"+basename)
+                                except:
+                                    ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"\\"+basename+"?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="copyextd":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(bseq[pf][4])==False:
+                os.system("mkdir \""+bseq[pf][4]+"\"")
+                if os.path.exists(bseq[pf][4])==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" target does not exist?","Failed copyext: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    for basename in os.listdir(bseq[pf][3]):
+                        curext = bseq[pf][1]
+                        if curext==None or curext=="":
+                            curext = "*.*"
+                        if getExt(basename,curext)==True:
+                            if os.path.isfile(bseq[pf][3]+"\\"+basename):
+                                if os.path.exists(bseq[pf][4]+"\\"+basename)==False:
+                                    try:
+                                        shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4])
+                                    except:
+                                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"?","Failed copyextd: "+bname+"! \\"+str(bseq[pf][9]),0)
+                                else:
+                                    if os.stat(bseq[pf][3]+"\\"+basename).st_mtime-os.stat(bseq[pf][4]+"\\"+basename).st_mtime>=1:
+                                        try:
+                                            shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4]+"\\"+basename)
+                                        except:
+                                            ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"\\"+basename+"?","Failed copyextd: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                for basename in os.listdir(bseq[pf][3]):
+                    curext = bseq[pf][1]
+                    if curext==None or curext=="":
+                        curext = "*.*"
+                    if getExt(basename,curext)==True:
+                        if os.path.isfile(bseq[pf][3]+"\\"+basename):
+                            if os.path.exists(bseq[pf][4]+"\\"+basename)==False:
+                                try:
+                                    shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4])
+                                except:
+                                    ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"?","Failed copyextd: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            else:
+                                if os.stat(bseq[pf][3]+"\\"+basename).st_mtime-os.stat(bseq[pf][4]+"\\"+basename).st_mtime>=1:
+                                    try:
+                                        shutil.copy2(bseq[pf][3]+"\\"+basename,bseq[pf][4]+"\\"+basename)
+                                    except:
+                                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+basename+" to "+bseq[pf][4]+"\\"+basename+"?","Failed copyextd: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="copyfile":
+            if os.path.exists(bseq[pf][3]+"\\"+bseq[pf][1])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+"\\"+bseq[pf][1]+" source does not exist?","Failed copyfile: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(bseq[pf][4]+"\\"+bseq[pf][1])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+"\\"+bseq[pf][1]+" target does not exist?","Failed copyfile: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                try:
+                    shutil.copyfile(bseq[pf][3]+"\\"+bseq[pf][1],bseq[pf][4]+"\\"+bseq[pf][1])
+                except:
+                    ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+"\\"+bseq[pf][1]+" to "+bseq[pf][4]+"\\"+bseq[pf][1]+"?","Failed copyfile: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="copytree":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed copytree: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                if os.path.exists(bseq[pf][4])==False:
+                    try:
+                        shutil.copytree(bseq[pf][3],bseq[pf][4])
+                    except:
+                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+bseq[pf][3]+" to "+bseq[pf][4]+"?","Failed copytree: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" already exists. \"copytree\" cannot copy directory which already exists.","Failed copytree: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="rmtree":
+            if os.path.exists(bseq[pf][4])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" target does not exist?","Failed rmtree: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                try:
+                    shutil.rmtree(bseq[pf][4])
+                except:
+                    ctypes.windll.user32.MessageBoxW(0,"Problem removing "+bseq[pf][4]+"?","Failed rmtree: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="move":
+            # If doing a folder, directory can be created
+            if bseq[pf][1]==None or bseq[pf][1]=="" or bseq[pf][1]=="None":
+                if os.path.exists(bseq[pf][3])==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed move: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    try:
+                        shutil.move(bseq[pf][3],bseq[pf][4])
+                    except:
+                        ctypes.windll.user32.MessageBoxW(0,"Problem moving "+bseq[pf][3]+" to "+bseq[pf][4]+"?","Failed move: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(bseq[pf][3]+"\\"+bseq[pf][1])==False:
+                if os.path.exists(bseq[pf][3])==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed move: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    try:
+                        shutil.move(bseq[pf][3],bseq[pf][4])
+                    except:
+                        ctypes.windll.user32.MessageBoxW(0,"Problem moving "+bseq[pf][3]+" to "+bseq[pf][4]+"?","Failed move: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                # If doing a file, directory must already exist
+                if os.path.exists(bseq[pf][4])==False:
+                    ctypes.windll.user32.MessageBoxW(0,bseq[pf][4]+" target does not exist?","Failed move: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    try:
+                        shutil.move(bseq[pf][3]+"\\"+bseq[pf][1],bseq[pf][4]+"\\"+bseq[pf][1])
+                    except:
+                        ctypes.windll.user32.MessageBoxW(0,"Problem moving "+bseq[pf][3]+"\\"+bseq[pf][1]+" to "+bseq[pf][4]+"\\"+bseq[pf][1]+"?","Failed move: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="delfile":
+            if os.path.exists(bseq[pf][3]+"\\"+bseq[pf][1])==True:
+                try:
+                    os.remove(bseq[pf][3]+"\\"+bseq[pf][1])
+                except:
+                    ctypes.windll.user32.MessageBoxW(0,"Problem deleting "+bseq[pf][3]+"\\"+bseq[pf][1]+"?","Failed delfile: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="cleardir":
+            if os.path.exists(bseq[pf][3])==True:
+                for root, dirs, files in os.walk(bseq[pf][3]):
+                    for f in files:
+                        try:
+                            os.remove(bseq[pf][3]+"\\"+f)
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Problem removing "+bseq[pf][3]+"\\"+f,"Warning: cleardir: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        #os.unlink(os.path.join(root,f))
+                    for d in dirs:
+                        try:
+                            shutil.rmtree(bseq[pf][3]+"\\"+d)
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Problem removing "+bseq[pf][3]+"\\"+d,"Warning: cleardir: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        #shutil.rmtree(os.path.join(root,d))
+            else:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed cleardir: "+bname+"! \\"+str(bseq[pf][9]),0)
+        
+        elif str(bseq[pf][2])=="clearfiletx":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed cleardirext: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                ext = bseq[pf][1]
+                if ext==None or ext=="":
+                    ext = "*.*"
+                for root, dirs, files in os.walk(bseq[pf][3]):
+                    for f in files:
+                        if getExt(bseq[pf][3]+"\\"+f,ext)==True:
+                            if os.path.exists(bseq[pf][3]+"\\"+f)==True:
+                                try:
+                                    os.remove(bseq[pf][3]+"\\"+f)
+                                except:
+                                    ctypes.windll.user32.MessageBoxW(0,"Problem removing "+bseq[pf][3]+"\\"+f,"Warning: clearfiletx: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="cleardirext":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed cleardirext: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                ext = bseq[pf][1]
+                if ext==None or ext=="":
+                    ext = "*.*"
+                deleteExt(bseq[pf][3],ext,bname,bseq[pf][9])
+        elif str(bseq[pf][2])=="copydir":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed copydir: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"target not specified?","Failed copydir: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                copyDir(bseq[pf][3],bseq[pf][4])####
+        elif str(bseq[pf][2])=="copydird":
+            if os.path.exists(bseq[pf][3])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][3]+" source does not exist?","Failed copydird: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif bseq[pf][4]==None or bseq[pf][4]=="":
+                ctypes.windll.user32.MessageBoxW(0,"target not specified?","Failed copydird: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                copyDir(bseq[pf][3],bseq[pf][4],True)
+        elif str(bseq[pf][2])=="sleep":
+            print("sleeping")
+            time.sleep(1)
+            print("awake")
+        elif str(bseq[pf][2])=="vacuum":
+            if os.path.exists(bseq[pf][5]+"\\"+bseq[pf][6])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][5]+"\\"+bseq[pf][6]+" database path does not exist?","Failed vacuum: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                path = bseq[pf][5]+"\\"+bseq[pf][6]
+                if path[0:1]=="\\":
+                    path = path[1:]
+                path = path.replace("\\","\\\\")
+                vc = apsw.Connection(path)
+                vcursor = vc.cursor()
+                aWriteSQL(vcursor,"vacuum")
+                vc.close(True)
+        elif str(bseq[pf][2])=="ps1":
+            if os.path.exists(bseq[pf][0]+"\\"+bseq[pf][1])==False:
+                ctypes.windll.user32.MessageBoxW(0,bseq[pf][0]+"\\"+bseq[pf][1]+" database path does not exist?","Failed ps1: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.RunPS1(bseq[pf][0]+"\\"+bseq[pf][1])
+        elif str(bseq[pf][2])=="url":
+            path = str(bseq[pf][0])+"\\"+str(bseq[pf][1])
+            if os.path.exists(path)==False:
+                try:
+                    webbrowser.open(str(bseq[pf][3]))  # Go to example.com
+                except Exception as e:
+                    ctypes.windll.user32.MessageBoxW(0,path+" does not exist?","Failed url: "+bname+"! \\"+str(bseq[pf][9]),0)
+                    logger.error(e)
+            else:
+
+                subprocess.call([path,'-new-tab',str(bseq[pf][3])])
+            #webbrowser.open(str(bseq[pf][3]))
+        elif str(bseq[pf][2])=="mt5event":
+            parent_.MT_Event("MT5",bname,bseq[pf][9],bseq[pf][0],bseq[pf][1])
+        elif str(bseq[pf][2])=="mtevent":
+            parent_.MT_Event("MT4",bname,bseq[pf][9],bseq[pf][0],bseq[pf][1])
+        elif str(bseq[pf][2])=="assignseries":
+            if str(bseq[pf][3])==None:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][3])+" button series name not assigned in source?","Failed assignseries: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                get_series = ReadSQL("select formname,tab,buttonname from buttonseries where assignname = '"+str(bseq[pf][3])+"' and formname = '"+parent_.title+"' order by runsequence asc")
+                if len(get_series)<=0:
+                    ctypes.windll.user32.MessageBoxW(0,"No assigned buttons found for "+str(bseq[pf][3])+" series assignment?","Failed assignseries: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    ctime = time.time()
+                    for i in range(len(get_series)):
+                        butp = get_series[i][0]
+                        butt = get_series[i][1]
+                        butb = get_series[i][2]
+                        if butp!=None and butp!="":
+                            parent_.on_click_button(butp,butt,butb,"",1)
+                    endtime = time.time()
+                    #endtime in x minutes and y seconds
+
+                    logger.success(f"completed button sequence {bname} in {round((endtime-ctime),2)} seconds")
+        elif str(bseq[pf][2])=="archivedb":
+            if os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" database path does not exist?","Failed archivedb: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                temp00 = str(bseq[pf][0])
+                if os.path.exists(temp00)==False:
+                    os.system("mkdir \""+temp00+"\"")
+                gettime = time.time()
+                newdb = bseq[pf][6][:-3]+"_"+str(datetime.datetime.fromtimestamp(gettime).strftime('%Y-%m-%d_%H-%M-%S'))+".db"
+                if os.path.exists(temp00+"\\"+newdb)==False:
+                    try:
+                        shutil.copy2(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),temp00+"\\"+newdb)
+                    except:
+                        ctypes.windll.user32.MessageBoxW(0,"Problem copying "+str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" to "+temp00+"\\"+newdb+"?","Failed archivedb: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    if os.stat(str(bseq[pf][5])+"\\"+str(bseq[pf][6])).st_mtime-os.stat(temp00+"\\"+newdb).st_mtime>=1:
+                        try:
+                            shutil.copy2(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),temp00+"\\"+newdb)
+                        except:
+                            ctypes.windll.user32.MessageBoxW(0,"Problem copying "+str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" to "+temp00+"\\"+newdb+"?","Failed archivedb: "+bname+"! \\"+str(bseq[pf][9]),0)
+        elif str(bseq[pf][2])=="sqlpgfresh":
+            if os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" database path does not exist?","Failed sqlpgfresh: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in source field.","Failed sqlpgfresh: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.SQL_To_PG(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][4]),bseq[pf][1],0)
+        elif str(bseq[pf][2])=="sqlpgignore":
+            if os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" database path does not exist?","Failed sqlpgignore: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in source field.","Failed sqlpgignore: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.SQL_To_PG(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][4]),bseq[pf][1],1)
+        elif str(bseq[pf][2])=="sqlpgreplace":
+            if os.path.exists(str(bseq[pf][5])+"\\"+str(bseq[pf][6]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][5])+"\\"+str(bseq[pf][6])+" database path does not exist?","Failed sqlpgreplace: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in source field.","Failed sqlpgreplace: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                parent_.SQL_To_PG(str(bseq[pf][5])+"\\"+str(bseq[pf][6]),str(bseq[pf][4]),bseq[pf][1],2)
+        elif str(bseq[pf][2])=="ordcreate":
+            if str(bseq[pf][3])=="" or bseq[pf][3]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in source field.","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in target field.","Failed "+str(bseq[pf][2])+": "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                pg_data_src = str(bseq[pf][3])
+                pg_data_src = pg_data_src.split('|')
+                pg_data_trg = str(bseq[pf][4])
+                pg_data_trg = pg_data_trg.split('|')
+                parent_.conn = psycopg2.connect(dbname=pg_data_trg[0],user=pg_data_trg[1],password=PG_PASS,host=pg_data_trg[2],port=pg_data_trg[3])
+                parent_.cursor = parent_.conn.cursor()
+                if str(bseq[pf][1])!="" and bseq[pf][1]!=None:
+                    creation = ReadSQL("select * from pgtables where hostip = '"+str(pg_data_src[2])+"' and port = "+str(pg_data_src[3])+
+                                    " and username = '"+str(pg_data_src[1])+"' and password = '"+str(pg_data_src[4])+"' and dbname = '"+
+                                    str(pg_data_src[0])+"' and tbl_name = '"+str(bseq[pf][1])+"'")
+                else:
+                    creation = ReadSQL("select * from pgtables where hostip = '"+str(pg_data_src[2])+"' and port = "+str(pg_data_src[3])+
+                                    " and username = '"+str(pg_data_src[1])+"' and password = '"+str(pg_data_src[4])+"' and dbname = '"+
+                                    str(pg_data_src[0])+"' and ("+parent_.createOrdCreate()+")")
+                parent_.WritePG("begin transaction")
+                while len(creation)>0:
+                    references = creation[0][6].split("REFERENCES ")
+                    if len(references)>1:
+                        all_exist = True
+                        references.pop(0)
+                        for t in range(len(references)):
+                            table_ref = references[t].split('(')[0]
+                            does_exist = parent_.ReadPG("select table_name from information_schema.tables where table_schema = 'public' and table_name = '"+str(table_ref)+"'")
+                            if len(does_exist)<1:
+                                all_exist = False
+                                creation.append(creation[0])
+                                creation.pop(0)
+                                break
+                        if all_exist==True:
+                            parent_.WritePG(creation[0][6])
+                            creation.pop(0)
+                    else:
+                        #print(creation[0][6]+"\n\n")
+                        parent_.WritePG(creation[0][6])
+                        creation.pop(0)
+                parent_.WritePG("commit")
+                parent_.conn.close()
+        elif str(bseq[pf][2])=="ordbackup":
+            if str(bseq[pf][3])=="" or bseq[pf][3]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in source field.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in target field.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][0])=="":
+                ctypes.windll.user32.MessageBoxW(0,"Folder path is seen as blank.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif bseq[pf][0]==None:
+                ctypes.windll.user32.MessageBoxW(0,"Folder path is seen as 'null'.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif os.path.exists(str(bseq[pf][0]))==False:
+                ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+" does not exist or is not seen.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][1])=="" or bseq[pf][1]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No filename provided.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                filename = str(bseq[pf][1])
+                fname = filename.split('|')
+                pg_data = str(bseq[pf][3])
+                pg_data = pg_data.split('|')
+                pg_data2 = str(bseq[pf][4])
+                pg_data2 = pg_data2.split('|')
+                if len(pg_data)<5:
+                    ctypes.windll.user32.MessageBoxW(0,"Insufficient Postgres source credentials.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+                elif len(pg_data2)<5:
+                    ctypes.windll.user32.MessageBoxW(0,"Insufficient Postgres target credentials.","Failed ordbackup: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    curtime = time.strftime("%Y.%m.%d-%H.%M.%S")
+                    if len(fname)>1:
+                        #print("SET PGPASSWORD="+str(PG_PASS)+"& pg_dump -h "+str(pg_data[2])+" -p "+str(pg_data[3])+
+                        #      " -U "+str(pg_data[1])+" --column-inserts --data-only -t "+fname[1]+" "+str(pg_data[0])+
+                        #" > \""+str(bseq[pf][0])+"\\ord_bak_"+fname[0]+"_"+curtime+".sql\"")
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& pg_dump -h "+str(pg_data[2])+" -p "+str(pg_data[3])+" -U "+str(pg_data[1])+
+                                " --column-inserts --data-only -t "+fname[1]+" "+str(pg_data[0])+" > \""+str(bseq[pf][0])+"\\ord_bak_"+fname[0]+
+                                "_"+curtime+".sql\"")
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& pg_dump -h "+str(pg_data[2])+" -p "+str(pg_data[3])+" -U "+str(pg_data[1])+
+                                " --column-inserts --data-only -t "+fname[1]+" "+str(pg_data[0])+" > \""+str(bseq[pf][0])+"\\ord_bak_"+fname[1]+
+                                "_temp.sql\"")
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& psql -h "+str(pg_data2[2])+" -p "+str(pg_data2[3])+" -U "+str(pg_data2[1])+" "+
+                                str(pg_data2[0])+" < \""+str(bseq[pf][0])+"\\ord_bak_"+fname[0]+"_"+curtime+".sql\"")
+                    else:
+                        query = parent_.createOrdBackup()
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& pg_dump -h "+str(pg_data[2])+" -p "+str(pg_data[3])+
+                                " -U "+str(pg_data[1])+" --column-inserts --data-only"+query+" "+
+                                str(pg_data[0])+" > \""+str(bseq[pf][0])+"\\ord_bak_"+fname[0]+"_"+curtime+".sql\"")
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& pg_dump -h "+str(pg_data[2])+" -p "+str(pg_data[3])+
+                                " -U "+str(pg_data[1])+" --column-inserts --data-only"+query+" "+
+                                str(pg_data[0])+" > \""+str(bseq[pf][0])+"\\ord_bak_temp.sql\"")
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& psql -h "+str(pg_data2[2])+" -p "+str(pg_data2[3])+" -U "+str(pg_data2[1])+" "+
+                                str(pg_data2[0])+" < \""+str(bseq[pf][0])+"\\ord_bak_"+fname[0]+"_"+curtime+".sql\"")
+        elif str(bseq[pf][2])=="ordrestore":
+            if str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                ctypes.windll.user32.MessageBoxW(0,"No Postgres credentials specified in target field.","Failed ordrestore: "+bname+"! \\"+str(bseq[pf][9]),0)
+            elif str(bseq[pf][0])=="" or bseq[pf][0]==None or os.path.exists(str(bseq[pf][0]))==False:
+                ctypes.windll.user32.MessageBoxW(0,"No folderpath specified or folderpath provided does not exist.","Failed ordrestore: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                pg_data2 = str(bseq[pf][4])
+                pg_data2 = pg_data2.split('|')
+                if len(pg_data2)<5:
+                    ctypes.windll.user32.MessageBoxW(0,"Insufficient Postgres target credentials.","Failed ordrestore: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    if str(bseq[pf][1])!="" and bseq[pf][1]!=None:
+                        fname = str(bseq[pf][1])
+                        if os.path.exists(str(bseq[pf][0])+"\\"+fname)==False:
+                            ctypes.windll.user32.MessageBoxW(0,str(bseq[pf][0])+"\\"+fname+" does not exist.","Failed ordrestore: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        else:
+                            os.system("SET PGPASSWORD="+str(PG_PASS)+"& psql -h "+str(pg_data2[2])+" -p "+str(pg_data2[3])+" -U "+str(pg_data2[1])+" "+
+                                    str(pg_data2[0])+" < \""+str(bseq[pf][0])+"\\ord_bak_"+fname+"_temp.sql\"")
+                            os.remove(str(bseq[pf][0])+"\\ord_bak_"+fname+"_temp.sql")
+                    else:
+                        os.system("SET PGPASSWORD="+str(PG_PASS)+"& psql -h "+str(pg_data2[2])+" -p "+str(pg_data2[3])+" -U "+str(pg_data2[1])+" "+
+                                str(pg_data2[0])+" < \""+str(bseq[pf][0])+"\\ord_bak_temp.sql\"")
+                        os.remove(str(bseq[pf][0])+"\\ord_bak_temp.sql")
+        elif str(bseq[pf][2])=="emojiseek":
+            if str(bseq[pf][4])=="" or bseq[pf][4]==None:
+                n = QInputDialog.getText(self,"emoji","Enter Unicode for desired emoji: ",text='')
+                if n[1]==True:
+                    try:
+                        val = ""
+                        string = str(n[0])
+                        string = string.split('|')
+                        for i in range(len(string)):
+                            emoji = int(string[i],16)
+                            val += parent_.getEmoji(emoji)
+                        if val=="":
+                            ctypes.windll.user32.MessageBoxW(0,"Cannot convert value "+str(n[0]),"Failed emojiseek: "+bname+"! \\"+str(bseq[pf][9]),0)
+                        else:
+                            QInputDialog.getText(self,"emoji","Outcome: ",text=str(val))
+                    except Exception as e1:
+                        print(str(e1))
+                        ctypes.windll.user32.MessageBoxW(0,"Cannot convert value "+str(n[0]),"Failed emojiseek: "+bname+"! \\"+str(bseq[pf][9]),0)
+            else:
+                pg_data = str(bseq[pf][4])
+                if len(pg_data)<5:
+                    ctypes.windll.user32.MessageBoxW(0,"Insufficient Postgres target credentials.","Failed ordrestore: "+bname+"! \\"+str(bseq[pf][9]),0)
+                else:
+                    n = QInputDialog.getText(self,"signaltype","Enter signaltype for desired emoji: ",text='')
+                    if n[0]!="" and n[1]==True:
+                        signaltype = n[0]
+                        n = QInputDialog.getText(self,"association","Enter association for desired emoji: ",text='')
+                        if n[0]!="" and n[1]==True:
+                            association = n[0]
+                            n = QInputDialog.getText(self,"emoji","Enter Unicode for desired emoji: ",text='')
+                            if n[0]!="" and n[1]==True:
+                                val = ""
+                                string = str(n[0])
+                                string = string.split('|')
+                                for i in range(len(string)):
+                                    emoji = int(string[i],16)
+                                    val += parent_.getEmoji(emoji)
+                                if val=="":
+                                    ctypes.windll.user32.MessageBoxW(0,"Cannot convert value "+str(n[0]),"Failed emojiseek: "+bname+"! \\"+str(bseq[pf][9]),0)
+                                else:
+                                    pg_data = pg_data.split('|')
+                                    parent_.conn = psycopg2.connect(dbname=pg_data[0],user=pg_data[1],password=PG_PASS,host=pg_data[2],port=pg_data[3])
+                                    parent_.cursor = parent_.conn.cursor()
+                                    parent_.WritePG("insert into telegram_emojis values('"+str(signaltype)+"','"+str(association)+"','"+
+                                                str(val)+"',null) on conflict(signaltype,association) do update set signaltype = '"+
+                                                str(signaltype)+"', association = '"+str(association)+"', emoji = '"+str(val)+"';")
+                                    parent_.conn.close()
+        elif str(bseq[pf][2])=="tabto":
+            if str(bseq[pf][1])!="" and bseq[pf][1]!=None:
+                parent_.lasttab = parent_.SM_Tabs.tabText(parent_.SM_Tabs.currentIndex())
+                print(str(bseq[pf][1]))
+                index = [index for index in range(parent_.SM_Tabs.count()) if str(bseq[pf][1]) == parent_.SM_Tabs.tabText(index)]
+                if len(index)>0:
+                    print(str(index[0]))
+                    parent_.SM_Tabs.setCurrentIndex(index[0])
+        elif str(bseq[pf][2])=="tablast":
+            if parent_.lasttab!="":
+                index = [index for index in range(parent_.SM_Tabs.count()) if str(parent_.lasttab) == parent_.SM_Tabs.tabText(index)]
+                if len(index)>0:
+                    parent_.SM_Tabs.setCurrentIndex(index[0])
+        elif str(bseq[pf][2])=="buttondialog":
+            parent_.Create_Button_Dialog(pname,tname,bname,bseq[pf][0],bseq[pf][1],1)
+        elif str(bseq[pf][2])=="buttontask":
+            parent_.Create_Button_Dialog(pname,tname,bname,bseq[pf][0],bseq[pf][1],2)
+"""

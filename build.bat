@@ -1,0 +1,1 @@
+pyinstaller -F Picat_SGX.py
