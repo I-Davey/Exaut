@@ -26,6 +26,7 @@ class Delete_Files(PluginInterface):
                 if os.path.isfile(source+"\\"+f)==True:
                     try:
                         os.remove(source+"\\"+f)
+                        self.logger.success("file deleted: "+source+"\\"+f)
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem deleting \""+source+"\\"+f+"\"?","Failed delete: "+bname,0)
 
