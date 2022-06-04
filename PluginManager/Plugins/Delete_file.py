@@ -30,5 +30,6 @@ class Delete_file(PluginInterface):
             self.logger.success("file deleted: "+file)
         except Exception as e:
             self.logger.error(f"Problem deleting {file}: {e}")
-        
+            return False
+        return True
 

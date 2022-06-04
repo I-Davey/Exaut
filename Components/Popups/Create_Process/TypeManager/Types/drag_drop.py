@@ -1,6 +1,6 @@
 from .__important.TypeInterface import TypeInterface
-from PyQt5.QtWidgets import QPushButton, QPushButton, QWidget, QVBoxLayout, QMenu, QGridLayout, QLabel
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QPushButton, QPushButton, QWidget, QVBoxLayout, QMenu, QGridLayout, QLabel
+from PyQt6.QtCore import Qt, pyqtSignal
 import pyperclip
 from functools import partial
 
@@ -38,7 +38,7 @@ class QFileDrop(QWidget):
     def add_browse(self):
         self.layout.addWidget(self.browse_)
         #add right click menu
-        self.browse_.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.browse_.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.browse_.customContextMenuRequested.connect(self.right_click_menu)
         self.browse_.setToolTip(self.type_description)
 
@@ -47,7 +47,7 @@ class QFileDrop(QWidget):
         menu = QMenu()
         menu.addAction("copy file/folder", self.copy_file)
         menu.addAction("copy full path", self.copy_file_path)
-        menu.exec_(self.browse_.mapToGlobal(pos))
+        menu.exec(self.browse_.mapToGlobal(pos))
 
     def copy_file(self):
         text = self.browse_.text()
@@ -84,7 +84,7 @@ class QFileDrop(QWidget):
 
     def dropEvent(self, event):
         if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
+            event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
             links = []
             for url in event.mimeData().urls():

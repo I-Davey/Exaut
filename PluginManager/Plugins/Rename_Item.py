@@ -20,7 +20,6 @@ class Rename_Item(PluginInterface):
         try:
             shutil.move(old_file_path,os.path.join(destination_folder,new_file_name))
             self.logger.success(f"renamed {old_file_path} to {new_full}")
-
             return True
         except Exception as e:
             self.logger.error("Error renaming file")
