@@ -1,16 +1,16 @@
 from asyncio import Handle
 from typing import Tuple
 
-from PyQt5.QtCore import QThread
+from PyQt6.QtCore import QThread
 from loguru import logger
 #import QVBoxLayout
-from PyQt5.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu
+from PyQt6.QtCore import Qt, pyqtSignal
 import pyperclip
 from .TypeManager.Types_handler import Types
 from functools import partial
 import collections
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 #{'Zipcrypt': {'source': ['folder', 'please select source folder'], 'target': ['folder', 'please select destination folder'], 'databasename': ['text', 'please enter password']}}
 class Create_Process(QDialog):
     def __init__(self, parent_, PluginManager, formname, tabname):
@@ -54,7 +54,7 @@ class Create_Process(QDialog):
         self.create_button = QPushButton("Create")
         self.create_button.clicked.connect(self.create_proc_handler)
         #set horizontal fit to text
-        self.multiselect.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.multiselect.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         
         temp_grid = QGridLayout()
         temp_grid.addWidget(self.multiselect, 0, 0)
@@ -301,7 +301,7 @@ class QFileDrop(QWidget):
     def add_browse(self):
         self.layout.addWidget(self.browse_)
         #add right click menu
-        self.browse_.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.browse_.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.browse_.customContextMenuRequested.connect(self.right_click_menu)
         self.browse_.setToolTip(self.type_description)
 
@@ -310,7 +310,7 @@ class QFileDrop(QWidget):
         menu = QMenu()
         menu.addAction("copy file/folder", self.copy_file)
         menu.addAction("copy full path", self.copy_file_path)
-        menu.exec_(self.browse_.mapToGlobal(pos))
+        menu.exec(self.browse_.mapToGlobal(pos))
 
     def copy_file(self):
         text = self.browse_.text()
@@ -345,7 +345,7 @@ class QFileDrop(QWidget):
 
     def dropEvent(self, event):
         if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
+            event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
             links = []
             for url in event.mimeData().urls():

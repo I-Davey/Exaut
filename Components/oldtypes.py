@@ -6,7 +6,7 @@ from loguru import logger
 import time
 from .PICAT_ini import Ui_Dialog
 from .PICAT_dialog import Ui_ButtonDialog
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 import math
 from functools import partial
 
@@ -215,7 +215,7 @@ def Create_Button_Dialog(parent_,fname,tname,bname,dimension,dialogname,mode):
                                                     str(buttonsordered[bn][0]),
                                                     bname+"_Button_"+str(1)+"_"+str(bn+1),dto,mode,2))
     
-        result = dto.exec_()
+        result = dto.exec()
 
 def on_click_button_plus(self,pname,tname,bname,objn,d,typemode,mode=0):
     self.on_click_button(pname,tname,bname,objn,mode)

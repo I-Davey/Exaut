@@ -1,11 +1,11 @@
 import ctypes
-from PyQt5 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore
 from loguru import logger
 from functools import partial
 import os
 #import QVBoxLayout
-from PyQt5.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
-from PyQt5.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
+from PyQt6.QtCore import pyqtSignal
 class Edit_Popup(QDialog):
     def __init__(self, parent, bseq, pname, tname, bname, objn):
         
@@ -186,11 +186,11 @@ class Edit_Popup(QDialog):
         #if no, exit
         qm = QMessageBox()
         qm.setText("Are you sure you want to delete?")
-        qm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        qm.setDefaultButton(QMessageBox.No)
+        qm.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        qm.setDefaultButton(QMessageBox.StandardButton.No)
         qm.setWindowTitle("Delete?")
-        ret = qm.exec_()
-        if ret == QMessageBox.Yes:
+        ret = qm.exec()
+        if ret == QMessageBox.StandardButton.Yes:
             #delete button
             #delete batchsequence
             queries = []

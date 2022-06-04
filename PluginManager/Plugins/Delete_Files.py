@@ -27,9 +27,12 @@ class Delete_Files(PluginInterface):
                     try:
                         os.remove(source+"\\"+f)
                         self.logger.success("file deleted: "+source+"\\"+f)
+                        return True
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem deleting \""+source+"\\"+f+"\"?","Failed delete: "+bname,0)
+                        return False
 
         else:
             self.logger.error("Source path does not exist: "+source)
             ctypes.windll.user32.MessageBoxW(0,"Problem removing "+source+"\\","Warning: cleardir: "+bname+"!", 0)
+            return False

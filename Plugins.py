@@ -233,7 +233,8 @@ class Plugins:
             if iscoroutinefunction(self.plugins[name]["run"]):
                 asyncio.run(self.plugins[name]["run"](*newargs))
             else:
-                self.plugins[name]["run"](*newargs)
+                x = self.plugins[name]["run"](*newargs)
+                return x
 
 
 

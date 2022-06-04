@@ -6,7 +6,7 @@ import win32api
 class example(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
-    #type_types = {"source":["file", ""],"target":["folder", ""], "databasename":["text", ""]}
+    #type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
 
     callname = "example"
     hooks_handler = ["log"]
