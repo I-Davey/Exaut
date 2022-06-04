@@ -47,8 +47,10 @@ class Folder_Copy(PluginInterface):
             self.logger.success(f"Copied all files in {source} to {target} replacing all files")
         elif type_ == "foldercopynonx":
             self.logger.success(f"Copied all nonexistent files in {source} to {target}")
+            return
         else:
             self.logger.success(f"Copied all files in {source} to {target} newer than the old files")
+        return True
             
     def tryCopy(self, source, file, target):
         try:

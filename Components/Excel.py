@@ -6,14 +6,14 @@ import apsw
 import time
 import os
 import openpyxl
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt6.QtCore import QObject, QThread, pyqtSignal
 #QProgressBar
-from PyQt5.QtWidgets import QProgressBar
+from PyQt6.QtWidgets import QProgressBar
 
 
 from loguru import logger
 #import QVBoxLayout
-from PyQt5.QtWidgets import  QPushButton,   QFormLayout, QLineEdit,  QLabel, QPushButton, QDialog, QMessageBox, QGridLayout
+from PyQt6.QtWidgets import  QPushButton,   QFormLayout, QLineEdit,  QLabel, QPushButton, QDialog, QMessageBox, QGridLayout
 
 class Excel_Popup(QDialog):
     def __init__(self, logger, ctypes, parent_, mode, excelpath, enginepath, dbpath, sqldir, sourcetable, userange, preserve):

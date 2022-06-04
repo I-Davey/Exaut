@@ -1,5 +1,5 @@
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 class Ui_PICAT_SM(object):
     def setupUi(self, PICAT_SM):
@@ -145,77 +145,77 @@ class Ui_PICAT_SM(object):
         self.statusbar = QtWidgets.QStatusBar(PICAT_SM)
         self.statusbar.setObjectName("statusbar")
         PICAT_SM.setStatusBar(self.statusbar)
-        self.actionImport_from_Excel = QtWidgets.QAction(PICAT_SM)
+        self.actionImport_from_Excel = QtGui.QAction(PICAT_SM)
         self.actionImport_from_Excel.setObjectName("actionImport_from_Excel")
-        self.actionExport_to_Excel = QtWidgets.QAction(PICAT_SM)
+        self.actionExport_to_Excel = QtGui.QAction(PICAT_SM)
         self.actionExport_to_Excel.setObjectName("actionExport_to_Excel")
-        self.actionRefresh = QtWidgets.QAction(PICAT_SM)
+        self.actionRefresh = QtGui.QAction(PICAT_SM)
         self.actionRefresh.setObjectName("actionRefresh")
-        self.actionTabsize = QtWidgets.QAction(PICAT_SM)
+        self.actionTabsize = QtGui.QAction(PICAT_SM)
         self.actionTabsize.setObjectName("actionTabsize")
-        self.actionOpen_Files_Explorer = QtWidgets.QAction(PICAT_SM)
+        self.actionOpen_Files_Explorer = QtGui.QAction(PICAT_SM)
         self.actionOpen_Files_Explorer.setObjectName("actionOpen_Files_Explorer")
 
 
-        self.actionAdd_exe = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_exe = QtGui.QAction(PICAT_SM)
         self.actionAdd_exe.setObjectName("actionAdd_exe")
 
-        self.actionAdd_tabto = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_tabto = QtGui.QAction(PICAT_SM)
         self.actionAdd_tabto.setObjectName("actionAdd_tabto")
-        self.actionAdd_url = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_url = QtGui.QAction(PICAT_SM)
         self.actionAdd_url.setObjectName("actionAdd_url")
 
-        self.actionAdd_Folder = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_Folder = QtGui.QAction(PICAT_SM)
         self.actionAdd_Folder.setObjectName("actionAdd_Folder")
 
-        self.actionAdd_Seq = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_Seq = QtGui.QAction(PICAT_SM)
         self.actionAdd_Seq.setObjectName("actionAdd_Seq")
 
-        self.actionAdd_Proc = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_Proc = QtGui.QAction(PICAT_SM)
         self.actionAdd_Proc.setObjectName("actionAdd_Proc")
 
-        self.actionAdd_Desc = QtWidgets.QAction(PICAT_SM)
+        self.actionAdd_Desc = QtGui.QAction(PICAT_SM)
         self.actionAdd_Desc.setObjectName("actionAdd_Desc")
 
-        self.actionEdit_layout = QtWidgets.QAction(PICAT_SM)
+        self.actionEdit_layout = QtGui.QAction(PICAT_SM)
         self.actionEdit_layout.setObjectName("actionEdit_layout")
 
-        self.actionCopy = QtWidgets.QAction(PICAT_SM)
+        self.actionCopy = QtGui.QAction(PICAT_SM)
         self.actionCopy.setObjectName("actionCopy")
 
-        self.customimportexport = QtWidgets.QAction(PICAT_SM)
+        self.customimportexport = QtGui.QAction(PICAT_SM)
         self.customimportexport.setObjectName("customimportexport")
 
-        self.sht2tbl = QtWidgets.QAction(PICAT_SM)
+        self.sht2tbl = QtGui.QAction(PICAT_SM)
         self.sht2tbl.setObjectName("sht2tbl")
 
-        self.actionCopy_folder = QtWidgets.QAction(PICAT_SM)
+        self.actionCopy_folder = QtGui.QAction(PICAT_SM)
         self.actionCopy_folder.setObjectName("actionCopy_folder")
 
-        self.actionTab = QtWidgets.QAction(PICAT_SM)
+        self.actionTab = QtGui.QAction(PICAT_SM)
         self.actionTab.setObjectName("actionTab")
 
-        self.actionTabUrl = QtWidgets.QAction(PICAT_SM)
+        self.actionTabUrl = QtGui.QAction(PICAT_SM)
         self.actionTabUrl.setObjectName("actionTabUrl")
 
 
-        self.actionTabFolder = QtWidgets.QAction(PICAT_SM)
+        self.actionTabFolder = QtGui.QAction(PICAT_SM)
         self.actionTabFolder.setObjectName("actionTabFolder")
 
-        self.actionOpenTabUrl = QtWidgets.QAction(PICAT_SM)
+        self.actionOpenTabUrl = QtGui.QAction(PICAT_SM)
         self.actionOpenTabUrl.setObjectName("actionOpenTabUrl")
 
 
-        self.actionAbout = QtWidgets.QAction(PICAT_SM)
+        self.actionAbout = QtGui.QAction(PICAT_SM)
         self.actionAbout.setObjectName("actionAbout")
 
-        self.actionEdit_mode = QtWidgets.QAction('Edit Mode', PICAT_SM, checkable=True)
+        self.actionEdit_mode = QtGui.QAction('Edit Mode', PICAT_SM, checkable=True)
 
 
-        self.actionTab_Copy = QtWidgets.QAction(PICAT_SM)
+        self.actionTab_Copy = QtGui.QAction(PICAT_SM)
         self.actionTab_Copy.setObjectName("actionTab_Copy")
 
-        self.actionTab_Move = QtWidgets.QAction(PICAT_SM)
+        self.actionTab_Move = QtGui.QAction(PICAT_SM)
         self.actionTab_Move.setObjectName("actionTab_Move")
 
         self.menuFile.addAction(self.actionOpen_Files_Explorer)
@@ -298,7 +298,11 @@ class Ui_PICAT_SM(object):
         self.actionRefresh.setShortcut(_translate("PICAT_SM", "Ctrl+R"))
         self.actionTabsize.setText(_translate("PICAT_SM", "S"))
         #make actionTabsize text bold
-        self.actionTabsize.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+        tf = QtGui.QFont()
+        tf.setBold(True)
+        tf.setFamily("Times")
+        tf.setPointSize(10)
+        self.actionTabsize.setFont(tf)
         #set background very light grey
         self.actionOpen_Files_Explorer.setText(_translate("PICAT_SM", "Open Files Explorer"))
         self.actionOpen_Files_Explorer.setShortcut(_translate("PICAT_SM", "Ctrl+O"))

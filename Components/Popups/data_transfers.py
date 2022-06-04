@@ -5,8 +5,8 @@ import pyperclip
 #import QVBoxLayout
 from functools import partial
 import json
-from PyQt5.QtWidgets import  QComboBox,   QFormLayout, QLineEdit,  QLabel, QPushButton, QDialog, QMessageBox, QGridLayout, QFileDialog, QMenu, QVBoxLayout, QWidget
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import  QComboBox,   QFormLayout, QLineEdit,  QLabel, QPushButton, QDialog, QMessageBox, QGridLayout, QFileDialog, QMenu, QVBoxLayout, QWidget
+from PyQt6.QtCore import Qt, pyqtSignal
 import openpyxl
 from openpyxl.worksheet.cell_range import CellRange
 
@@ -175,7 +175,7 @@ class data_transfer(QDialog):
         #popup saying Complete!
         self.popup = QMessageBox()
         self.popup.setText("Import Complete!")
-        self.popup.exec_()
+        self.popup.exec()
 
         
 
@@ -599,7 +599,7 @@ class QFileDrop(QWidget):
         self.gridlayout.addWidget(self.browse_, 0, 1)
         self.layout.addLayout(self.gridlayout)
         #add right click menu
-        self.browse_.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.browse_.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.browse_.customContextMenuRequested.connect(self.right_click_menu)
 
 
@@ -607,7 +607,7 @@ class QFileDrop(QWidget):
         menu = QMenu()
         menu.addAction("copy file/folder", self.copy_file)
         menu.addAction("copy full path", self.copy_file_path)
-        menu.exec_(self.browse_.mapToGlobal(pos))
+        menu.exec(self.browse_.mapToGlobal(pos))
 
     def copy_file(self):
         text = self.browse_.text()
@@ -642,7 +642,7 @@ class QFileDrop(QWidget):
 
     def dropEvent(self, event):
         if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
+            event.setDropAction(Qt.DropAction.CopyAction)
             event.accept()
             links = []
             for url in event.mimeData().urls():

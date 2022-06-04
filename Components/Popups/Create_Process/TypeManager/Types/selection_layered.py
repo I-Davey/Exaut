@@ -1,5 +1,5 @@
 from .__important.TypeInterface import TypeInterface
-from PyQt5.QtWidgets import  QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+from PyQt6.QtWidgets import  QVBoxLayout, QHBoxLayout, QLabel, QComboBox
 
 
 
