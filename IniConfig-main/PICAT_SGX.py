@@ -1,9 +1,9 @@
-#from PyQt5.QtWidgets import QApplication, QMainWindow
+#from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from tkinter import Button
-from PyQt5 import QtCore,QtGui,QtWidgets
-from PyQt5.QtWidgets import *
-from PyQt5 import QtGui
+from PyQt6 import QtCore,QtGui,QtWidgets
+from PyQt6.QtWidgets import *
+from PyQt6 import QtGui
 import os,sys,time,datetime,ctypes,shutil,winshell,win32api,subprocess,psutil
 import glob,math,ctypes,openpyxl,apsw,csv,math,win32api,psycopg2,urllib.parse
 from openpyxl import load_workbook
@@ -871,7 +871,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             if form_name in formtitle:
                 self.title = form_name
             else:
-                new_formdesc = str(QInputDialog.getText(None,"New form description","New form description:",QLineEdit.Normal,"")[0])
+                new_formdesc = str(QInputDialog.getText(None,"New form description","New form description:",QLineEdit.EchoMode.Normal,"")[0])
                 if not new_formdesc:
                     ctypes.windll.user32.MessageBoxW(0,"Form name not found in DB. exiting.","FAIL",0)
                     sys.exit()
@@ -1000,11 +1000,11 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         if not end_location:
             return
 
-        dest_name =  str(QInputDialog.getText(None,"Destination File Name","Destination File Name:",QLineEdit.Normal, new_file)[0])
+        dest_name =  str(QInputDialog.getText(None,"Destination File Name","Destination File Name:",QLineEdit.EchoMode.Normal, new_file)[0])
         if not dest_name:
             return
         #copy file
-        new_button = str(QInputDialog.getText(None,"New Copy Button Name","New Copy Button Name:",QLineEdit.Normal,"Copy " + dest_name)[0])
+        new_button = str(QInputDialog.getText(None,"New Copy Button Name","New Copy Button Name:",QLineEdit.EchoMode.Normal,"Copy " + dest_name)[0])
         if not new_button:
             return
 
@@ -1050,7 +1050,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         
         while len(does_exist)>0:
-            new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.Normal,"")[0])
+            new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.EchoMode.Normal,"")[0])
             if new_button!=None and new_button!="":
                 does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
 
@@ -1079,7 +1079,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
 
 
     def NewTab(self):
-        new_tab = str(QInputDialog.getText(None,"New Tab Name","Name:",QLineEdit.Normal,"")[0])
+        new_tab = str(QInputDialog.getText(None,"New Tab Name","Name:",QLineEdit.EchoMode.Normal,"")[0])
         if not new_tab:
             return
         if new_tab in self.SM_Tabs.tabText(1):
@@ -1119,7 +1119,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                 taburl = taburl[0][0]
             else:
                 taburl = ""
-            new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.Normal,taburl)[0])
+            new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.EchoMode.Normal,taburl)[0])
             #update tab change tab_url to new_url
             WriteSQL(f"""update tabs set taburl = '{new_url}' where formname = '{self.title}' and tab = '{curtab}'""")
             
@@ -1165,14 +1165,14 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             idir = idir+"\\"
         ibase = os.path.basename(new_file)
         logger.success(ibase + " " + idir)
-        new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.Normal,"Folder " + ibase)[0])
+        new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.EchoMode.Normal,"Folder " + ibase)[0])
         if not new_button:
             logger.error("ButtonName is None")
             return
         does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         while len(does_exist)>0:
             ctypes.windll.user32.MessageBoxW(0,"Button already exists","Error",0)
-            new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.Normal,"")[0])
+            new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.EchoMode.Normal,"")[0])
             if new_button!=None and new_button!="":
                 does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
             else:
@@ -1193,13 +1193,13 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
     def Add_url(self):
         curtab = self.SM_Tabs.currentIndex()
         curtab = str(self.SM_Tabs.tabText(curtab))
-        new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.Normal,"")[0])
+        new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.EchoMode.Normal,"")[0])
         #check for text onenote: in new_url and remove all text before it
         if new_url.find("onenote:")>-1:
             new_url = new_url[new_url.find("onenote:"):]
             print(new_url)
 
-        new_button = str(QInputDialog.getText(None,"New URL Button Name","Name:",QLineEdit.Normal,"")[0])
+        new_button = str(QInputDialog.getText(None,"New URL Button Name","Name:",QLineEdit.EchoMode.Normal,"")[0])
         if not new_button:
             return
         maxbut = ReadSQL("select max(buttonsequence) from buttons where tab = '"+curtab+"'")
@@ -1522,7 +1522,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                     self.trg = str(QFileDialog.getExistingDirectory(None, "Select Target Path"))
                     if self.trg!='':
                         self.trg = self.trg.replace("/","\\")
-                        self.filename = str(QInputDialog.getText(None,"Add RAR target","Name:",QLineEdit.Normal,"")[0])+".rar"
+                        self.filename = str(QInputDialog.getText(None,"Add RAR target","Name:",QLineEdit.EchoMode.Normal,"")[0])+".rar"
                         if self.filename!='':
                             self.files = QFileDialog.getOpenFileName(None,'Choose key file','',"TXT Files (*.txt)")
                             if len(self.files[0])>0:
@@ -3116,7 +3116,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                     runExcel(1,str(eseq[exf][2])+"\\"+str(eseq[exf][3]),str(eng[0][0]),str(eseq[exf][4])+"\\"+str(eseq[exf][5]),str(eseq[exf][2]),"",0,1)
 
     def ImportExcel(self):
-        new_button = str(QInputDialog.getText(None,"Confirm Import",'Type "yes" to confirm import',QLineEdit.Normal,"")[0])
+        new_button = str(QInputDialog.getText(None,"Confirm Import",'Type "yes" to confirm import',QLineEdit.EchoMode.Normal,"")[0])
         if new_button.lower() != "yes":
             return
         eng = ReadSQL("select * from sqlengine")
@@ -3375,7 +3375,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         dto.ui.Ini_Broker.activated.connect(partial(self.Change_Ini_Broker,dto))
         dto.ui.Ini_AcctNum.activated.connect(partial(self.Change_Ini_AcctNum,dto))
             
-        result = dto.exec_()
+        result = dto.exec()
         if result==1:
             if self.mtini_broker!="* Broker" and self.mtini_acctnum!="* AcctNum":
                 broketab = self.mtini_broker.split('~')
@@ -3547,13 +3547,13 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             idir = idir+"\\"
         ibase = os.path.basename(new_file)
         logger.success(ibase + " " + idir)
-        new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.Normal,"run " + ibase)[0])
+        new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.EchoMode.Normal,"run " + ibase)[0])
         if not new_button:
             logger.error("ButtonName is None")
             return
         does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         while len(does_exist)>0:
-            new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.Normal,"")[0])
+            new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.EchoMode.Normal,"")[0])
             if new_button!=None and new_button!="":
                 does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         maxbut = maxbut[0][0] + 1 if maxbut[0][0] else 1
@@ -4014,7 +4014,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                                                      str(buttonsordered[bn][0]),
                                                      bname+"_Button_"+str(1)+"_"+str(bn+1),dto,mode,2))
         
-            result = dto.exec_()
+            result = dto.exec()
 
     def on_click_button_plus(self,pname,tname,bname,objn,d,typemode,mode=0):
         self.on_click_button(pname,tname,bname,objn,mode)
@@ -4204,11 +4204,11 @@ class Edit_Popup(QDialog):
         #if no, exit
         qm = QtWidgets.QMessageBox()
         qm.setText("Are you sure you want to delete?")
-        qm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        qm.setDefaultButton(QtWidgets.QMessageBox.No)
+        qm.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+        qm.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
         qm.setWindowTitle("Delete?")
-        ret = qm.exec_()
-        if ret == QtWidgets.QMessageBox.Yes:
+        ret = qm.exec()
+        if ret == QtWidgets.QMessageBox.StandardButton.Yes:
             #delete button
             #delete batchsequence
             queries = []
@@ -4320,11 +4320,11 @@ class Create_sequence(QDialog):
     def closeEvent(self, event):
         qm = QtWidgets.QMessageBox()
         qm.setText("Are you sure you want to exit the sequence builder?")
-        qm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        qm.setDefaultButton(QtWidgets.QMessageBox.No)
+        qm.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+        qm.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
         qm.setWindowTitle("Exit?")
-        ret = qm.exec_()
-        if ret == QtWidgets.QMessageBox.Yes:
+        ret = qm.exec()
+        if ret == QtWidgets.QMessageBox.StandardButton.Yes:
             self._parent.cur_seq = None
             event.accept()
         else:
@@ -4369,18 +4369,18 @@ class DragButton(QPushButton):
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
     
         super(DragButton, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
             # adjust offset from clicked point to origin of widget
             self.show()
             currPos = self.mapToGlobal(self.pos())
-            globalPos = event.globalPos()
+            globalPos = event.globalPosition().toPoint()
             self.parent_.set_others_lower(self.bname)
             diff = globalPos - self.__mouseMovePos
             diff.setX(0)
@@ -4412,7 +4412,7 @@ class DragButton(QPushButton):
 
             buttons.sort(key=lambda x: x[0])
             self.parent_.reset_layout(buttons)
-            moved = event.globalPos() - self.__mousePressPos 
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
             if moved.manhattanLength() > 3:
                 event.ignore()
         super(DragButton, self).mouseReleaseEvent(event)
@@ -4422,7 +4422,7 @@ def main():
     form = DB_Window()
     form.show()
     
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     main()

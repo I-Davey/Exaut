@@ -30,6 +30,7 @@ class Delete_folder(PluginInterface):
         try:
             shutil.rmtree(folder)
             self.logger.success("folder deleted: "+folder)
+            return True
         except Exception as e:
             self.logger.error('Failed to delete %s. Reason: %s' % (folder, e))
             return False

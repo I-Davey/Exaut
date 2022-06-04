@@ -1,7 +1,7 @@
-from PyQt5 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore
 from loguru import logger
 #import QVBoxLayout
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QGridLayout,  QFormLayout, QLineEdit, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox
+from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QGridLayout,  QFormLayout, QLineEdit, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox
 
 class DragButton(QPushButton):
 
@@ -12,18 +12,18 @@ class DragButton(QPushButton):
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
     
         super(DragButton, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
             # adjust offset from clicked point to origin of widget
             self.show()
             currPos = self.mapToGlobal(self.pos())
-            globalPos = event.globalPos()
+            globalPos = event.globalPosition().toPoint()
             self.raise_()
             diff = globalPos - self.__mouseMovePos
             diff.setX(0)
@@ -55,7 +55,7 @@ class DragButton(QPushButton):
 
             buttons.sort(key=lambda x: x[0])
             self.parent_.reset_layout(buttons)
-            moved = event.globalPos() - self.__mousePressPos 
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
             if moved.manhattanLength() > 3:
                 event.ignore()
         super(DragButton, self).mouseReleaseEvent(event)
@@ -257,7 +257,7 @@ class Create_sequence(QDialog):
              #spawn error message over self app
             errormsg.move(int(self.pos().x()+self.frameGeometry().width()/8), int(self.pos().y()+self.frameGeometry().height()/4))
 
-            errormsg.exec_()
+            errormsg.exec()
             return False
         else:
             return True
@@ -335,11 +335,11 @@ class Create_sequence(QDialog):
         else:
             qm = QMessageBox()
             qm.setText("Are you sure you want to exit the sequence builder?")
-            qm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            qm.setDefaultButton(QMessageBox.No)
+            qm.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            qm.setDefaultButton(QMessageBox.StandardButton.No)
             qm.setWindowTitle("Exit?")
-            ret = qm.exec_()
-            if ret == QMessageBox.Yes:
+            ret = qm.exec()
+            if ret == QMessageBox.StandardButton.Yes:
                 self._parent.cur_seq = None
                 if self._parent.actionEdit_mode.isChecked():
                     self._parent.actionEdit_mode_toggled(True)

@@ -1,8 +1,8 @@
-#from PyQt5.QtWidgets import QApplication, QMainWindow
+#from PyQt6.QtWidgets import QApplication, QMainWindow
 
-from PyQt5 import QtCore,QtGui,QtWidgets
-from PyQt5.QtWidgets import *
-from PyQt5 import QtGui
+from PyQt6 import QtCore,QtGui,QtWidgets
+from PyQt6.QtWidgets import *
+from PyQt6 import QtGui
 import os,sys,time,ctypes,shutil,winshell,win32api,subprocess,psutil
 import glob,ctypes,openpyxl,apsw,csv,math,win32api
 from openpyxl import load_workbook

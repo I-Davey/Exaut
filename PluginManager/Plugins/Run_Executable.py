@@ -70,11 +70,13 @@ class Run_Executable(PluginInterface):
                         else:
                             try:
                                 win32api.WinExec("\""+path+"\\"+file+"\" \""+specfile[0]+"\"")
+                                return True
                             except:
                                 ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
                 else:
                     try:
                         os.startfile("\""+path+"\\"+file+"\"")
+                        return True
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
                 
@@ -87,6 +89,7 @@ class Run_Executable(PluginInterface):
                     if self.isNumeric(specfile[0])==True:
                         try:
                             win32api.WinExec("python \""+path+"\\"+file+"\" \""+param+"\"")
+                            return True
                         except:
                             ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
                     else:
@@ -95,15 +98,17 @@ class Run_Executable(PluginInterface):
                         else:
                             try:
                                 win32api.WinExec("python \""+path+"\\"+file+"\" \""+specfile[0]+"\"")
+                                return True
                             except:
                                 ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
                 else:
                     try:
                         win32api.WinExec("python \""+path+"\\"+file+"\"")
+                        return True
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
         else:
             actualpath = path+"\\"+file
             self.logger.error(f"Program not found at location {actualpath}")
-
+        return False
 

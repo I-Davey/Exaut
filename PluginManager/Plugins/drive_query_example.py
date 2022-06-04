@@ -65,6 +65,7 @@ class drive_query_example(PluginInterface):
                         #webbrowser.get(target).open(str(source))
                     except Exception as e:
                         self.logger.error(e)
+                        return False
             else:
                 try:
                     webbrowser.open(str(source))  # Go to example.com

@@ -1,10 +1,10 @@
 from asyncore import read
 import enum
 from tkinter.tix import Tree
-from PyQt5 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore
 from loguru import logger
 #import QVBoxLayout
-from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QFormLayout
+from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QFormLayout
 
 class DragButton(QPushButton):
 
@@ -15,18 +15,18 @@ class DragButton(QPushButton):
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
     
         super(DragButton, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
             # adjust offset from clicked point to origin of widget
             self.show()
             currPos = self.mapToGlobal(self.pos())
-            globalPos = event.globalPos()
+            globalPos = event.globalPosition().toPoint()
             self.raise_()
             diff = globalPos - self.__mouseMovePos
             diff.setX(0)
@@ -58,7 +58,7 @@ class DragButton(QPushButton):
 
             buttons.sort(key=lambda x: x[0])
             self.parent_.reset_layout(buttons)
-            moved = event.globalPos() - self.__mousePressPos 
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
             if moved.manhattanLength() > 3:
                 event.ignore()
         super(DragButton, self).mouseReleaseEvent(event)
@@ -75,18 +75,18 @@ class DragButton_XY(QPushButton):
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
     
         super(DragButton_XY, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
             # adjust offset from clicked point to origin of widget
             self.show()
             currPos = self.mapToGlobal(self.pos())
-            globalPos = event.globalPos()
+            globalPos = event.globalPosition().toPoint()
             self.raise_()
             diff = globalPos - self.__mouseMovePos
             diff.setX(0)
@@ -138,7 +138,7 @@ class DragButton_XY(QPushButton):
             buttons.sort(key=lambda x: x[0])
             #reorder self.parent_.tab_names by order of buttons
             self.parent_.change_order(buttons)
-            moved = event.globalPos() - self.__mousePressPos 
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
             if moved.manhattanLength() > 3:
                 event.ignore()
         super(DragButton_XY, self).mouseReleaseEvent(event)

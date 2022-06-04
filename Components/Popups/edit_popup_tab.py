@@ -1,6 +1,6 @@
 from loguru import logger
 #import QVBoxLayout
-from PyQt5.QtWidgets import  QPushButton,   QFormLayout, QLineEdit,  QLabel, QPushButton, QDialog, QMessageBox, QGridLayout
+from PyQt6.QtWidgets import  QPushButton,   QFormLayout, QLineEdit,  QLabel, QPushButton, QDialog, QMessageBox, QGridLayout
 
 class edit_popup_tab(QDialog):
     def __init__(self, parent_, tab_name):
@@ -60,8 +60,8 @@ class edit_popup_tab(QDialog):
     def delete_tab_all(self):
         #give user option to delete all tabs
 
-        delete_all_question = QMessageBox.question(self, "Delete All DATA", "WARNING: THIS WILL DELETE ALL TABS AND BUTTONS ASSOCIATED WITH THIS TAB. DO YOU WANT TO PROCEED?", QMessageBox.Yes | QMessageBox.No)
-        if delete_all_question == QMessageBox.Yes:
+        delete_all_question = QMessageBox.question(self, "Delete All DATA", "WARNING: THIS WILL DELETE ALL TABS AND BUTTONS ASSOCIATED WITH THIS TAB. DO YOU WANT TO PROCEED?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if delete_all_question == QMessageBox.StandardButton.Yes:
             self.parent_.ReadSQL(f"DELETE FROM tabs where formname = '{self.parent_.title}' and tab = '{self.query[1]}'")
             self.parent_.ReadSQL(f"DELETE FROM buttons where formname = '{self.parent_.title}' and tab = '{self.query[1]}'")
             self.parent_.ReadSQL(F"DELETE FROM batchsequence where formname = '{self.parent_.title}' and tab = '{self.query[1]}'")
