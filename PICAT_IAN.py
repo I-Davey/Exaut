@@ -439,7 +439,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                                 accumbuttons[y] += 1
 
                         self.SM_Grid.addWidget(self.button, x, y, 1, 1)
-                        #set tomato outline
+
                         self.button.setStyleSheet("QPushButton:focus { background-color: tomato }" )
                         self.button.clicked.connect(partial(self.on_click_button,
                                                     self.title,
