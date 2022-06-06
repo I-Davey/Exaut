@@ -439,9 +439,8 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                                 accumbuttons[y] += 1
 
                         self.SM_Grid.addWidget(self.button, x, y, 1, 1)
-                        self.button.setStyleSheet("QPushButton { background-color: none }"
-                                                  "QPushButton:hover { background-color: lightblue }"
-                                                  "QPushButton:focus { background-color: tomato }" )
+                        #set tomato outline
+                        self.button.setStyleSheet("QPushButton:focus { background-color: tomato }" )
                         self.button.clicked.connect(partial(self.on_click_button,
                                                     self.title,
                                                     str(formtabs[ft][0]),
@@ -740,7 +739,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         if state:
 
             self.edit_mode = True
-            #find all pyqt object wqith sm_scrollarea in the name
+            #find all PyQt object wqith sm_scrollarea in the name
             for obj in self.findChildren(QScrollArea):
                 #set red
                 obj.setStyleSheet("background-color: rgb(180, 125, 125);")
@@ -748,7 +747,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             
         else:
             self.edit_mode = False
-            #find all pyqt object wqith sm_scrollarea in the name
+            #find all PyQt object wqith sm_scrollarea in the name
             for obj in self.findChildren(QScrollArea):
                 #remove backgeround color
                 obj.setStyleSheet("background-color: None;")
