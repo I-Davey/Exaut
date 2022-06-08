@@ -44,7 +44,7 @@ class Run_Executable(PluginInterface):
         else:
             return(True)
 
-    def main(self,ftype,path,file,specfile_1,specfile_2,specfile_3, bname, otherval) -> bool:
+    def main(self,ftype,path,file,specfile_1,specfile_2,specfile_3, bname, otherval, Popups) -> bool:
 
         if specfile_2!=None and str(specfile_2)!="":
             specfile = str(specfile_1)+"~"+str(specfile_2)

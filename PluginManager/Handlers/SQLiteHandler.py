@@ -5,7 +5,6 @@ from loguru import logger #logger needs its' own method
 from .HandlerInterface import HandlerInterface
 class SQLiteHandler(HandlerInterface):
     logger.debug("initilising SQLiteHandler")
-    load = True
     vital = True
     def __init__(self):
         

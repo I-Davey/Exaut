@@ -22,7 +22,7 @@ class Zipdecrypt(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self,  source, destination, password) -> bool:
+    def main(self,  source, destination, password, Popups) -> bool:
         move_from = source
         move_to = destination
         compression_key =bytes(password, 'utf-8')

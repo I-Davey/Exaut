@@ -16,7 +16,7 @@ class Delete_Files(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self,source, bname) -> bool:
+    def main(self,source, bname, Popups) -> bool:
         #if the last character is not a slash, add it
         if source[-1] != "\\":
             source += "\\"

@@ -4,7 +4,7 @@ import apsw, time
 import ctypes
 
 class ReadSQL(MethodInterface):
-    load = True
+    load = False
     hooks = ["SQLiteHandler"]
 
     def __init__(self):

@@ -482,7 +482,7 @@ class data_transfer(QDialog):
         except Exception as e:
             logger.error(f"{filename} could not be saved to {self.select_folder.curtext()}")
             logger.error(e)
-            #pyqt error popup
+            #PyQt error popup
             QMessageBox.warning(self, "Error", f"{filename} could not be saved to {self.select_folder.curtext()}. Check if it is open")
         #add button to open folder
         self.open_folder = QPushButton("Open Folder")

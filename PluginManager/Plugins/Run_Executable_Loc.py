@@ -24,7 +24,7 @@ class Run_Executable_Loc(PluginInterface):
         else:
             return(True)
     
-    def main(self,path,filename,param, target) -> bool:
+    def main(self,path,filename,param, target, Popups) -> bool:
 
         if filename == None:
             filename = ""

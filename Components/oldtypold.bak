@@ -256,7 +256,7 @@ def run(parent_, bseq, bname, pname, tname, ReadSQL,WriteSQL, addSlash, copyDir,
                 spath = os.path.dirname(spath)+"\\"
                 spath = addSlash(spath)
                 if bseq[pf][4]!=None and bseq[pf][4]!="":
-                    WriteSQL("attach database '"+spath+"PICAT_SM_connect.db' as PCONNECT")
+                    WriteSQL("attach database '"+spath+"EXAUT_GUI_connect.db' as PCONNECT")
                     WriteSQL("delete from PCONNECT.buttons where treepath = '"+bseq[pf][4]+"'")
                     WriteSQL("update buttons set active = null where treepath = '"+bseq[pf][4]+"'")
                     WriteSQL("detach database PCONNECT")
@@ -340,11 +340,11 @@ def run(parent_, bseq, bname, pname, tname, ReadSQL,WriteSQL, addSlash, copyDir,
                                 ctypes.windll.user32.MessageBoxW(0,"Invalid acctnum in brokeraccountserver for "+temp00+"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
                             
                             else:
-                                #print("\""+temp00+"\\"+mt+"\\Files\\PICAT_Close.exe\" "+get_data[0][0]+" "+str(get_data[0][1])+" \""+temp00+"\" \""+path+"\"")
-                                win32api.WinExec("\""+temp00+"\\"+mt+"\\Files\\PICAT_Close.exe\" "+get_data[0][0]+" "+str(get_data[0][1])+" \""+temp00+"\" \""+path+"\"")
+                                #print("\""+temp00+"\\"+mt+"\\Files\\EXAUT_Close.exe\" "+get_data[0][0]+" "+str(get_data[0][1])+" \""+temp00+"\" \""+path+"\"")
+                                win32api.WinExec("\""+temp00+"\\"+mt+"\\Files\\EXAUT_Close.exe\" "+get_data[0][0]+" "+str(get_data[0][1])+" \""+temp00+"\" \""+path+"\"")
                             #os.system("pause")
                         except:
-                            ctypes.windll.user32.MessageBoxW(0,"Problem running \""+temp00+"\\"+mt+"\\Files\\PICAT_Close.exe\"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
+                            ctypes.windll.user32.MessageBoxW(0,"Problem running \""+temp00+"\\"+mt+"\\Files\\EXAUT_Close.exe\"?","Failed mtfinish: "+bname+"! \\"+str(bseq[pf][9]),0)
                         #print("detach database COMBOT")
                         WriteSQL("detach database COMBOT")
                         #os.system("pause")

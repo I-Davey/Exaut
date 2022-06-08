@@ -15,7 +15,7 @@ class Rename_Item(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self,new_file_name, old_file_path, destination_folder) -> bool:
+    def main(self,new_file_name, old_file_path, destination_folder, Popups) -> bool:
         new_full = destination_folder + '/' + new_file_name
         try:
             shutil.move(old_file_path,os.path.join(destination_folder,new_file_name))
