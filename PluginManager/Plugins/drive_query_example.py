@@ -53,7 +53,7 @@ class drive_query_example(PluginInterface):
         return(bseq)
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, folderpath, filename, source, buttonname, target ) -> bool:
+    def main(self, folderpath, filename, source, buttonname, target , Popups) -> bool:
         
         path = str(folderpath)+"\\"+str(filename)
         if os.path.exists(path)==False:

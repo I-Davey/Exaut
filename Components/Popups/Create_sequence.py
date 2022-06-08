@@ -1,8 +1,7 @@
 from PyQt6 import QtGui, QtCore
 from loguru import logger
 #import QVBoxLayout
-from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QGridLayout,  QFormLayout, QLineEdit, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QSizePolicy
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QGridLayout,  QFormLayout, QLineEdit, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox
 
 class DragButton(QPushButton):
 
@@ -41,8 +40,7 @@ class DragButton(QPushButton):
                 if item["btn_item"] == self:
                     item["x"] = newPos.x()
                     item["y"] = newPos.y()
-                    item["x_btn"].move(item["x_btn"].x(), newPos.y())
-                    item["tname_label"].move(item["tname_label"].x(), newPos.y())
+                    item["x_btn"].move(newPos.x()+self.width(), newPos.y())
 
         super(DragButton, self).mouseMoveEvent(event)
 
@@ -53,7 +51,7 @@ class DragButton(QPushButton):
 
                 
                 #add item to buttons array ordered by y position
-                buttons.append([item['btn_item'].y(), item['btn_item'], item['x_btn'], item['tname_label']])
+                buttons.append([item['btn_item'].y(), item['btn_item'], item['x_btn']])
 
             buttons.sort(key=lambda x: x[0])
             self.parent_.reset_layout(buttons)
@@ -290,29 +288,20 @@ class Create_sequence(QDialog):
     def add_button(self,tname,bname):
         new_button = DragButton(bname, self)
         new_button.fake_init(self, bname)
-        new_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        new_button.adjustSize()
         new_button_x = QPushButton("X")
         #run function self.clicked and send the button obj
         new_button_x.setFixedWidth(20)
         new_button_x.adjustSize()
 
         new_button_x.setStyleSheet("color: red; font-weight: bold;")
-        tabname_label = QLabel(tname)
-        tabname_label.setMinimumWidth(2)
-        #alignright
-        tabname_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        tabname_label.adjustSize()
-
         
         grid = QGridLayout()
-        grid.addWidget(tabname_label, 0, 0)
-        grid.addWidget(new_button, 0, 1)
-        grid.addWidget(new_button_x, 0, 2)
+        grid.addWidget(new_button, 0, 0)
+        grid.addWidget(new_button_x, 0, 1)
         self.layout.addRow(grid)
         x = len(self.orderedbuttons)
-        arr = [x, new_button, new_button_x, tabname_label]
-        dict_data = {"arrpos":x,"tname":tname,"bname":bname, "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid, "tname_label" : tabname_label}
+        arr = [x, new_button, new_button_x]
+        dict_data = {"arrpos":x,"tname":tname,"bname":bname, "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid}
         self.orderedbuttons.append(arr)
         self.button_items.append(dict_data)
         new_button_x.clicked.connect(lambda: self.remove_button(dict_data))
@@ -368,17 +357,13 @@ class Create_sequence(QDialog):
 
             item["grid"].removeWidget(item["btn_item"])
             item["grid"].removeWidget(item["x_btn"])
-            item["grid"].removeWidget(item["tname_label"])
             self.layout.removeRow(item["grid"])
 
         self.orderedbuttons = buttons
         for item in buttons:
             grid = QGridLayout()
-            grid.addWidget(item[3], 0, 0)
-
-            grid.addWidget(item[1], 0, 1)
-            grid.addWidget(item[2], 0, 2)
-
+            grid.addWidget(item[1], 0, 0)
+            grid.addWidget(item[2], 0, 1)
             self.layout.addRow(grid)
             #replace grid in button_items
             for button in self.button_items:

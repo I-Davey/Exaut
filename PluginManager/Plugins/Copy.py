@@ -26,7 +26,7 @@ class Copy(PluginInterface):
         bseq["source"] = idir
         return bseq
 
-    def main(self, batch_name,file_name,file_source,file_destination,run_sequence,new_name) -> bool: 
+    def main(self, batch_name,file_name,file_source,file_destination,run_sequence,new_name, Popups) -> bool: 
         if not new_name:
             new_name = file_name
         full_file_source = file_source+"\\"+file_name 

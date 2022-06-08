@@ -20,7 +20,7 @@ class Zipcrypt(PluginInterface):
 
 
 
-    def main(self,source, destination, password) -> bool:
+    def main(self,source, destination, password, Popups) -> bool:
         curdir = getcwd()
         with tempfile.TemporaryDirectory() as tmpdir:
             move_from_fullpath = source.split("/")[:-1]

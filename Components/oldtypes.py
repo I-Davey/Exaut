@@ -4,8 +4,8 @@ import ctypes
 import shutil
 from loguru import logger
 import time
-from .PICAT_ini import Ui_Dialog
-from .PICAT_dialog import Ui_ButtonDialog
+from .EXAUT_ini import Ui_Dialog
+from .EXAUT_dialog import Ui_ButtonDialog
 from PyQt6 import QtWidgets
 import math
 from functools import partial

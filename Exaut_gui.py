@@ -1,0 +1,308 @@
+
+print("loading..")
+import threading
+from PyQt6 import QtCore,QtGui,QtWidgets
+from PyQt6.QtCore import QPoint
+
+from PyQt6.QtWidgets import *
+from PyQt6 import QtGui
+import time
+import os,sys,ctypes,shutil
+import math,ctypes,apsw,math
+from functools import partial
+import webbrowser
+import Components.EXAUT_gui as EXAUT_gui
+from loguru import logger
+from iniconfig import Parse
+from Plugins import Plugins 
+from Components.Popups.Create_sequence import Create_sequence
+from Components.Popups.edit_popup_tab import edit_popup_tab
+from Components.Popups.Edit_Popup import Edit_Popup
+from Components.Popups.Edit_Layout import Edit_Layout
+from Components.Popups.Create_Process.Create_Process import Create_Process
+from Components.Popups.data_transfers import data_transfer
+from Components.oldtypes import run as run_types
+from Components.Excel import Excel_Popup
+from time import perf_counter
+from PyQt6.QtCore import QThread
+import nest_asyncio
+import asyncio
+from Exaut_backend import Loader
+#Import CustomContextMenu
+from PyQt6.QtCore import Qt
+import threading
+from pynput.mouse import Button, Controller
+
+class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
+
+    signal_refresh = QtCore.pyqtSignal()
+    signal_move_start = QtCore.pyqtSignal(bool)
+    signal_popup_yesno = QtCore.pyqtSignal(str,str,str,str)
+    signal_popup_data = QtCore.pyqtSignal(str,str,str)
+
+    def __init__(self,parent=None):
+        super(UI_Window,self).__init__(parent)
+        self.setupUi(self)
+        self.tablist = []
+        self.tab_buttons = {}
+        self.icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__),'favicon.ico'))
+
+
+
+        self.backend = Loader(self)
+        self.api = self.backend.ui
+        self.popup_msgs = {}
+
+        self.title = ""
+        self.form_desc = ""
+        self.edit_mode = False
+
+
+        self.handle_connects()
+        self.load()
+        self.refresh(start = True)
+        #signal_move_start = variable
+
+    def handle_connects(self):
+        self.signal_popup_yesno.connect(self.yes_no_popup)
+        self.signal_popup_data.connect(self.data_entry_popup)
+
+        self.signal_refresh.connect(self.refresh)
+        self.actionAbout.triggered.connect(self.about_window)
+
+    def move_handler(self, pressed):
+        print("pressed")
+        self.pressed = pressed
+
+    def load(self):
+        form_title, form_desc = self.api.load()
+        self.form_title = form_title
+        self.form_desc = form_desc
+        self.title = form_title
+
+
+        self.setWindowTitle(self.form_desc)
+        self.setWindowIcon(self.icon)
+        #set all icons
+
+        if len(self.tablist) == 0:
+            None
+        print("loading") 
+
+
+        self.actionRefresh.triggered.connect(self.refresh)
+        
+    def refresh(self, start = False, layout_mode = False):
+        if not start:
+            self.refreshing = True
+        self.tablist, self.tab_buttons = self.backend.ui.refresh()
+        self.curTab = self.SM_Tabs.currentIndex()
+        self.curtabsize = (self.width(), self.height())
+            
+        if len(self.tab_buttons) > self.curTab:
+            try:
+                #get index position of self.curtab in self.tabs_buttons dictionary
+                key = self.tablist[self.curTab]
+                ctabsize = self.tab_buttons[key]["size"]
+            #convert self.curtabsize to string with space
+                curtabsizestr =f"{str(self.curtabsize[0])},{str(self.curtabsize[1])}"
+                if ctabsize != curtabsizestr:
+                    self.refreshing = False   
+
+            except:
+                logger.error("the following error should not interrupt your experience")
+                logger.error(f"index error on tabsize, {self.tabsize} RE: {self.curTab} send this to Ian: {self.e}")
+                
+        for h in reversed(range(0,self.SM_Tabs.count())):
+            self.SM_Tabs.removeTab(h)
+          
+
+        tabcount = 0
+        for tab_name, tab_data in self.tab_buttons.items():
+            tab_grid = tab_data['grid']
+            tab_desc = tab_data['description']
+            tab_size = tab_data['size']
+            tab_buttons = tab_data['buttons']
+
+            if tab_grid==None or tab_grid=="":
+                tab_grid = 1
+            tab = QtWidgets.QWidget()
+            tab.setToolTip(str(tab_desc))
+            tab.setObjectName("Tab_"+str(tabcount))
+            TabGrid = QtWidgets.QGridLayout(tab)
+            ScrollArea = QtWidgets.QScrollArea(tab)
+            ScrollArea.setWidgetResizable(True)
+            ScrollAreaContents = QtWidgets.QWidget()
+            ScrollAreaContents.setGeometry(QtCore.QRect(0, 0, 248, 174))
+            ScrollGrid = QtWidgets.QGridLayout(ScrollAreaContents)
+            Grid = QtWidgets.QGridLayout()
+            tabcount += 1
+
+            button_arr = []
+            for num, (buttonsequence, buttonname, columnnum, buttondesc) in enumerate(tab_buttons):
+
+                Grid.setRowStretch(9999,3)
+                button = QtWidgets.QPushButton(ScrollAreaContents)
+                button.setToolTip(str(buttondesc))
+                button.setText(str(buttonname))
+                button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+                ###add buttoncontextmenu
+                #button.customContextMenuRequested.connect(partial(self.button_context_menu,button))
+
+                if columnnum in (None, ""):
+                    x = 0
+                    y = 0
+                    if tab_grid in (None, "") or tab_grid < 1:
+                        tab_grid = 1
+                    if tab_grid < 2:
+                        x = num // tab_grid
+                        y = num % tab_grid
+                        if len(button_arr) == 0:
+                            button_arr.append(0)
+                        button_arr[0] += 1
+                    else:
+                        x = num % math.ceil(len(tab_buttons)/tab_grid)
+                        y = num // math.ceil(len(tab_buttons)/tab_grid)
+                        while len(button_arr) < y+1:
+                            button_arr.append(0)
+                        button_arr[y] += 1
+
+                else:
+                    if len(button_arr) < tab_grid:
+                        for i in range(tab_grid):
+                            if i >= len(button_arr):
+                                button_arr.append(0)
+                    
+                    y = columnnum - 1
+                    if tab_grid in (None, "") or tab_grid < 1:
+                        tab_grid = 1
+                    if y > tab_grid - 1:
+                        y = tab_grid - 1
+                    elif y < 0:
+                        y = 0
+                    x = button_arr[y]
+                    button_arr[y] += 1
+                Grid.addWidget(button, x, y, 1, 1)
+                button.setStyleSheet(" QPushButton:focus { background-color: tomato }")
+                button.clicked.connect(partial(self.api.button_click,buttonname,tab_name,button,mode=1))
+            ScrollGrid.addLayout(Grid, 0, 0, 1, 1)
+            ScrollArea.setWidget(ScrollAreaContents)
+            TabGrid.addWidget(ScrollArea, 0, 0, 1, 1)
+            self.SM_Tabs.addTab(tab, str(tab_name))
+            self.SM_Tabs.setTabText(self.SM_Tabs.indexOf(tab), str(tab_name))
+        if self.curTab<0 or self.curTab > self.SM_Tabs.count()-1:
+            self.SM_Tabs.setCurrentIndex(0)
+        else:
+            self.SM_Tabs.setCurrentIndex(self.curTab)
+        self.SM_Tabs.currentChanged.connect(partial(self.get_tab_change,tab_size))
+        self.SM_Tabs.tabBarClicked.connect(self.on_tab_change_handler)
+        #if self.edit_layout and layout_mode == False:
+            #self.edit_layout.resetlayout(initial=True)
+        logger.success("Refreshed code")
+        #self.actionEdit_mode_toggled(self.edit_mode)
+        self.refreshing = False            
+
+    def get_tab_change(self,n):
+            if self.refreshing:
+                return
+            #curtabtext
+            curtabtext = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+            if curtabtext in self.tab_buttons:
+                curtabsize = self.tab_buttons[curtabtext]["size"]
+                if curtabsize not in (None, ""):                
+                    self.curtabsize = int(curtabsize.split(",")[0]), int(curtabsize.split(",")[1])
+                    self.resize(self.curtabsize[0], self.curtabsize[1])
+                else:
+                    self.resize(650,300)
+            else:
+                self.resize(650,300)
+
+    def on_tab_change_handler(self, index):
+        #if counter for tab is not even
+
+
+        if self.edit_mode:
+            curtab = str(self.SM_Tabs.tabText(index))
+            if curtab in self.tab_edit_dict:
+                #make active window
+                self.tab_edit_dict[curtab].setFocus()
+            else:
+                x = edit_popup_tab(self, curtab)
+                x.show()
+                self.tab_edit_dict.update({curtab:x})
+
+
+##backend functions
+
+    def alert(self, message, title=None):
+        alert_popup = QtWidgets.QMessageBox()
+        if title:
+            alert_popup.setWindowTitle(title)
+        alert_popup.setText(message)
+        alert_popup.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        alert_popup.exec()
+
+    def yes_no_popup(self,key, message, title, default):
+        yes_no_popup = QtWidgets.QMessageBox()
+        if title:
+            yes_no_popup.setWindowTitle(title)
+        yes_no_popup.setText(message)
+        yes_no_popup.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+        if default == "yes":
+            yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Yes)
+        else:
+            yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
+        yes_no_popup.exec()
+        if yes_no_popup.result() == QtWidgets.QMessageBox.StandardButton.Yes:
+            self.popup_msgs[key] = True
+        else:
+            self.popup_msgs[key] = False
+        #yes_no_popup.setDefaultButton(default)
+
+    def data_entry_popup(self,key, message, title):
+        text, ok = QInputDialog.getText(self, title, message)
+        if not ok: 
+            self.popup_msgs[key] = None
+        else:
+            self.popup_msgs[key] = text
+      
+
+##others
+
+    def about_window(self):
+        about = QtWidgets.QMessageBox()
+        about.setWindowTitle("About ExAuT - ***REMOVED***")
+        #set QtWidgets.QMessageBox.Icon.Information
+        about.setWindowIcon(self.icon)
+        #add two text fields
+        about.setText(f"Version: {self.api.version}\n\nForm: {self.title}\n\nCopyright (c) 2022 ***REMOVED***\n\nAll rights reserved.")
+        about.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        about.exec()
+
+
+
+
+class GUI_Handler:
+    def __init__(self,logger,title=None):
+        self.logger = logger
+        self.title = title
+        self.app = None
+        self.window = None
+
+
+
+    def start(self):
+        self.app = QtWidgets.QApplication(sys.argv)
+        self.window = UI_Window()
+        self.window.show()
+        self.app.exec()
+        nest_asyncio.apply()
+        sys.exit()
+
+    def UI_Window(self):
+        return self.window
+
+app = GUI_Handler(logger)
+app.start()
+
+        
