@@ -45,7 +45,11 @@ class Delete_all(PluginInterface):
                         shutil.rmtree(file_path)
                 except Exception as e:
                     self.logger.error('Failed to delete %s. Reason: %s' % (file_path, e))
+                    return False
 
         else:
             self.logger.error("Source path does not exist: "+source)
+            return False
+
+        return True
 

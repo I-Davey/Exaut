@@ -1,4 +1,4 @@
-from .PluginInterface import PluginInterface
+from .__important.PluginInterface import PluginInterface
 import os
 import ctypes
 import webbrowser

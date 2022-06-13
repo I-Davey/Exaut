@@ -1,5 +1,5 @@
 from .__important.TypeInterface import TypeInterface
-from PyQt5.QtWidgets import  QFileDialog, QHBoxLayout, QLabel, QPushButton
+from PyQt6.QtWidgets import  QFileDialog, QHBoxLayout, QLabel, QPushButton
 from functools import partial
 
 
@@ -33,7 +33,7 @@ class browse_folder(TypeInterface):
 
         
     def handle_click(self, *some, **other):
-        return self.q_object(None, "Select Folder", "", QFileDialog.ShowDirsOnly)
+        return self.q_object(None, "Select Folder", "", QFileDialog.Option.ShowDirsOnly)
 
     def validate_result(self) -> bool:
         self.data = self.q_widget.selectedFiles()[0]

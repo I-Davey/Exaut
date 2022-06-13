@@ -1,5 +1,7 @@
-#from PyQt5.QtWidgets import QApplication, QMainWindow
+#from PyQt6.QtWidgets import QApplication, QMainWindow
 #from Components.auth import Auth
+import imp
+from multiprocessing.reduction import duplicate
 import threading
 
 #run authenticate in a thread
@@ -12,9 +14,9 @@ import threading
 
 
 print("loading..")
-from PyQt5 import QtCore,QtGui,QtWidgets
-from PyQt5.QtWidgets import *
-from PyQt5 import QtGui
+from PyQt6 import QtCore,QtGui,QtWidgets
+from PyQt6.QtWidgets import *
+from PyQt6 import QtGui
 import time
 import os,sys,ctypes,shutil
 import math,ctypes,apsw,math
@@ -34,9 +36,11 @@ from Components.oldtypes import run as run_types
 from Components.Excel import Excel_Popup
 from version import version
 from time import perf_counter
-from PyQt5.QtCore import QThread, pyqtSignal, QObject
+from PyQt6.QtCore import QThread
 import nest_asyncio
 import asyncio
+#Import CustomContextMenu
+from PyQt6.QtCore import Qt
 
 
 
@@ -148,7 +152,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             if form_name in formtitle:
                 self.title = form_name
             else:
-                new_formdesc = str(QInputDialog.getText(None,"New form description","New form description:",QLineEdit.Normal,"")[0])
+                new_formdesc = str(QInputDialog.getText(None,"New form description","New form description:",QLineEdit.EchoMode.Normal,"")[0])
                 if not new_formdesc:
                     ctypes.windll.user32.MessageBoxW(0,"Form name not found in DB. exiting.","FAIL",0)
                     sys.exit()
@@ -278,7 +282,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
 
     def data_transfer_handler(self):
         dt  = data_transfer(self)
-        dt.exec_()
+        dt.exec()
 
 
     def freeze_window(self, freeze):
@@ -340,6 +344,8 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                 self.SM_ScrollGrid.setObjectName("SM_ScrollGrid_"+str(ft+1))
                 self.SM_Grid = QtWidgets.QGridLayout()
                 self.SM_Grid.setObjectName("SM_Grid_"+str(ft+1))
+                self.SM_Grid.setRowStretch(1000, 3)
+
                 allbuttons = ReadSQL("select buttonname from buttons where "+
                                      "formname = '"+self.title+"' and tab = '"+
                                      str(formtabs[ft][0])+"' order by buttonsequence asc")
@@ -389,7 +395,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                         self.button.setObjectName("SM_Button_"+str(ft+1)+"_"+str(bn+1))
                         self.button.setText(str(buttonsordered[bn][0]))
                         #add rightclick menu to run button_context_menu
-                        self.button.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+                        self.button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
                         self.button.customContextMenuRequested.connect(partial(self.button_context_menu,self.button))
 
                         if buttoncolordered[bn] in (None, [None], ['']):
@@ -435,9 +441,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                                 accumbuttons[y] += 1
 
                         self.SM_Grid.addWidget(self.button, x, y, 1, 1)
-                        self.button.setStyleSheet("QPushButton { background-color: none }"
-                                                  "QPushButton:hover { background-color: lightblue }"
-                                                  "QPushButton:focus { background-color: tomato }" )
+                        self.button.setStyleSheet("QPushButton:focus { background-color: tomato }" )
                         self.button.clicked.connect(partial(self.on_click_button,
                                                     self.title,
                                                     str(formtabs[ft][0]),
@@ -533,7 +537,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         if form_name == "":
             ctypes.windll.user32.MessageBoxW(0,"No form selected","FAIL",0)
             return
-        new_tab_name = str(QInputDialog.getText(None,"New Tab Name","New Tab Name:",QLineEdit.Normal,text=tab)[0])
+        new_tab_name = str(QInputDialog.getText(None,"New Tab Name","New Tab Name:",QLineEdit.EchoMode.Normal,text=tab)[0])
         if not new_tab_name:
             ctypes.windll.user32.MessageBoxW(0,"No tab name entered. cancelling.","FAIL",0)
             return
@@ -705,7 +709,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
 
     def Add_Desc(self):
         #popup edit ask for description
-        new_formdesc = str(QInputDialog.getText(None,"New description button","New description Button Text:",QLineEdit.Normal,"*")[0])
+        new_formdesc = str(QInputDialog.getText(None,"New description button","New description Button Text:",QLineEdit.EchoMode.Normal,"*")[0])
 
         if not new_formdesc:
             return
@@ -786,11 +790,11 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         if not end_location:
             return
 
-        dest_name =  str(QInputDialog.getText(None,"Destination File Name","Destination File Name:",QLineEdit.Normal, new_file)[0])
+        dest_name =  str(QInputDialog.getText(None,"Destination File Name","Destination File Name:",QLineEdit.EchoMode.Normal, new_file)[0])
         if not dest_name:
             return
         #copy file
-        new_button = str(QInputDialog.getText(None,"New Copy Button Name","New Copy Button Name:",QLineEdit.Normal,"Copy " + dest_name)[0])
+        new_button = str(QInputDialog.getText(None,"New Copy Button Name","New Copy Button Name:",QLineEdit.EchoMode.Normal,"Copy " + dest_name)[0])
         if not new_button:
             return
 
@@ -835,7 +839,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         
         while len(does_exist)>0:
-            new_button = str(QInputDialog.getText(None,"Choose Button Name","Name Taken, Please Choose another Button Name:",QLineEdit.Normal,"")[0])
+            new_button = str(QInputDialog.getText(None,"Choose Button Name","Name Taken, Please Choose another Button Name:",QLineEdit.EchoMode.Normal,"")[0])
             if new_button!=None and new_button!="":
                 does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
             else:
@@ -865,7 +869,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         WriteSQL(f"""insert into batchsequence(formname,tab,buttonname,runsequence, filename,type, source, target, databasename) values('{formtitle}', '{curtab}','{new_button}',1,'{new_file_name}','copy','{start_location}','{end_location}','{dest_name}') """) 
 
     def NewTab(self):
-        new_tab = str(QInputDialog.getText(None,"New Tab Name","Name:",QLineEdit.Normal,"")[0])
+        new_tab = str(QInputDialog.getText(None,"New Tab Name","Name:",QLineEdit.EchoMode.Normal,"")[0])
         if not new_tab:
             return
         #get largest tabsequence based on formname\
@@ -907,7 +911,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                 taburl = taburl[0][0]
             else:
                 taburl = ""
-            new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.Normal,taburl)[0])
+            new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.EchoMode.Normal,taburl)[0])
             if option == "Onenote URL":
                 if new_url.find("onenote:")>-1:
                     new_url = new_url[new_url.find("onenote:"):]
@@ -967,14 +971,14 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             idir = idir+"/"
         ibase = os.path.basename(new_file)
         logger.success(ibase + " " + idir)
-        new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.Normal,"Folder " + ibase)[0])
+        new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.EchoMode.Normal,"Folder " + ibase)[0])
         if not new_button:
             logger.error("ButtonName is None")
             return
         does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         while len(does_exist)>0:
             ctypes.windll.user32.MessageBoxW(0,"Button already exists","Error",0)
-            new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.Normal,"")[0])
+            new_button = str(QInputDialog.getText(None,"New Folder Button Name","Name:",QLineEdit.EchoMode.Normal,"")[0])
             if new_button!=None and new_button!="":
                 does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
             else:
@@ -1000,7 +1004,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         option, ok = QInputDialog.getItem(None, "URL Type", "URL Type", options, 0, False)
         if not ok:
             return
-        new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.Normal,"")[0])
+        new_url = str(QInputDialog.getText(None,"New URL","URL:",QLineEdit.EchoMode.Normal,"")[0])
         if not new_url:
             return
 
@@ -1017,7 +1021,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                 channel = split_url[-2]
                 new_url = f"tg://privatepost?channel={channel}&post={post}"
 
-        new_button = str(QInputDialog.getText(None,"New URL Button Name","Name:",QLineEdit.Normal,"")[0])
+        new_button = str(QInputDialog.getText(None,"New URL Button Name","Name:",QLineEdit.EchoMode.Normal,"")[0])
         if not new_button:
             return
         maxbut = ReadSQL("select max(buttonsequence) from buttons where tab = '"+curtab+"'")
@@ -1079,9 +1083,16 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                                          button.objectName(),
                                          4,
                                          button))
+        menu.addAction("Duplicate", partial(self.on_click_button,
+                                         self.title,
+                                         tabname,
+                                         button_name,
+                                         button.objectName(),
+                                         5,
+                                        button))
 
         menu.addAction("Edit Layout", self.layout_editor)
-        menu.exec_(QtGui.QCursor.pos())
+        menu.exec(QtGui.QCursor.pos())
                                                
     def button_context_menu_handler(self,button,item):
         None
@@ -1089,6 +1100,9 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
     def get_tab_change(self,n):
         if self.refreshing:
             return
+        #if winmdow is maximized
+        if self.isMaximized():
+            return()
         if len(n)>0 and self.SM_Tabs.currentIndex() < len(n):
             n = n[self.SM_Tabs.currentIndex()]
             n = n[0]
@@ -1213,6 +1227,10 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             self.move_button(bseq, pname, tname, bname, objn, mode)
             button.setStyleSheet("background: None")
 
+        elif mode == 5:
+            self.copy_button(bseq, pname, tname, bname, objn, mode, duplicate=True)
+            button.setStyleSheet("background: None")
+
         elif self.cur_seq:
                 self.cur_seq.add_button(tname,bname)
                 button.setStyleSheet("background: None")
@@ -1232,7 +1250,8 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                         newthread.start()
                         self.threads.append(newthread)
                     else:
-                        pmgr.call(bseq[pf][2], bseq[pf])                 
+                        x = pmgr.call(bseq[pf][2], bseq[pf])   
+                        return(x, bseq[pf][2])     
                 else:
                     run_types(self, bseq, bname, pname, tname, ReadSQL)
                     button.setStyleSheet("background: None")
@@ -1259,7 +1278,13 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         edit_pop = Edit_Popup(self, bseq,pname,tname,bname,objn)
         edit_pop.show()
 
-    def copy_button(self, bseq, pname, tname, bname, objn, mode):
+    def copy_button(self, bseq, pname, tname, bname, objn, mode, duplicate = False):
+        bseq0 = bseq
+        pname0 = pname
+        tname0 = tname
+        bname0 = bname
+        objn0 = objn
+        mode0 = mode
 
         #read forms from db not including current form
         forms = ReadSQL("select formname from forms")
@@ -1270,50 +1295,55 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             return
         #create popup with dropdown box of forms
         #create popup with dropdown box of forms
-        form_list = []
-        for form in forms:
-            if form[0] != self.title:
-                form_list.append(form[0])
-        form_list.sort()
-        form_list.insert(0, self.title)
-        form_list.insert(0, "")
-        curtab = self.SM_Tabs.currentIndex()
-        tab = str(self.SM_Tabs.tabText(curtab))
-        form_list = tuple(form_list)
-        form_name = str(QInputDialog.getItem(None,"Copy button to Form","Select form to copy button to:",form_list,0,False)[0])
-        
-        if form_name == "":
-            ctypes.windll.user32.MessageBoxW(0,"No form selected. cancelling.","FAIL",0)
-            return
+        if not duplicate:
+            form_list = []
+            for form in forms:
+                if form[0] != self.title:
+                    form_list.append(form[0])
+            form_list.sort()
+            form_list.insert(0, self.title)
+            form_list.insert(0, "")
+            curtab = self.SM_Tabs.currentIndex()
+            tab = str(self.SM_Tabs.tabText(curtab))
+            form_list = tuple(form_list)
+            form_name = str(QInputDialog.getItem(None,"Copy button to Form","Select form to copy button to:",form_list,0,False)[0])
+            
+            if form_name == "":
+                ctypes.windll.user32.MessageBoxW(0,"No form selected. cancelling.","FAIL",0)
+                return
 
-        tabs = ReadSQL("select tab from tabs where formname = '"+form_name+"'")
-        if len(tabs)<1:
-            #error
-            ctypes.windll.user32.MessageBoxW(0,"No tabs in DB. cancelling.","FAIL",0)
-            logger.error("No tabs in DB. returning.")
-            return
-        #create popup with dropdown box of forms
-        #create popup with dropdown box of forms
-        tab_list = []
-        for tab in tabs:
-            if tab[0] != self.title:
-                tab_list.append(tab[0])
-        tab_list.sort()
-        tab_list.insert(0, self.title)
-        tab_list.insert(0, "")
-        curtab = self.SM_Tabs.currentIndex()
-        tab_list = tuple(tab_list)
-        tab_name = str(QInputDialog.getItem(None,"Copy button to Form","Select tab to copy button to:",tab_list,0,False)[0])
-        
-        if tab_name == "":
-            ctypes.windll.user32.MessageBoxW(0,"No tab selected. cancelling.","FAIL",0)
-            return
-        
-        #get current tab
-        #curtab index = self.Main_CB_Tabs.currentIndex()
+            tabs = ReadSQL("select tab from tabs where formname = '"+form_name+"'")
+            if len(tabs)<1:
+                #error
+                ctypes.windll.user32.MessageBoxW(0,"No tabs in DB. cancelling.","FAIL",0)
+                logger.error("No tabs in DB. returning.")
+                return
+            #create popup with dropdown box of forms
+            #create popup with dropdown box of forms
+            tab_list = []
+            for tab in tabs:
+                if tab[0] != self.title:
+                    tab_list.append(tab[0])
+            tab_list.sort()
+            tab_list.insert(0, self.title)
+            tab_list.insert(0, "")
+            curtab = self.SM_Tabs.currentIndex()
+            tab_list = tuple(tab_list)
+            tab_name = str(QInputDialog.getItem(None,"Copy button to Form","Select tab to copy button to:",tab_list,0,False)[0])
+            
+            if tab_name == "":
+                ctypes.windll.user32.MessageBoxW(0,"No tab selected. cancelling.","FAIL",0)
+                return
+            
+            #get current tab
+            #curtab index = self.Main_CB_Tabs.currentIndex()
 
-        #bseq "folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11
-        #select from buttons buttonsm(pname,tname,bname,objn
+            #bseq "folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11
+            #select from buttons buttonsm(pname,tname,bname,objn
+        if duplicate:
+            form_name = self.title
+            tab_name = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+
         orig_btn_data = ReadSQL(f"select * from buttons where formname = '{pname}' and tab = '{tname}' and buttonname = '{bname}'")
         if len(orig_btn_data)<1:
             #error
@@ -1354,6 +1384,10 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
         WriteSQL(newbatchsequence_query)
         self.Refresh()
         logger.success(f"Button {bname} copied to {form_name} : {tab_name}")
+        if duplicate:
+            #remove all ' from bname
+            bname = bname.replace("'","")
+            self.edit_button(bseq0,pname0,tname0,bname,objn0,mode0)
      
     def move_button(self, bseq, pname, tname, bname, objn, mode):
 
@@ -1430,7 +1464,7 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                     x.show()
                     
     def ImportExcel(self):
-        new_button = str(QInputDialog.getText(None,"Confirm Import",'Type "yes" to confirm import',QLineEdit.Normal,"")[0])
+        new_button = str(QInputDialog.getText(None,"Confirm Import",'Type "yes" to confirm import',QLineEdit.EchoMode.Normal,"")[0])
         if new_button.lower() != "yes":
             return
         eng = ReadSQL("select * from sqlengine")
@@ -1489,9 +1523,9 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                 #ask user if they want toadd a newtabfolder
                 askifadd = QtWidgets.QMessageBox.question(self, 'Add New Tab Folder',
                                                             "Do you want to add a new tab folder?",
-                                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                                            QtWidgets.QMessageBox.No)
-                if askifadd==QtWidgets.QMessageBox.Yes:
+                                                            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+                                                            QtWidgets.QMessageBox.StandardButton.No)
+                if askifadd==QtWidgets.QMessageBox.StandardButton.Yes:
                     self.NewTabFolder()
 
 
@@ -1512,13 +1546,13 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
             idir = idir+"\\"
         ibase = os.path.basename(new_file)
         logger.success(ibase + " " + idir)
-        new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.Normal,"run " + ibase)[0])
+        new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.EchoMode.Normal,"run " + ibase)[0])
         if not new_button:
             logger.error("ButtonName is None")
             return
         does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
         while len(does_exist)>0:
-            new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.Normal,"")[0])
+            new_button = str(QInputDialog.getText(None,"New EXE ButtonName","Name:",QLineEdit.EchoMode.Normal,"")[0])
             if new_button!=None and new_button!="":
                 does_exist = ReadSQL("select buttonname from buttons where tab = '"+curtab+"' and buttonname = '"+new_button+"'")
             else:
@@ -1689,14 +1723,22 @@ class Sequence_Thread(QThread):
                     butp = get_series[i][0]
                     butt = get_series[i][1]
                     butb = get_series[i][2]
+                    
                     if butp!=None and butp!="":
-                        self.parent_.on_click_button(butp,butt,butb,"", mode="sequence")
+                        res,type_ = self.parent_.on_click_button(butp,butt,butb,"", mode="sequence")
+                        if res==False:
 
+                            if type_ == "warning":
+                                logger.warning("Chose to stop sequence")
+                                break
+                            
                 endtime = perf_counter()
                 #endtime in x minutes and y seconds
 
                 logger.success(f"completed button sequence {self.bname} in {round((endtime-ctime),2)} seconds") 
         self.button.setStyleSheet("background: None")
+
+
 
 
 class Button_Thread(QThread):
@@ -1736,9 +1778,11 @@ async def  main():
     form = DB_Window()
     form.show()
     
-    app.exec_()
+    app.exec()
     nest_asyncio.apply()
     sys.exit(0)
+
+
 
 
 if __name__ == '__main__':
