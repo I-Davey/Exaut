@@ -1,7 +1,8 @@
-from PyQt5 import QtGui, QtCore
+from PyQt6 import QtGui, QtCore
 from loguru import logger
 #import QVBoxLayout
-from PyQt5.QtWidgets import QVBoxLayout, QPushButton, QGridLayout,  QFormLayout, QLineEdit, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox
+from PyQt6.QtWidgets import QVBoxLayout, QPushButton, QGridLayout,  QFormLayout, QLineEdit, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QSizePolicy
+from PyQt6.QtCore import Qt
 
 class DragButton(QPushButton):
 
@@ -12,18 +13,18 @@ class DragButton(QPushButton):
     def mousePressEvent(self, event):
         self.__mousePressPos = None
         self.__mouseMovePos = None
-        if event.button() == QtCore.Qt.LeftButton:
-            self.__mousePressPos = event.globalPos()
-            self.__mouseMovePos = event.globalPos()
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
     
         super(DragButton, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == QtCore.Qt.LeftButton:
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
             # adjust offset from clicked point to origin of widget
             self.show()
             currPos = self.mapToGlobal(self.pos())
-            globalPos = event.globalPos()
+            globalPos = event.globalPosition().toPoint()
             self.raise_()
             diff = globalPos - self.__mouseMovePos
             diff.setX(0)
@@ -40,7 +41,8 @@ class DragButton(QPushButton):
                 if item["btn_item"] == self:
                     item["x"] = newPos.x()
                     item["y"] = newPos.y()
-                    item["x_btn"].move(newPos.x()+self.width(), newPos.y())
+                    item["x_btn"].move(item["x_btn"].x(), newPos.y())
+                    item["tname_label"].move(item["tname_label"].x(), newPos.y())
 
         super(DragButton, self).mouseMoveEvent(event)
 
@@ -51,11 +53,11 @@ class DragButton(QPushButton):
 
                 
                 #add item to buttons array ordered by y position
-                buttons.append([item['btn_item'].y(), item['btn_item'], item['x_btn']])
+                buttons.append([item['btn_item'].y(), item['btn_item'], item['x_btn'], item['tname_label']])
 
             buttons.sort(key=lambda x: x[0])
             self.parent_.reset_layout(buttons)
-            moved = event.globalPos() - self.__mousePressPos 
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
             if moved.manhattanLength() > 3:
                 event.ignore()
         super(DragButton, self).mouseReleaseEvent(event)
@@ -257,7 +259,7 @@ class Create_sequence(QDialog):
              #spawn error message over self app
             errormsg.move(int(self.pos().x()+self.frameGeometry().width()/8), int(self.pos().y()+self.frameGeometry().height()/4))
 
-            errormsg.exec_()
+            errormsg.exec()
             return False
         else:
             return True
@@ -288,20 +290,29 @@ class Create_sequence(QDialog):
     def add_button(self,tname,bname):
         new_button = DragButton(bname, self)
         new_button.fake_init(self, bname)
+        new_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        new_button.adjustSize()
         new_button_x = QPushButton("X")
         #run function self.clicked and send the button obj
         new_button_x.setFixedWidth(20)
         new_button_x.adjustSize()
 
         new_button_x.setStyleSheet("color: red; font-weight: bold;")
+        tabname_label = QLabel(tname)
+        tabname_label.setMinimumWidth(2)
+        #alignright
+        tabname_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        tabname_label.adjustSize()
+
         
         grid = QGridLayout()
-        grid.addWidget(new_button, 0, 0)
-        grid.addWidget(new_button_x, 0, 1)
+        grid.addWidget(tabname_label, 0, 0)
+        grid.addWidget(new_button, 0, 1)
+        grid.addWidget(new_button_x, 0, 2)
         self.layout.addRow(grid)
         x = len(self.orderedbuttons)
-        arr = [x, new_button, new_button_x]
-        dict_data = {"arrpos":x,"tname":tname,"bname":bname, "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid}
+        arr = [x, new_button, new_button_x, tabname_label]
+        dict_data = {"arrpos":x,"tname":tname,"bname":bname, "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid, "tname_label" : tabname_label}
         self.orderedbuttons.append(arr)
         self.button_items.append(dict_data)
         new_button_x.clicked.connect(lambda: self.remove_button(dict_data))
@@ -335,11 +346,11 @@ class Create_sequence(QDialog):
         else:
             qm = QMessageBox()
             qm.setText("Are you sure you want to exit the sequence builder?")
-            qm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            qm.setDefaultButton(QMessageBox.No)
+            qm.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            qm.setDefaultButton(QMessageBox.StandardButton.No)
             qm.setWindowTitle("Exit?")
-            ret = qm.exec_()
-            if ret == QMessageBox.Yes:
+            ret = qm.exec()
+            if ret == QMessageBox.StandardButton.Yes:
                 self._parent.cur_seq = None
                 if self._parent.actionEdit_mode.isChecked():
                     self._parent.actionEdit_mode_toggled(True)
@@ -357,13 +368,17 @@ class Create_sequence(QDialog):
 
             item["grid"].removeWidget(item["btn_item"])
             item["grid"].removeWidget(item["x_btn"])
+            item["grid"].removeWidget(item["tname_label"])
             self.layout.removeRow(item["grid"])
 
         self.orderedbuttons = buttons
         for item in buttons:
             grid = QGridLayout()
-            grid.addWidget(item[1], 0, 0)
-            grid.addWidget(item[2], 0, 1)
+            grid.addWidget(item[3], 0, 0)
+
+            grid.addWidget(item[1], 0, 1)
+            grid.addWidget(item[2], 0, 2)
+
             self.layout.addRow(grid)
             #replace grid in button_items
             for button in self.button_items:

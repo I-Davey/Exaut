@@ -1,11 +1,15 @@
+from array import array
 import ctypes
-from PyQt5 import QtGui, QtCore
+from multiprocessing import Event
+from PyQt6 import QtGui, QtCore
+from click import edit
 from loguru import logger
 from functools import partial
 import os
 #import QVBoxLayout
-from PyQt5.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
-from PyQt5.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
+from PyQt6.QtCore import pyqtSignal
+import pyperclip
 class Edit_Popup(QDialog):
     def __init__(self, parent, bseq, pname, tname, bname, objn):
         
@@ -106,7 +110,8 @@ class Edit_Popup(QDialog):
             qlineedit = QLineEdit(self)
             qlineedit.setText(str(self.batchsequence_items[item]))
             label = QLabel_temp(item)
-            label.clicked.connect(partial(self.on_click_label, item=item))
+            label.clicked.connect(partial(self.on_click_label, item, qlineedit))
+            #label .rightclick
             self.qlineeditdict.update({item:qlineedit})
             self.layout.addRow(label, qlineedit)
 
@@ -117,14 +122,19 @@ class Edit_Popup(QDialog):
         editdelete_grid.addWidget(self.delete, 0, 1)
         self.layout.addRow(editdelete_grid)
 
-    def on_click_label(self, item):
-        path_text = self.qlineeditdict[item].text()
-        if path_text == "":
-            return
-        #if realpath
-        if os.path.exists(path_text):
-            #open file explorer
-            os.startfile(path_text)
+    def on_click_label(self, item, edit_box, event):
+        #if right click on label, show dropdown of options
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            path_text = self.qlineeditdict[item].text()
+            if path_text == "":
+                return
+            #if realpath
+            if os.path.exists(path_text):
+                #open file explorer
+                os.startfile(path_text)
+        elif event.button() == QtCore.Qt.MouseButton.RightButton:
+            x = pyperclip.paste()
+            edit_box.setText(x)
     def on_click_save(self):
         batchsequence_changes_dict = {}
         buttons_changes_dict = {}
@@ -186,11 +196,11 @@ class Edit_Popup(QDialog):
         #if no, exit
         qm = QMessageBox()
         qm.setText("Are you sure you want to delete?")
-        qm.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        qm.setDefaultButton(QMessageBox.No)
+        qm.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        qm.setDefaultButton(QMessageBox.StandardButton.No)
         qm.setWindowTitle("Delete?")
-        ret = qm.exec_()
-        if ret == QMessageBox.Yes:
+        ret = qm.exec()
+        if ret == QMessageBox.StandardButton.Yes:
             #delete button
             #delete batchsequence
             queries = []
@@ -221,7 +231,8 @@ class Edit_Popup(QDialog):
 
 
 class QLabel_temp(QLabel):
-    clicked=pyqtSignal()
+    #pyqtsignal(pyqt event)
+    clicked=pyqtSignal(object)
 
     def mousePressEvent(self, ev):
-        self.clicked.emit()
+        self.clicked.emit(ev)
