@@ -79,6 +79,7 @@ class QueryHandler():
             self.logger.info(query.compile(dialect=self.engine.dialect))
         with self.Session.begin() as session:
             session.execute(query)
+
     
 
 class UserInterfaceHandlerPyQT():
@@ -133,6 +134,9 @@ class UserInterfaceHandlerPyQT():
         self.logger.info(message)
         self.gui.alert(message)
 
+    def gui_refresh(self):
+        self.gui.signal_refresh.emit()
+
     def refresh(self):
         tab_info = self.readsql(select(tabs.tab, tabs.grid, tabs.tabdesc, tabs.tabsize).where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()))
         self.buttondata = self.readsql(select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()))
@@ -149,17 +153,15 @@ class UserInterfaceHandlerPyQT():
             buttons_tabs[tab_name]["grid"] = grid
             buttons_tabs[tab_name]["description"] = description
             buttons_tabs[tab_name]["size"] = size
-
-
         #order buttons by item.columnum asc
         buttons_data_ordered.sort(key=lambda button: int(button.columnnum) if button.columnnum not in ("", None) else -5)
         for button in buttons_data_ordered:
             if button.tab not in buttons_tabs:
+                buttons_tabs[button.tab] = {}
                 buttons_tabs[button.tab]["buttons"] = []
             buttons_tabs[button.tab]["buttons"].append([button.buttonsequence, button.buttonname, button.columnnum, button.buttondesc])
         self.tab_buttons = buttons_tabs
         self.tablist = [tab.tab for tab in tab_info]
-        print("EMITTING")
         return(self.tablist, self.tab_buttons)
 
     def load(self):
@@ -181,26 +183,8 @@ class UserInterfaceHandlerPyQT():
 
     def button_click(self, button_name,tab_name,button_obj,mode=1):
         batchsequence_data = self.readsql(select('*').where(batchsequence.formname == self.title).where(batchsequence.buttonname == button_name).where(batchsequence.tab == tab_name))
-        if mode == 2:
-            #self.edit_button(button_name, tab_name)
-            #button.setStyleSheet("background: None;")
-            pass
-        
-        elif len(batchsequence_data) == 0:
+        if len(batchsequence_data) == 0:
             self.alert(f"No batchsequence data found for button: {button_name} on tab: {tab_name} in form: {self.title}")
-        
-        elif mode == 3:
-            #self.copy_button(batchsequence_data, button_name, tab_name)
-            #button.setStyleSheet("background: None")
-            pass
-        elif mode == 4:
-            #self.move_button(batchsequence_data, button_name, tab_name)
-            #button.setStyleSheet("background: None")
-            pass
-        elif mode == 5:
-            #self.copy_button(batchsequence_data, button_name, tab_name)
-            #button.setStyleSheet("background: None")
-            pass
         elif mode in (1, "sequence"):
             if len(batchsequence_data) > 1:
                 mode = "sequence"
@@ -230,15 +214,133 @@ class UserInterfaceHandlerPyQT():
             form_name = button.formname
             tab_name = button.tab
             button_name = button.buttonname
+            res, type_ = button_click(button_name, tab_name, button_obj=None, mode="sequence")
+            if not res:
+                if type_ == "warning":
+                    logger.warning("stopped sequence")
+                    break
 
-            for form_name in (None, ""):
-                res, type_ = button_click(button_name, tab_name, button_obj=None, mode="sequence")
-                if not res:
-                    if type_ == "warning":
-                        logger.warning("stopped sequence")
-                        break
         endtime = perf_counter()
         logger.success(f"completed button sequence {original_button_name} in {round((endtime-ctime),2)} seconds") 
+
+##Popup Functions#############################################################################################################
+##edit button Functions#######################################################################################################
+    def edit_button_data(self, button_name, tab_name):
+        self.logger.info(f"Constructing data for edit button {button_name} on tab {tab_name} in form {self.title}")
+        button_data = self.readsql(select("*").where(buttons.buttonname == button_name).where(buttons.tab == tab_name).where(buttons.formname == self.title), one=True)
+        batchsequence_data = self.readsql(select("*").where(batchsequence.buttonname == button_name).where(batchsequence.tab == tab_name).where(batchsequence.formname == self.title))
+        #if batchsequence_data None:
+        form_data = self.readsql(select(forms.formname).order_by(forms.formname.asc()))
+        tab_data = self.readsql(select(tabs.formname, tabs.tab).where(tabs.formname.in_([form.formname for form in form_data])).order_by(tabs.formname.asc(), tabs.tabsequence.asc()))
+
+        dict_struct = {}
+        dict_struct["button_data"]        = dict(button_data._mapping)
+        dict_struct["batchsequence_data"] = [dict(item._mapping) for item in batchsequence_data] 
+        dict_struct["form_data"]          = [dict(item._mapping) for item in form_data]
+        dict_struct["tab_data"]           = [dict(item._mapping) for item in tab_data]
+
+        if len(batchsequence_data) == 0:
+            self.logger.warning(f"No batchsequence data found for button: {button_name} on tab: {tab_name} in form: {self.title}")
+            return(dict_struct, False)
+            
+        if batchsequence_data[0].type == "assignseries":
+            sequence_data, state = self.edit_sequence_data(button_name, tab_name, batchsequence_data[0].source)
+            if not state:
+                self.alert(F"No assignseries data found for {button_name} on tab {tab_name} in form {self.title}")
+            sequence_data["current_batch"] = dict_struct["batchsequence_data"][0]
+            dict_struct = {"edit": dict_struct, "sequence": sequence_data}
+        else:
+            state = "button"
+        return(dict_struct, state)
+
+    def edit_button_update(self, original_data : dict, batchsequence_new : dict, button_new : dict):
+        if "edit" in original_data:
+            original_data = original_data["edit"]
+        button = original_data["button_data"]
+        self.writesql(update(buttons).where(buttons.buttonname == button["buttonname"]).where(buttons.tab == button["tab"]).where(buttons.formname == self.title).values(**button_new))
+        self.writesql(update(batchsequence).where(batchsequence.buttonname == button["buttonname"]).where(batchsequence.tab == button["tab"]).where(batchsequence.formname == self.title).values(**batchsequence_new))
+        self.writesql(update(buttonseries).where(buttonseries.buttonname == button["buttonname"]).where(buttonseries.tab == button["tab"]).where(buttonseries.formname == self.title).values((buttonseries.buttonname == button["buttonname"],buttonseries.tab == button["tab"],buttonseries.formname == self.title)))
+        self.gui_refresh()
+    
+    def edit_button_delete(self, data : dict):
+        if "edit" in data:
+            data = data["edit"]
+        button = data["button_data"]
+        self.writesql(delete(buttons).where(buttons.buttonname == button["buttonname"]).where(buttons.tab == button["tab"]).where(buttons.formname == self.title))
+        self.writesql(delete(batchsequence).where(batchsequence.buttonname == button["buttonname"]).where(batchsequence.tab == button["tab"]).where(batchsequence.formname == self.title))
+        self.writesql(delete(buttonseries).where(buttonseries.buttonname == button["buttonname"]).where(buttonseries.tab == button["tab"]).where(buttonseries.formname == self.title))
+        self.gui_refresh()
+
+##edit sequence Functions####################################################################################################
+    def edit_sequence_data(self, button_name, tab_name, source):
+        self.logger.info(f'Constructing data for edit sequence "{button_name}" on tab "{tab_name}" in form "{self.title}"')
+        buttonseries_data = self.readsql(select(buttonseries.formname, buttonseries.tab, buttonseries.buttonname).where(buttonseries.assignname == source).where(buttonseries.formname == self.title).order_by(buttonseries.runsequence.asc()))
+        current_button = self.readsql(select("*").where(buttons.buttonname == button_name).where(buttons.tab == tab_name).where(buttons.formname == self.title), one=True)
+        if len(buttonseries_data) == 0:
+            self.logger.warning(f"No buttonseries data found for button: {button_name} on tab: {tab_name} in form: {self.title}")
+
+        dict_struct = {}
+        dict_struct["buttonseries_data"] = [dict(item._mapping) for item in buttonseries_data]
+        dict_struct["current_button"] = dict(current_button._mapping)
+        state = "sequence"
+        return(dict_struct, state) 
+
+    def edit_sequence_update(self, data, buttons_table_dict, batchsequence_table_dict, button_series_table_dict):
+        current_button = data["edit"]["button_data"]
+        current_tab = current_button["tab"]
+        current_form = current_button["formname"]
+        current_name = current_button["buttonname"]
+        current_assignname = data["sequence"]["current_batch"]["source"]
+
+        print(buttons_table_dict)
+        print(batchsequence_table_dict)
+        print(button_series_table_dict)
+
+        if buttons_table_dict["buttonname"] != current_name:
+            self.writesql(update(buttons).where(buttons.buttonname == current_name).where(buttons.tab == current_tab).where(buttons.formname == current_form).values(buttonname = buttons_table_dict["buttonname"]))
+            self.writesql(update(batchsequence).where(batchsequence.buttonname == current_name).where(batchsequence.tab == current_tab).where(batchsequence.formname == current_form).values(buttonname = buttons_table_dict["buttonname"]))
+
+        #delete all buttonseries data for this button
+        self.writesql(delete(buttonseries).where(buttonseries.assignname == current_assignname))
+        #insert new buttonseries data
+
+        for button_series in button_series_table_dict:
+            button_series["formname"] = current_form
+            self.writesql(insert(buttonseries).values(**button_series))
+
+
+    def edit_sequence_save(self, buttons_table_dict, batchsequence_table_dict, button_series_table_dict):
+
+
+
+
+        self.writesql(insert(buttons).values(**buttons_table_dict))
+        self.writesql(insert(batchsequence).values(**batchsequence_table_dict))
+
+
+        for button_series in button_series_table_dict:
+            self.writesql(insert(buttonseries).values(**button_series))
+##edit layout Functions######################################################################################################      
+    def edit_layout_save(self, data):
+        self.logger.info(f'Saving layout data for form "{self.title}"')  #[button.buttonsequence, button.buttonname, button.columnnum, button.buttondesc]
+        for tab, tab_data in data.items():
+
+
+            for button in tab_data["buttons"]:
+                #update values buttons.buttonsequence  = button[0], buttons.columnnum = button[1]
+                self.writesql(update(buttons).where(buttons.buttonname == button[1]).where(buttons.tab == tab).where(buttons.formname == self.title).values(buttonsequence = button[0], columnnum = button[2]))
+            #delete buttons from tab_data
+            tab_data_fresh = tab_data.copy()
+            del tab_data_fresh["buttons"]
+            tab_data_fresh["tabdesc"] = tab_data_fresh["description"]
+            del tab_data_fresh["description"]
+            tab_data_fresh["tabsize"] = tab_data_fresh["size"]
+            del tab_data_fresh["size"]
+            #update values for tab
+            self.writesql(update(tabs).where(tabs.tab == tab).where(tabs.formname == self.title).values(**tab_data_fresh))
+
+#############################################################################################################################
+
             
         
 
@@ -276,7 +378,17 @@ if __name__ == "__main__":
     b = backend.ui.refresh()
     assert a == ("test", "test")
     assert b == (['test'], {'test': {'buttons': [[1, 'test', 1, None]], 'grid': 2, 'description': None, 'size': None}})
-    print("test passed")
+
+    edit_button_test, state = backend.ui.edit_button_data("test", "test")
+    edit_button_test["form_data"] = ["test"]
+    edit_button_test["tab_data"] = ["test"]
+    assert edit_button_test == {'button_data': {'formname': 'test', 'tab': 'test', 'buttonname': 'test', 'buttonsequence': 1, 'columnnum': 1, 'buttondesc': None, 'buttongroup': None, 'active': None, 'treepath': None}, 'batchsequence_data': [{'formname': 'test', 'tab': 'test', 'buttonname': 'test', 'runsequence': None, 'folderpath': None, 'filename': None, 'type': 'test', 'source': None, 'target': None, 'databasepath': None, 'databasename': None, 'keypath': None, 'keyfile': None, 'treepath': None}], 'form_data': ["test"], 'tab_data': ["test"]}
+
+
+    print("tests passed")
+    backend = None
+
+
 
 
 

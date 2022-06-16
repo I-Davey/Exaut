@@ -46,32 +46,31 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tablist = []
         self.tab_buttons = {}
         self.icon = QtGui.QIcon(os.path.join(os.path.dirname(__file__),'favicon.ico'))
-
-
-
         self.backend = Loader(self)
+        self.logger = self.backend.logger
         self.api = self.backend.ui
         self.popup_msgs = {}
-
         self.title = ""
         self.form_desc = ""
         self.edit_mode = False
-
+        self.current_sequence = None
+        self.edit_layout = None
 
         self.handle_connects()
         self.load()
         self.refresh(start = True)
-        #signal_move_start = variable
 
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
         self.signal_popup_data.connect(self.data_entry_popup)
-
         self.signal_refresh.connect(self.refresh)
+
+
         self.actionAbout.triggered.connect(self.about_window)
+        self.actionRefresh.triggered.connect(self.refresh)
+        self.actionAdd_Seq.triggered.connect(self.add_sequence)
 
     def move_handler(self, pressed):
-        print("pressed")
         self.pressed = pressed
 
     def load(self):
@@ -87,11 +86,12 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
         if len(self.tablist) == 0:
             None
-        print("loading") 
 
 
-        self.actionRefresh.triggered.connect(self.refresh)
-        
+        self
+
+
+
     def refresh(self, start = False, layout_mode = False):
         if not start:
             self.refreshing = True
@@ -147,7 +147,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 button.setText(str(buttonname))
                 button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
                 ###add buttoncontextmenu
-                #button.customContextMenuRequested.connect(partial(self.button_context_menu,button))
+                button.customContextMenuRequested.connect(partial(self.button_context_menu,button))
 
                 if columnnum in (None, ""):
                     x = 0
@@ -184,7 +184,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                     button_arr[y] += 1
                 Grid.addWidget(button, x, y, 1, 1)
                 button.setStyleSheet(" QPushButton:focus { background-color: tomato }")
-                button.clicked.connect(partial(self.api.button_click,buttonname,tab_name,button,mode=1))
+                button.clicked.connect(partial(self.button_click,buttonname,tab_name,button,mode=1))
             ScrollGrid.addLayout(Grid, 0, 0, 1, 1)
             ScrollArea.setWidget(ScrollAreaContents)
             TabGrid.addWidget(ScrollArea, 0, 0, 1, 1)
@@ -231,9 +231,91 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 x.show()
                 self.tab_edit_dict.update({curtab:x})
 
+    def Alert(self, message, title="Alert", icon=QtWidgets.QMessageBox.Icon.Warning):
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(icon)
+        msg.setText(message)
+        msg.setWindowTitle(title)
+        msg.exec()
 
-##backend functions
+    def Error(self, message, title="Error", icon=QtWidgets.QMessageBox.Icon.Critical):
+        self.logger.error(message)
+        self.Alert(message, title, icon)
 
+##Other GUI Handlers###############################################################################################################
+
+    def add_sequence(self):
+        if not self.current_sequence:
+            self.current_sequence = Create_sequence(self)
+            self.current_sequence.signal_save.connect(partial(self.api.edit_sequence_save))
+
+            self.current_sequence.show()
+
+    def edit_button(self, data : dict, state):
+        if not state:
+
+            self.Alert(f"Button {data['button_data']['buttonname']} Has no Batchsequence, Deletion Recommended")
+            edit_popup = Edit_Popup(self, data, state=False)
+            
+        elif state == "sequence":
+            self.current_sequence = Create_sequence(self, edit=True, data=data["sequence"])
+            #self.current_sequence.signal_delete.connect(self.api.edit_sequence_delete)
+            self.current_sequence.signal_update.connect(partial(self.api.edit_sequence_update, data))
+
+            self.current_sequence.show()
+            edit_popup = Edit_Popup(self, data["edit"])
+        elif state == "button":
+            edit_popup = Edit_Popup(self, data)
+
+        else:
+            return
+
+        edit_popup.signal_delete.connect(partial(self.api.edit_button_delete, data))
+        edit_popup.signal_update.connect(partial(self.api.edit_button_update, data))
+        edit_popup.show()
+
+    def layout_editor(self):
+        if self.edit_layout != None:
+            try:
+                self.edit_layout.close()
+            except:
+                self.edit_layout = None
+                
+        self.edit_layout = Edit_Layout(self)
+        self.edit_layout.signal_save.connect(self.api.edit_layout_save)
+        self.edit_layout.show()
+
+            
+###################################################################################################################################
+
+##Gui->Backend Query Handlers######################################################################################################
+    def button_click(self, buttonname, tabname, button, mode=1):
+        if mode == 1 and not self.current_sequence and not self.edit_mode:
+            self.api.button_click(buttonname, tabname, button, mode=1)
+        if mode == 2:
+            data, state = self.api.edit_button_data(buttonname, tabname)
+            self.edit_button(data, state)
+            button.setStyleSheet("background: None;")
+            pass
+        
+        elif mode == 3:
+            #self.copy_button_data(batchsequence_data, button_name, tab_name)
+            #button.setStyleSheet("background: None")
+            pass
+        elif mode == 4:
+            #self.move_button_data(batchsequence_data, button_name, tab_name)
+            #button.setStyleSheet("background: None")
+            pass
+        elif mode == 5:
+            #self.copy_button_data(batchsequence_data, button_name, tab_name)(duplicate)
+            #button.setStyleSheet("background: None")
+            pass
+        elif self.current_sequence:
+            self.current_sequence.add_button(tabname, buttonname)
+            button.setStyleSheet("background: None")
+#############################################################################################################################
+
+##Action functions###########################################################################################################
     def alert(self, message, title=None):
         alert_popup = QtWidgets.QMessageBox()
         if title:
@@ -257,7 +339,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.popup_msgs[key] = True
         else:
             self.popup_msgs[key] = False
-        #yes_no_popup.setDefaultButton(default)
 
     def data_entry_popup(self,key, message, title):
         text, ok = QInputDialog.getText(self, title, message)
@@ -265,10 +346,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.popup_msgs[key] = None
         else:
             self.popup_msgs[key] = text
-      
+##############################################################################################################################
 
-##others
-
+##others######################################################################################################################
     def about_window(self):
         about = QtWidgets.QMessageBox()
         about.setWindowTitle("About ExAuT - ***REMOVED***")
@@ -278,8 +358,40 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         about.setText(f"Version: {self.api.version}\n\nForm: {self.title}\n\nCopyright (c) 2022 ***REMOVED***\n\nAll rights reserved.")
         about.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         about.exec()
+##############################################################################################################################
 
+##context menus###############################################################################################################
+    def button_context_menu(self, button, event):
+        menu = QtWidgets.QMenu(self)
+        #tab name is current active tab
+        tab_name = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+        #button name is the text in the button
+        button_name = button.text()
 
+        menu.addAction("Edit", partial(self.button_click,
+                                        button_name,
+                                        tab_name,
+                                        button,
+                                        2))
+        menu.addAction("Copy", partial(self.button_click,
+                                        button_name,
+                                        tab_name,
+                                        button,
+                                        3))
+        menu.addAction("Move", partial(self.button_click,
+                                        button_name,
+                                        tab_name,
+                                        button,
+                                        4))
+        menu.addAction("Duplicate", partial(self.button_click,
+                                        button_name,
+                                        tab_name,
+                                        button,
+                                        5))
+
+        menu.addAction("Edit Layout", self.layout_editor)
+        menu.exec(QtGui.QCursor.pos())
+##############################################################################################################################
 
 
 class GUI_Handler:
@@ -302,7 +414,8 @@ class GUI_Handler:
     def UI_Window(self):
         return self.window
 
-app = GUI_Handler(logger)
-app.start()
+if __name__ == "__main__":
+    gui = GUI_Handler(logger,title="ExAuT")
+    gui.start()
 
         
