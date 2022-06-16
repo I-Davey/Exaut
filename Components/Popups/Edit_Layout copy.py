@@ -6,62 +6,161 @@ from loguru import logger
 #import QVBoxLayout
 from functools import partial
 from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QFormLayout, QVBoxLayout, QLayout
-from PyQt6.QtGui import QDrag, QPixmap
-from PyQt6.QtCore import QMimeData, Qt
-
 from PyQt6 import QtWidgets
 import math
 import random
-from sqlalchemy import column
 
-class CustomDropLayout(QWidget):
-    def __init__(self, parent, update_function, button_layout, tab, column):
-        super(CustomDropLayout, self).__init__(parent)
-        self.setContentsMargins(0, 0, 0, 0)
-        self.setAcceptDrops(True)
-        self.update_function = update_function
-        self.button_layout = button_layout
-        self.tab = tab
-        self.column = column
-        self.button_array = []
-    def dragEnterEvent(self, event):
-        event.accept()
 
-    def dropEvent(self, event):
-        widget = event.source()
-        position = event.position()
-        if widget is not None:
-            widget.setParent(None)
-            self.button_layout.addWidget(widget)
-            self.update_function(self.tab, self.column,position, widget.from_column, widget.text(), self.button_array)
-
-        
 class DragButton(QPushButton):
-    def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
-        if e.buttons() == Qt.MouseButton.LeftButton:
-            drag = QDrag(self)
-            mime = QMimeData()
-            drag.setMimeData(mime)
+    def __init__(self, parent, button_layout, update_function):
+        super(DragButton, self).__init__(parent)
+        self.setAcceptDrops(True)
+        self.parent_ = parent
+        self.update_function = update_function
+        self.notparent = True
+        self.button_layout = button_layout
+        #set position of button to be the same as the fake button
+    def fake_init(self, parent_, bname):
+        self.parent_ = parent_
+        self.bname = bname
+
+    #on click
 
 
-            pixmap = QPixmap(self.size())
-            self.render(pixmap)
-            drag.setPixmap(pixmap)
-            drag.setHotSpot(e.pos())
+    def mousePressEvent(self, event):
+        if self.notparent:
+            cursize = self.size()
+            curpos = self.pos()
 
-            drag.exec(Qt.DropAction.MoveAction)
+            self.button_layout.setParent(None)
+            self.parent_.layout().addWidget(self)
+            self.notparent = False
+            self.move(curpos)
+
+
+        self.__mousePressPos = None
+        self.__mouseMovePos = None
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
+
+        super(DragButton, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        #if self.parent is not self.parent_
+
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
+            # adjust offset from clicked point to origin of widget
+            self.show()
+            currPos = self.mapToGlobal(self.pos())
+            globalPos = event.globalPosition().toPoint()
+            self.raise_()
+            diff = globalPos - self.__mouseMovePos
+
+            newPos = self.mapFromGlobal(currPos + diff)
+            #logger.trace(f"{newPos.x()}, {newPos.y()}, {self.parent_.height()}")
+
+
+            self.__mouseMovePos = globalPos
+            self.move(newPos)
+
+
+        super(DragButton, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self.__mousePressPos is not None:
+         
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
+            if moved.manhattanLength() > 3:
+                event.ignore()
+
+        self.update_function()
+        super(DragButton, self).mouseReleaseEvent(event)
 
 class QTabWidgetHandler(QTabWidget):
     def fake_init(self, parent_):
         self.parent_ = parent_
     
+class DragButton_XY(QPushButton):
+    def fake_init(self, parent_, bname):
+        self.parent_ = parent_
+        self.bname = bname
+
+    def mousePressEvent(self, event):
+        self.__mousePressPos = None
+        self.__mouseMovePos = None
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.__mousePressPos = event.globalPosition().toPoint()
+            self.__mouseMovePos = event.globalPosition().toPoint()
+    
+        super(DragButton_XY, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
+            # adjust offset from clicked point to origin of widget
+            self.show()
+            currPos = self.mapToGlobal(self.pos())
+            globalPos = event.globalPosition().toPoint()
+            self.raise_()
+            diff = globalPos - self.__mouseMovePos
+            diff.setX(0)
+            newPos = self.mapFromGlobal(currPos + diff)
+            #logger.debug(f"{newPos.x()}, {newPos.y()}, {self.parent_.width()} : {self.parent_.height()}, {self.width()} : {self.height()}")
+            """
+            if newPos.x() < 1:
+                #logger.warning("X")
+                newPos.setX(1)
+                
+                #            if newPos.x() > self.parent_.width() -  width of button
+            if newPos.x() > self.parent_.width()  - int(self.parent_.width()- 21):
+                #logger.warning("WIDTH")
+                newPos.setX(self.parent_.width() - int(self.parent_.width() - 21))
+            if newPos.y() < 2:
+                #logger.warning("Y")
+                newPos.setY(2)
+            if newPos.y() > self.parent_.height() - 140:
+                #logger.warning("HEIGHT")
+                newPos.setY(self.parent_.height() - 140)
+            """
+            self.__mouseMovePos = globalPos
+            self.move(newPos)
+            #move self.tab_data_dict[item]["buttons"][x1]["rightarrow"] = rightarrowbutton
+            for item in self.parent_.tab_data_dict:
+                for item2 in self.parent_.tab_data_dict[item]["buttons"]:
+                    if item2["buttonmain"] == self:
+                        item2["rightarrow"].move(newPos.x()+self.width(), newPos.y())
+                        item2["leftarrow"].move(newPos.x()-20, newPos.y())
+
+
+
+        super(DragButton_XY, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self.__mousePressPos is not None:
+            buttons = []
+            main_button_x = self.x()
+            for i, item in enumerate(self.parent_.tab_data_dict):
+                for item2 in self.parent_.tab_data_dict[item]["buttons"]:
+                    if item2["buttonmain"] == self:
+                        for item2 in self.parent_.tab_data_dict[item]["buttons"]:
+                            #if x() is the same
+                            #log x coords
+                            #logger.debug(f"{item2['buttonmain'].y()}")
+                            if item2["buttonmain"].parent() == self.parent():
+                                #also append tab its in
+                                buttons.append([item2['buttonmain'].y(), item2, self.parent_.tab_data_dict[item]["tab"]] )
+            buttons.sort(key=lambda x: x[0])
+            #reorder self.parent_.tab_names by order of buttons
+            self.parent_.change_order(buttons)
+            moved = event.globalPosition().toPoint() - self.__mousePressPos 
+            if moved.manhattanLength() > 3:
+                event.ignore()
+        super(DragButton_XY, self).mouseReleaseEvent(event)
+
 
 class Edit_Layout(QDialog):
-    signal_save = QtCore.pyqtSignal(dict)
-
     def __init__(self, parent_):
         super(Edit_Layout, self).__init__(parent_)
-        self.setGeometry(300, 300, 300, 200)
         self.tablist = []
         self.tab_buttons = {}
 
@@ -80,8 +179,6 @@ class Edit_Layout(QDialog):
         self.title = parent_.title
         self.tablist = parent_.tablist
         self.tab_buttons = parent_.tab_buttons
-        self.refresh = parent_.refresh
-        self.pointer = parent_.edit_layout
 
 
         self.rightplusbutton = QPushButton()
@@ -123,10 +220,10 @@ class Edit_Layout(QDialog):
         self.setWindowTitle("Edit Layout")
         #add save button
         self.save_button = QPushButton("Update and Exit")
-        self.save_button.clicked.connect(partial(self.handle_save, exit_=True))
+        self.save_button.clicked.connect(self.save_layout)
         self.update_button = QPushButton("Update")
         #lambda run self.parent_.Refresh()
-        self.update_button.clicked.connect(self.handle_save)
+        self.update_button.clicked.connect(self.handle_update)
         #grid
         tgrid = QGridLayout()
         tgrid.setSpacing(0)
@@ -150,29 +247,11 @@ class Edit_Layout(QDialog):
 
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
-        self.handle_refresh(self.curtab)
+        self.handle_refresh()
 
 
-    def clear_all(self):
-        for i in reversed(range(0,self.SM_Tabs.count())):
-            self.SM_Tabs.removeTab(i)
-        
-    #on close handler
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self.pointer = None
-        return super().closeEvent(a0)
+    def handle_refresh(self):
 
-    def handle_save(self, exit_=False):
-        self.signal_save.emit(self.tab_buttons)
-        self.refresh()
-        if exit_:
-            self.pointer = None
-            self.deleteLater()
-            self.close()
-
-    def handle_refresh(self, curtab = None):
-        
-        self.clear_all()
         self.button_to_fake_array = []
         for i, item in enumerate(self.tablist):
             #self.SM_Tabs.addTab(item, item.title)
@@ -183,8 +262,7 @@ class Edit_Layout(QDialog):
             tab_grid = QGridLayout()
             
             #grid_map = grid of size columns
-            grid_map =  [*([] for i in range(columns + 1))] #[item, *([] for i in range(columns))]
-
+            grid_map =  [*([] for i in range(columns))] #[item, *([] for i in range(columns))]
             for button in buttons:
                 column_num = button[2]
                 if column_num > len(grid_map) -  1:
@@ -197,8 +275,7 @@ class Edit_Layout(QDialog):
             for i, column  in enumerate(grid_map):
                 scrollarea = QScrollArea()
                 scrollarea.setWidgetResizable(True)
-                ScrollAreaContents = CustomDropLayout(self, self.update_column, None, item, i)
-                ScrollAreaContents.setObjectName("ScrollAreaContents")
+                ScrollAreaContents = QtWidgets.QWidget()
                 if i == 0:
                     ScrollAreaContents.setStyleSheet("background-color: rgb(90, 90, 90);")
                 #set scrollareacontents color to red
@@ -206,39 +283,24 @@ class Edit_Layout(QDialog):
                 ScrollAreaContents.setGeometry(QtCore.QRect(0, 0, 248, 174))
                 scrollarea.setWidget(ScrollAreaContents)
                 ScrollGrid = QVBoxLayout(ScrollAreaContents)
-                ScrollGrid.setObjectName("ScrollGrid")
                 ScrollGrid.setSpacing(0)
                 ScrollGrid.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
-                if len(column) == 0:
-                    button_layout = QVBoxLayout()
-                    ScrollGrid.addLayout(QVBoxLayout())
-                    ScrollAreaContents.button_layout = button_layout
-
                 for button in column:
                     button_layout = QVBoxLayout()
-                    ScrollAreaContents.button_layout = button_layout
 
-                    new_button = DragButton(button)
-                    new_button.from_column = i
+                    new_button = DragButton(self,button_layout, self.update_layout)
                     button_layout.addWidget(new_button)
 
                     new_button.setText(button)
                     new_button.isVisible = True
 
-
                     ScrollGrid.addLayout(button_layout)
-                    ScrollAreaContents.button_array.append(new_button)
 
 
                     #new_button.setStyleSheet("background-color: rgb(255, 255, 255);")
                     if i == 0:
-                        new_button.setStyleSheet("""background-color: red;
-border-style: outset;
-border-width: 2px;
-border-radius: 15px;
-border-color: black;
-padding: 4px;""")
+                        new_button.setStyleSheet("background-color: rgb(255, 255, 255);")
                 tab_grid.addWidget(scrollarea, 0, i)
             
             tab_widget = QTabWidget()
@@ -249,23 +311,25 @@ padding: 4px;""")
 
 
 
-        if curtab<0 or curtab > self.SM_Tabs.count()-1:
+        if self.curtab<0 or self.curtab > self.SM_Tabs.count()-1:
             self.SM_Tabs.setCurrentIndex(0)
         else:
-            self.SM_Tabs.setCurrentIndex(curtab)
+            self.SM_Tabs.setCurrentIndex(self.curtab)
+
+        
+
 
     def add_grid_x(self):
-        curtab = self.SM_Tabs.currentIndex()
-        curtabtext = self.SM_Tabs.tabText(curtab)
-        self.tab_buttons[curtabtext]["grid"] += 1
-        self.handle_refresh(curtab)
-
+        None
     def remove_grid_x(self):
-        curtab = self.SM_Tabs.currentIndex()
-        curtabtext = self.SM_Tabs.tabText(curtab)
-        if self.tab_buttons[curtabtext]["grid"] > 1:
-            self.tab_buttons[curtabtext]["grid"] -= 1
-            self.handle_refresh(curtab)
+        None
+    def handle_update(self):
+        None
+    def save_layout(self):
+        None
+
+
+
 
     def update_layout(self):
         curtab_items = []
@@ -285,52 +349,9 @@ padding: 4px;""")
             for i in range(len(curtab_items)):
                 if curtab_items[i][1] > item[1]:
                     curtab_items[i][0] += 1
-    
-    def update_column(self, tab_name, column_num, pos, from_column, text, button_array):
-        current_tab_text = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
-        position_array = []
-        current_item_desc = ""
-        other_items_desc = []
-        tab_data = self.tab_buttons[current_tab_text]
-        for button in button_array:
-            globaly = self.mapToGlobal(button.pos()).y()
-            #get height of button
-            height = int(button.height() / 2)
-            y = globaly + height
-            position_array.append([button.text(), y])
 
-        for i,j in enumerate(position_array):
-            if position_array[i][0] == text:
-                #delete item from position_array
-                position_array.pop(i)
-
-
-
-        final_item_array = []
-
-        tab_dict = self.tab_buttons[tab_name]  #[button.buttonsequence, button.buttonname, button.columnnum, button.buttondesc]
-        for i, item in enumerate(tab_dict["buttons"]):
-            if item[1] == text:
-                current_item_desc = item[3]
-                tab_dict["buttons"].pop(i)
-                break
 
         
-        #delete all tab_dict["buttons"] as i with i[2] == column_num
-        for i in reversed(range(len(tab_dict["buttons"]))):
-            if tab_dict["buttons"][i][2] == column_num:
-                other_items_desc.append(tab_dict["buttons"][i][3])
-                tab_dict["buttons"].pop(i)
-        other_items_desc.reverse()
-        
-        final_item_array.append([self.mapToGlobal(pos).y(), text, column_num, current_item_desc])
-        for i, item_desc in enumerate(other_items_desc):
-            final_item_array.append([position_array[i][1], position_array[i][0], column_num, item_desc])
-        
-        final_item_array.sort(key=lambda x: x[0])
-        for i, item in enumerate(final_item_array):
-            final_item_array[i][0] = i
-        tab_dict["buttons"].extend(final_item_array)
-        print(tab_dict["buttons"])
-        self.handle_refresh(curtab = self.SM_Tabs.currentIndex() )
-
+            
+            
+            
