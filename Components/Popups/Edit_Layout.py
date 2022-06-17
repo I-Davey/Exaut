@@ -61,11 +61,11 @@ class Edit_Layout(QDialog):
 
     def __init__(self, parent_):
         super(Edit_Layout, self).__init__(parent_)
-        self.setGeometry(300, 300, 300, 200)
         self.tablist = []
         self.tab_buttons = {}
 
         self.SM_Tabs = QtWidgets.QTabWidget()
+        self.SM_Tabs.currentChanged.connect(self.ontabchange)
         self.cur_layout = QFormLayout()
         self.setLayout(self.cur_layout)
 
@@ -234,25 +234,28 @@ class Edit_Layout(QDialog):
                     #new_button.setStyleSheet("background-color: rgb(255, 255, 255);")
                     if i == 0:
                         new_button.setStyleSheet("""background-color: red;
-border-style: outset;
-border-width: 2px;
-border-radius: 15px;
-border-color: black;
-padding: 4px;""")
+                        border-style: outset;
+                        border-width: 2px;
+                        border-radius: 15px;
+                        border-color: black;
+                        padding: 4px;""")
                 tab_grid.addWidget(scrollarea, 0, i)
             
             tab_widget = QTabWidget()
             tab_widget.setLayout(tab_grid)
             
             self.SM_Tabs.addTab(tab_widget, item)
-                    
-
-
 
         if curtab<0 or curtab > self.SM_Tabs.count()-1:
             self.SM_Tabs.setCurrentIndex(0)
         else:
             self.SM_Tabs.setCurrentIndex(curtab)
+        #set size to self.layout.sizeHint
+
+
+    def ontabchange(self, index):
+        combo = self.sizeHint() + self.cur_layout.sizeHint() + self.items_grid_centre.sizeHint()
+        self.resize(combo)
 
     def add_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()

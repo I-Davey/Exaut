@@ -1,15 +1,12 @@
 from time import perf_counter
-from tkinter.tix import PopupMenu
 from Plugins import Plugins 
 from loguru import logger
 import sys
 import os
 from iniconfig import Parse
-from Components.db.Exaut_sql import  Base, forms, tabs, buttons, batchsequence, buttonseries
-from sqlalchemy import create_engine, text, MetaData, Table, Column, Integer, String, DateTime, ForeignKey, func, and_, or_, select, update, insert, delete
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
-from sqlalchemy.schema import CreateTable
+from Components.db.Exaut_sql import  forms, tabs, buttons, batchsequence, buttonseries
+from sqlalchemy import create_engine,select, update, insert, delete
+from sqlalchemy.orm import sessionmaker
 from threading import Thread
 from version import version
 from random import randint
@@ -99,6 +96,7 @@ class UserInterfaceHandlerPyQT():
         self.form_desc = ""
         self.version = version
         self.popups = self.Popups(self.gui, self.logger)
+
     class Popups:
         def __init__(self, gui, logger):
             self.gui =  gui
@@ -120,7 +118,6 @@ class UserInterfaceHandlerPyQT():
         def call(self, signal, args):
             key = str(self.random())
             signal.emit(key, *args)
-            print(key)
             while key not in self.gui.popup_msgs:
                 None
             res = self.gui.popup_msgs[key]
@@ -284,17 +281,13 @@ class UserInterfaceHandlerPyQT():
         dict_struct["current_button"] = dict(current_button._mapping)
         state = "sequence"
         return(dict_struct, state) 
-
+        
     def edit_sequence_update(self, data, buttons_table_dict, batchsequence_table_dict, button_series_table_dict):
         current_button = data["edit"]["button_data"]
         current_tab = current_button["tab"]
         current_form = current_button["formname"]
         current_name = current_button["buttonname"]
         current_assignname = data["sequence"]["current_batch"]["source"]
-
-        print(buttons_table_dict)
-        print(batchsequence_table_dict)
-        print(button_series_table_dict)
 
         if buttons_table_dict["buttonname"] != current_name:
             self.writesql(update(buttons).where(buttons.buttonname == current_name).where(buttons.tab == current_tab).where(buttons.formname == current_form).values(buttonname = buttons_table_dict["buttonname"]))
@@ -307,7 +300,7 @@ class UserInterfaceHandlerPyQT():
         for button_series in button_series_table_dict:
             button_series["formname"] = current_form
             self.writesql(insert(buttonseries).values(**button_series))
-
+        self.gui_refresh()
 
     def edit_sequence_save(self, buttons_table_dict, batchsequence_table_dict, button_series_table_dict):
 
@@ -320,6 +313,20 @@ class UserInterfaceHandlerPyQT():
 
         for button_series in button_series_table_dict:
             self.writesql(insert(buttonseries).values(**button_series))
+        self.gui_refresh()
+
+    def edit_sequence_delete(self, data_dict):
+        button_name = data_dict["current_button"]["buttonname"]
+        tab_name = data_dict["current_button"]["tab"]
+        form_name = data_dict["current_button"]["formname"]
+
+        assignname = data_dict["current_batch"]["source"]
+
+        self.writesql(delete(buttons).where(buttons.buttonname == button_name).where(buttons.tab == tab_name).where(buttons.formname == form_name))
+        self.writesql(delete(batchsequence).where(batchsequence.buttonname == button_name).where(batchsequence.tab == tab_name).where(batchsequence.formname == form_name))
+        self.writesql(delete(buttonseries).where(buttonseries.formname == form_name).where(buttonseries.assignname == assignname))
+        self.gui_refresh()
+
 ##edit layout Functions######################################################################################################      
     def edit_layout_save(self, data):
         self.logger.info(f'Saving layout data for form "{self.title}"')  #[button.buttonsequence, button.buttonname, button.columnnum, button.buttondesc]
@@ -339,10 +346,32 @@ class UserInterfaceHandlerPyQT():
             #update values for tab
             self.writesql(update(tabs).where(tabs.tab == tab).where(tabs.formname == self.title).values(**tab_data_fresh))
 
+##Add Action Functions#######################################################################################################
+    def create_process_insert(self, batchsequence_dict, buttons_dict):
+        self.logger.info(f'Inserting process data for form "{self.title}"')
+        batchsequence_dict["runsequence"] = 0
+        self.writesql(insert(batchsequence).values(**batchsequence_dict))
+        self.writesql(insert(buttons).values(**buttons_dict))
 #############################################################################################################################
 
-            
-        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Loader:

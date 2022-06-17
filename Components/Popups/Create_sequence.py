@@ -64,9 +64,10 @@ class DragButton(QPushButton):
 
 class Create_sequence(QDialog):
     signal_save = QtCore.pyqtSignal(dict, dict, list)
-    signal_delete = QtCore.pyqtSignal() #(buttons_table_dict, batchsequence_table_dict, button_series_table_arr
+    signal_delete = QtCore.pyqtSignal(dict) #(buttons_table_dict, batchsequence_table_dict, button_series_table_arr
     signal_update = QtCore.pyqtSignal(dict, dict, list ) 
     def __init__(self, parent, edit = False, data = {}):
+        self.data = data
         self.crashed = False
         self.is_finished = False
         self._parent = parent
@@ -136,10 +137,11 @@ class Create_sequence(QDialog):
 
 
     def on_click_delete(self , close = True):
-        self.signal_delete_button.emit()
+        self.signal_delete.emit(self.data)
         if not close:
             self.is_finished = True
             self.close()
+            
 
     def load_data(self, all_data): 
         data = all_data["current_batch"]

@@ -1,20 +1,15 @@
 
 print("loading..")
-import threading
 from PyQt6 import QtCore,QtGui,QtWidgets
-from PyQt6.QtCore import QPoint
 
 from PyQt6.QtWidgets import *
 from PyQt6 import QtGui
-import time
-import os,sys,ctypes,shutil
-import math,ctypes,apsw,math
+
+import os,sys
+import math,math
 from functools import partial
-import webbrowser
 import Components.EXAUT_gui as EXAUT_gui
 from loguru import logger
-from iniconfig import Parse
-from Plugins import Plugins 
 from Components.Popups.Create_sequence import Create_sequence
 from Components.Popups.edit_popup_tab import edit_popup_tab
 from Components.Popups.Edit_Popup import Edit_Popup
@@ -22,16 +17,10 @@ from Components.Popups.Edit_Layout import Edit_Layout
 from Components.Popups.Create_Process.Create_Process import Create_Process
 from Components.Popups.data_transfers import data_transfer
 from Components.oldtypes import run as run_types
-from Components.Excel import Excel_Popup
 from time import perf_counter
-from PyQt6.QtCore import QThread
 import nest_asyncio
-import asyncio
 from Exaut_backend import Loader
 #Import CustomContextMenu
-from PyQt6.QtCore import Qt
-import threading
-from pynput.mouse import Button, Controller
 
 class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
@@ -52,6 +41,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.popup_msgs = {}
         self.title = ""
         self.form_desc = ""
+        self.form_title = ""
         self.edit_mode = False
         self.current_sequence = None
         self.edit_layout = None
@@ -69,6 +59,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionAbout.triggered.connect(self.about_window)
         self.actionRefresh.triggered.connect(self.refresh)
         self.actionAdd_Seq.triggered.connect(self.add_sequence)
+        self.actionAdd_Proc.triggered.connect(self.add_process)
+        self.actionEdit_layout.triggered.connect(self.layout_editor)
 
     def move_handler(self, pressed):
         self.pressed = pressed
@@ -244,11 +236,15 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 ##Other GUI Handlers###############################################################################################################
 
+    def add_process(self):
+        cur_proc = Create_Process(self, self.api.pmgr, self.form_title, str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())))
+        cur_proc.signal_insert.connect(self.api.create_process_insert)
+        cur_proc.show()
+
     def add_sequence(self):
         if not self.current_sequence:
             self.current_sequence = Create_sequence(self)
             self.current_sequence.signal_save.connect(partial(self.api.edit_sequence_save))
-
             self.current_sequence.show()
 
     def edit_button(self, data : dict, state):
@@ -259,10 +255,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             
         elif state == "sequence":
             self.current_sequence = Create_sequence(self, edit=True, data=data["sequence"])
-            #self.current_sequence.signal_delete.connect(self.api.edit_sequence_delete)
+            self.current_sequence.signal_delete.connect(self.api.edit_sequence_delete)
             self.current_sequence.signal_update.connect(partial(self.api.edit_sequence_update, data))
 
-            self.current_sequence.show()
             edit_popup = Edit_Popup(self, data["edit"])
         elif state == "button":
             edit_popup = Edit_Popup(self, data)
@@ -273,6 +268,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         edit_popup.signal_delete.connect(partial(self.api.edit_button_delete, data))
         edit_popup.signal_update.connect(partial(self.api.edit_button_update, data))
         edit_popup.show()
+        if state == "sequence":
+            self.current_sequence.show()
 
     def layout_editor(self):
         if self.edit_layout != None:

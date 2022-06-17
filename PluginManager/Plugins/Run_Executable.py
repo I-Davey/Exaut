@@ -13,8 +13,8 @@ class Run_Executable(PluginInterface):
     load = True
     #types = {"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
     types = {"ftype":2, "path":0, "file":1,"specfile_1":3,"specfile_2":4,"specfile_3":5, "bname":11, "otherval":9}
-    type_types = {"path_exe":{"type":"drag_drop_file", "description":"please select the executable","args":"EXE Files (*.exe);;Excel Files (*.xlsx *.xlsm *.xlsb *.xls);;SQLite DB Files (*.db);;All Files (*.*)"}, "type":["selection", "select EXE type", exepy()], "__Name":"Exe"}
-
+    type_types = {"path_exe":{"type":"drag_drop_file", "description":"please select the executable","args":"EXE Files (*.exe);;Excel Files (*.xlsx *.xlsm *.xlsb *.xls);;SQLite DB Files (*.db);;All Files (*.*)"}, "__Name":"Exe"}
+    action_map = {""}
     callname = "exe","py"
     hooks_handler = ["log"]
 
@@ -79,9 +79,6 @@ class Run_Executable(PluginInterface):
                         return True
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
-                
-                #log - copied {file} from x, to y, as {newname}
-                # self.logger.success("exe run")
             elif ftype=="py":
                 if specfile!=None and specfile!="" and specfile!="None":
                     param = specfile
