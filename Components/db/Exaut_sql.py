@@ -73,3 +73,20 @@ class buttonseries(Base):
     buttonname = Column(String(63), primary_key=True)
     assignname = Column(String(63), primary_key=True)
     runsequence = Column(Integer, primary_key=True)
+
+def queries():
+    tab = "Builds_new_"
+    form = "COPY"
+    replace = batchsequence.filename
+    oldtext = "PICAT_SGX.exe"
+    newtext = "Exaut.exe"
+    #for batchsequence in batchsequence.tab = tab and batchsequence.formname = form:
+    #if replace is oldtext
+    #replace = newtext
+
+    query = update(batchsequence).where(and_(batchsequence.tab == tab, batchsequence.formname == form, batchsequence.filename == oldtext)).values(filename=newtext)
+    #print query sql
+    print(query.compile(compile_kwargs={"literal_binds": True}))
+
+queries()
+

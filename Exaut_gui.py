@@ -5,6 +5,7 @@ from PyQt6 import QtCore,QtGui,QtWidgets
 from PyQt6.QtWidgets import *
 from PyQt6 import QtGui
 
+
 import os,sys
 import math,math
 from functools import partial
@@ -21,6 +22,65 @@ from time import perf_counter
 import nest_asyncio
 from Exaut_backend import Loader
 #Import CustomContextMenu
+class CustomButton(QPushButton):
+    def __init__(self, parent, color_default = None, color_hover = None, color_border = None):
+        super().__init__(parent)
+        self.color_default = QtGui.QColor(211, 211, 211) if color_default is None else color_default
+        self.color_border = QtGui.QColor(0, 0, 127) if color_border is None else color_border
+        self.color_hover = QtGui.QColor(211, 211, 242) if color_hover is None else color_hover
+        self.curcolor = QtGui.QColor(211, 211, 211)
+        self.start_animation = None
+        self.stop_animation = None
+        self.handle_style()
+
+        #set stylesheet
+
+    def handle_style(self):
+        self.setStyleSheet(f"""QPushButton{{
+                            border-style: solid;
+                            background-color: {self.color_default.name()};
+                            border-width: 1px 1px 1px 1px;
+                            border-radius: 2px;
+                            border-color: {self.color_border.name()};
+                            padding: 4px;
+                            }}
+                            """)
+
+    #on event QtCore.QEvent.HoverMove
+    def event(self, e: QtCore.QEvent) -> bool:
+        if e.type() == QtCore.QEvent.Type.HoverEnter:
+            self.handle_animation_start()
+        elif e.type() == QtCore.QEvent.Type.HoverLeave:
+            self.handle_animation_stop()
+        return super().event(e)
+
+    def handle_animation_start(self):
+        if self.stop_animation:
+            self.stop_animation.stop()
+        self.start_animation = QtCore.QVariantAnimation(self, duration=100, startValue=self.palette().window().color(), endValue=self.color_hover)
+        self.start_animation.valueChanged.connect(self.handle_animation_update)
+        self.start_animation.start()
+
+    def handle_animation_stop(self):
+        if self.start_animation:
+            self.start_animation.stop()
+        self.stop_animation = QtCore.QVariantAnimation(self, duration=100, startValue=self.palette().window().color(), endValue=self.color_default)
+        self.stop_animation.valueChanged.connect(self.handle_animation_update)
+        self.stop_animation.start()
+    
+    def handle_animation_update(self, value):
+        self.curcolor = value
+        self.setStyleSheet("""QPushButton{
+                            border-style: solid;
+                            background-color: %s;
+                            border-width: 1px;
+                            border-radius: 2px;
+                            border-color: %s;
+                            padding: 4px;
+                            }
+                            """ % (value.name(), self.color_border.name()))
+
+
 
 class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
@@ -131,13 +191,17 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             tabcount += 1
 
             button_arr = []
-            for num, (buttonsequence, buttonname, columnnum, buttondesc) in enumerate(tab_buttons):
+            for num, (buttonsequence, buttonname, columnnum, buttondesc, type_) in enumerate(tab_buttons):
 
                 Grid.setRowStretch(9999,3)
-                button = QtWidgets.QPushButton(ScrollAreaContents)
+                if type_ == "assignseries":
+                    button = CustomButton(ScrollAreaContents, color_border=QtGui.QColor(255, 107, 38), color_hover=QtGui.QColor(252, 209, 189))
+                else:
+                    button = CustomButton(ScrollAreaContents)
                 button.setToolTip(str(buttondesc))
                 button.setText(str(buttonname))
                 button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+
                 ###add buttoncontextmenu
                 button.customContextMenuRequested.connect(partial(self.button_context_menu,button))
 
@@ -175,7 +239,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                     x = button_arr[y]
                     button_arr[y] += 1
                 Grid.addWidget(button, x, y, 1, 1)
-                button.setStyleSheet(" QPushButton:focus { background-color: tomato }")
                 button.clicked.connect(partial(self.button_click,buttonname,tab_name,button,mode=1))
             ScrollGrid.addLayout(Grid, 0, 0, 1, 1)
             ScrollArea.setWidget(ScrollAreaContents)

@@ -137,8 +137,17 @@ class UserInterfaceHandlerPyQT():
     def refresh(self):
         tab_info = self.readsql(select(tabs.tab, tabs.grid, tabs.tabdesc, tabs.tabsize).where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()))
         self.buttondata = self.readsql(select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()))
+        #select type for button in buttondata and append to buttondata
+        newbuttondata = []
+        for button in self.buttondata:
+            type_ = self.readsql(select(batchsequence.type).where(batchsequence.formname == button.formname).where(batchsequence.tab == button.tab).where(batchsequence.buttonname == button.buttonname), one=True)
+            newbutton = button._asdict()
+            newbutton["type"] = type_.type
+            newbuttondata.append(newbutton)
 
-        buttons_data_ordered = self.buttondata.copy()
+
+        buttons_data_ordered = newbuttondata.copy()
+
         buttons_tabs = {}
         for tab in tab_info:
             tab_name = tab.tab
@@ -151,12 +160,12 @@ class UserInterfaceHandlerPyQT():
             buttons_tabs[tab_name]["description"] = description
             buttons_tabs[tab_name]["size"] = size
         #order buttons by item.columnum asc
-        buttons_data_ordered.sort(key=lambda button: int(button.columnnum) if button.columnnum not in ("", None) else -5)
+        newbuttondata.sort(key=lambda button: int(button["columnnum"]) if button["columnnum"] not in ("", None) else -5)
         for button in buttons_data_ordered:
-            if button.tab not in buttons_tabs:
-                buttons_tabs[button.tab] = {}
-                buttons_tabs[button.tab]["buttons"] = []
-            buttons_tabs[button.tab]["buttons"].append([button.buttonsequence, button.buttonname, button.columnnum, button.buttondesc])
+            if button["tab"] not in buttons_tabs:
+                buttons_tabs[button["tab"]] = {}
+                buttons_tabs[button["tab"]]["buttons"] = []
+            buttons_tabs[button["tab"]]["buttons"].append([button["buttonsequence"], button["buttonname"], button["columnnum"], button["buttondesc"], button["type"]])
         self.tab_buttons = buttons_tabs
         self.tablist = [tab.tab for tab in tab_info]
         return(self.tablist, self.tab_buttons)
