@@ -1,11 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
-block_cipher = None
+block_cipher = pyi_crypto.PyiBlockCipher(key='***REMOVED***')
 
 
 a = Analysis(
-    ['exaut_gui.py'],
+    ['Exaut_gui.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -28,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='exaut_gui',
+    name='Exaut_gui',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -41,5 +41,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='favicon.ico',
 )
