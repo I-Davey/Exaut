@@ -13,6 +13,8 @@ import collections
 from PyQt6 import QtWidgets
 #{'Zipcrypt': {'source': ['folder', 'please select source folder'], 'target': ['folder', 'please select destination folder'], 'databasename': ['text', 'please enter password']}}
 class Create_Process(QDialog):
+    signal_insert = pyqtSignal(dict, dict)
+
     def __init__(self, parent_, PluginManager, formname, tabname):
         
         super().__init__(parent_)
@@ -215,32 +217,10 @@ class Create_Process(QDialog):
 
         #handles special functions for changing data within the type python file (complex 😳😳😭😭😏😏 )
         batchsequence_value_dict = self.PluginManager.plugins[self.chosen_type]['object'].getTypeFunc(batchsequence_value_dict) 
-        #
-        bseq_q = self.create_query("batchsequence", batchsequence_value_dict)
-        btn_q = self.create_query("buttons", button_value_dict)
-        self.parent_.WriteSQL(bseq_q)
-        self.parent_.WriteSQL(btn_q)
-        self.parent_.Refresh()
-
+        self.signal_insert.emit(batchsequence_value_dict, button_value_dict)
+        self.parent_.refresh()
         self.multiselect.setCurrentIndex(0)
         
-
-    def create_query(self, table, value_dict):
-        query = "INSERT INTO " + table + " ("
-        for key in value_dict:
-            query += key + ", "
-        query = query[:-2] + ") VALUES ("
-        for key in value_dict:
-            if isinstance(value_dict[key], list):
-                data = ""
-                for item in value_dict[key]:
-                    data += str(item) + "||"
-                value_dict[key] = data[:-2]
-            query += "'" + value_dict[key] + "', "
-        query = query[:-2] + ");"
-        return query
-
-
     def browse_folder(self, db_key):
         qwidget = self.type_data[db_key]["qwidget"]
         dir_ = QFileDialog.getExistingDirectory(self, "Select Directory")

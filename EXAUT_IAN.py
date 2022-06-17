@@ -548,7 +548,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         querylist.append("update batchsequence set formname='"+str(form_name)+"', tab = '"+str(new_tab_name)+"' where formname='"+str(self.title)+"' and tab='"+str(tab)+"'")
         querylist.append("update buttonseries set formname='"+str(form_name)+"', tab = '"+str(new_tab_name)+"' where formname='"+str(self.title)+"' and tab='"+str(tab)+"'")
         for query in querylist:
-            print(query)
             WriteSQL(query)
         self.Refresh()
 
@@ -848,7 +847,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if len(maxbut) < 1:
             logger.error("Max button is less then 1")
 
-        print(end_location)
         idir = os.path.dirname(end_location)
         if idir[-1:]!="\\": #this is redundant as he is using os.path.dirname.
             idir = idir+"\\"
@@ -914,7 +912,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             if option == "Onenote URL":
                 if new_url.find("onenote:")>-1:
                     new_url = new_url[new_url.find("onenote:"):]
-                    print(new_url)
             if option == "Telegram URL":
                 #spit by / and take the last and second lsat items
                 split_url = new_url.split("/")
@@ -945,7 +942,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         curtab = self.SM_Tabs.currentIndex()
         curtab = str(self.SM_Tabs.tabText(curtab))
         #select taburl from tabs where formname = '"+self.title+"' and tab = '"+self.Main_CB_Tabs.currentText()+"'")
-        print("select taburl from tabs where formname = '"+self.title+"' and tab = '"+curtab+"'")
         taburl = ReadSQL("select taburl from tabs where formname = '"+self.title+"' and tab = '"+curtab+"'")
         if taburl[0][0]:
             taburl = taburl[0][0]
