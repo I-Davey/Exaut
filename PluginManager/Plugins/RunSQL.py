@@ -3,7 +3,7 @@ import os
 import ctypes
 import shutil
 class RunSQL(PluginInterface):
-    load = True
+    load = False
     types = {"command":3}
     callname = "runsql"
     hooks_handler = ["log"]
@@ -17,7 +17,7 @@ class RunSQL(PluginInterface):
         self.WriteSQL = methods["WriteSQL"].main 
 
 
-    def main(self, dir, command) -> bool: 
+    def main(self, dir, command, Popups) -> bool: 
         #check if dir exists
         self.WriteSQL(command)
         return True

@@ -40,14 +40,16 @@ class PluginManager:
                 try:
                     # by default, the type is not active.
                     current_item = eval(plugin + f".{plugin}()")
-                    if current_item.load == True:
-                        self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item}})
-                        #check if current_item.callname is a tuple, if it is add twice
-                        if type(current_item.callname) == tuple:
-                            for item in current_item.callname:
-                                self.plugin_loc.update({item : plugin})
-                        else:
-                            self.plugin_loc.update({current_item.callname : plugin})
+                    if current_item.load != True:
+                        logger.warning("Plugin {} is not active".format(plugin))
+                        continue
+                    self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item}})
+                    #check if current_item.callname is a tuple, if it is add twice
+                    if type(current_item.callname) == tuple:
+                        for item in current_item.callname:
+                            self.plugin_loc.update({item : plugin})
+                    else:
+                        self.plugin_loc.update({current_item.callname : plugin})
 
                     if current_item.hooks_handler != []:
                             hooks_dict = self.hook_handler(current_item.hooks_handler, handlers)
@@ -106,8 +108,10 @@ class MethodManager:
                     # by default, the type is not active.
                     main_item = eval(method)
                     current_item = eval(method + f".{method}()")
-                    if current_item.load == True:
-                        self.methods.update({method : {"run" :current_item, "args" : current_item.types}})
+                    if current_item.load != True:
+                        logger.warning("Method {} is not active".format(method))
+                        continue
+                    self.methods.update({method : {"run" :current_item, "args" : current_item.types}})
 
 
                     if current_item.hooks != []:
@@ -137,6 +141,7 @@ class HandlerManager:
         # key is type class, value is true if on else false
         self.handlers = {}
         self.fail = False
+        self.error = ""
 
 
     
@@ -145,18 +150,24 @@ class HandlerManager:
             logger.trace(f"Loading {handler}")
             try:
                 # by default, the type is not active.
+
+
                 logger.trace(f"""running current_item as {handler}.{handler}() """)
                 current_item = eval(handler + f".{handler}")
                 logger.trace(f"current_item: {current_item}")
                 current_item = current_item()
                 logger.trace(f"{handler} loaded. as {current_item}")
 
+                if current_item.load != True:
+                    logger.warning("Handler {} is not active".format(handler))
+                    continue
                 
-                if current_item.load == True:
-                    self.handlers.update({handler : {"run" :current_item, "args" : current_item.types}})
+
+                self.handlers.update({handler : {"run" :current_item, "args" : current_item.types}})
             except Exception as e:
                 logger.error("There was an error when loading types. Make sure you follow the naming convention when writing your own types.")
                 logger.error(f"Error: {e} on type {handler}")
+                self.error = e
                 return False
             
         for item in self.handlers:
@@ -219,7 +230,7 @@ class Plugins:
         else:
             return False
 
-    def call(self, name, args):
+    def call(self, name, args, plugins = None):
         if name in self.plugin_loc:
             name = self.plugin_loc[name]
             logger.trace(f"Calling {name} with args {args}")
@@ -227,8 +238,15 @@ class Plugins:
             arguments = self.plugins[name]["args"]
             newargs = []
             #use value
-            for key, value in arguments.items():
-                newargs.append(args[value])
+            typemap = ["folderpath","filename","type","source","target","databasepath","databasename","keypath","keyfile","runsequence","treepath","buttonname"]
+            if type(args) != list:        
+                for key, value in arguments.items():
+                    newargs.append(args[typemap[value]])
+                  
+            else:
+                for key, value in arguments.items():
+                    newargs.append(args[value])
+            newargs.append(plugins)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
                 asyncio.run(self.plugins[name]["run"](*newargs))
