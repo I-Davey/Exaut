@@ -344,6 +344,8 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
                 self.SM_ScrollGrid.setObjectName("SM_ScrollGrid_"+str(ft+1))
                 self.SM_Grid = QtWidgets.QGridLayout()
                 self.SM_Grid.setObjectName("SM_Grid_"+str(ft+1))
+                self.SM_Grid.setRowStretch(1000, 3)
+
                 allbuttons = ReadSQL("select buttonname from buttons where "+
                                      "formname = '"+self.title+"' and tab = '"+
                                      str(formtabs[ft][0])+"' order by buttonsequence asc")
@@ -1098,6 +1100,9 @@ class DB_Window(QMainWindow,PICAT_gui.Ui_PICAT_SM):
     def get_tab_change(self,n):
         if self.refreshing:
             return
+        #if winmdow is maximized
+        if self.isMaximized():
+            return()
         if len(n)>0 and self.SM_Tabs.currentIndex() < len(n):
             n = n[self.SM_Tabs.currentIndex()]
             n = n[0]
