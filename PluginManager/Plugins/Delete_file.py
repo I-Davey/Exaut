@@ -15,7 +15,7 @@ class Delete_file(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self,file) -> bool:
+    def main(self,file, Popups) -> bool:
 
         if os.path.exists(file)==False:
             self.logger.error("file path does not exist: "+file)

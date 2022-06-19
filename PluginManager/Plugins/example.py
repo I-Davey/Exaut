@@ -20,5 +20,5 @@ class example(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, folderpath,filename,type_,source,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,buttonname) -> bool:
+    def main(self, folderpath,filename,type_,source,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,buttonname, Popups) -> bool:
        self.logger.success(f"folderpath: {folderpath}, filename: {filename}, type: {type_}, source: {source}, target: {target}, databasepath: {databasepath}, databasename: {databasename}, keypath: {keypath}, keyfile: {keyfile}, runsequence: {runsequence}, treepath: {treepath}, buttonname: {buttonname}")

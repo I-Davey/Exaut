@@ -23,9 +23,9 @@ class on_link_fixer(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, source) -> bool:
+    def main(self, source, Popups) -> bool:
         while True:
-            summary = askstring(f"{source} Url Fixer", f"(output: {source}) Please Enter Onenote Url:")
+            summary = Popups.data_entry(f"{source} Url Fixer", f"(output: {source}) Please Enter Onenote Url:")
             if summary == None:
                 break
             if source == "OneNote App":
@@ -33,7 +33,7 @@ class on_link_fixer(PluginInterface):
                         summary =  summary[summary.find("onenote:"):]
 
             
-            elif source == "OneNote Desktop":
+            elif source in "OneNote Desktop":
                 if summary.find("onenotedesktop:")>-1:
                         summary =  summary[summary.find("onenotedesktop:"):]
                 elif summary.find("onenote:")>-1:

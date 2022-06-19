@@ -15,7 +15,7 @@ class Delete_folder(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self,folder) -> bool:
+    def main(self,folder, Popups) -> bool:
         
         if folder[-1] != "/":
             folder += "/"

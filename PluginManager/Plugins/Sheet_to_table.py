@@ -18,7 +18,7 @@ class Sheet_to_table(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, source, target) -> bool:
+    def main(self, source, target, Popups) -> bool:
         for file in os.listdir(source):
             if file.endswith(".xlsx") or file.endswith(".xls"):
                 save_name = os.path.join(target, file)
