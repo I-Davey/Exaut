@@ -45,7 +45,12 @@ class Run_Executable(PluginInterface):
             return(True)
 
     def main(self,ftype,path,file,specfile_1,specfile_2,specfile_3, bname, otherval, Popups) -> bool:
-
+        #set cwd
+        orig_dir = os.getcwd()
+        try:
+            os.chdir(path)
+        except:
+            self.logger.error("Could not change directory to: "+path)
         if specfile_2!=None and str(specfile_2)!="":
             specfile = str(specfile_1)+"~"+str(specfile_2)
         else:
@@ -70,12 +75,14 @@ class Run_Executable(PluginInterface):
                         else:
                             try:
                                 win32api.WinExec("\""+path+"\\"+file+"\" \""+specfile[0]+"\"")
+                                os.chdir(orig_dir)
                                 return True
                             except:
                                 ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
                 else:
                     try:
                         os.startfile("\""+path+"\\"+file+"\"")
+                        os.chdir(orig_dir)
                         return True
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
@@ -86,6 +93,7 @@ class Run_Executable(PluginInterface):
                     if self.isNumeric(specfile[0])==True:
                         try:
                             win32api.WinExec("python \""+path+"\\"+file+"\" \""+param+"\"")
+                            os.chdir(orig_dir)
                             return True
                         except:
                             ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
@@ -95,17 +103,20 @@ class Run_Executable(PluginInterface):
                         else:
                             try:
                                 win32api.WinExec("python \""+path+"\\"+file+"\" \""+specfile[0]+"\"")
+                                os.chdir(orig_dir)
                                 return True
                             except:
                                 ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
                 else:
                     try:
                         win32api.WinExec("python \""+path+"\\"+file+"\"")
+                        os.chdir(orig_dir)
                         return True
                     except:
                         ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
         else:
             actualpath = path+"\\"+file
             self.logger.error(f"Program not found at location {actualpath}")
+        os.chdir(orig_dir)
         return False
 

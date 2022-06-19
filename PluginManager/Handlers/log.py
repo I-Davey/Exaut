@@ -2,7 +2,6 @@
 from loguru import logger 
 from .HandlerInterface import HandlerInterface
 class log(HandlerInterface):
-    logger.debug("initilising log")
     load = True
     vital = True
     
@@ -31,3 +30,5 @@ class log(HandlerInterface):
         logger.error(msg)
     def debug(self,msg):
         logger.debug(msg)
+    def info(self,msg):
+        logger.info(msg)

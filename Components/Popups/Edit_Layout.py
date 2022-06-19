@@ -1,6 +1,5 @@
 from asyncore import read
 import enum
-from tkinter.tix import Tree
 from PyQt6 import QtGui, QtCore
 from loguru import logger
 #import QVBoxLayout
@@ -163,6 +162,16 @@ class Edit_Layout(QDialog):
         return super().closeEvent(a0)
 
     def handle_save(self, exit_=False):
+        tab_order = []
+        for i in range(0, self.SM_Tabs.count()):
+            #append text of tabs in order
+            tab_order.append(self.SM_Tabs.tabText(i))
+
+        print(tab_order)
+
+        for i in range(0, len(tab_order)):
+            self.tab_buttons[tab_order[i]]["tabsequence"] = i + 1
+
         self.signal_save.emit(self.tab_buttons)
         self.refresh()
         if exit_:
@@ -178,6 +187,8 @@ class Edit_Layout(QDialog):
             #self.SM_Tabs.addTab(item, item.title)
             #self.SM_Tabs.setTabText(i, item.title)
             tab_data = self.tab_buttons[item]
+            if tab_data["grid"] in ("", None):
+                tab_data["grid"] = 1
             columns = tab_data["grid"]
             buttons = tab_data["buttons"] #[button.buttonsequence, button.buttonname, button.columnnum, button.buttondesc]
             tab_grid = QGridLayout()
@@ -255,7 +266,8 @@ class Edit_Layout(QDialog):
 
     def ontabchange(self, index):
         combo = self.sizeHint() + self.cur_layout.sizeHint() + self.items_grid_centre.sizeHint()
-        self.resize(combo)
+        if combo.width() > self.width() and combo.height() > self.height():
+            self.resize(combo.width(), combo.height())
 
     def add_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()

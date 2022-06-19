@@ -1,5 +1,4 @@
 
-print("loading..")
 from PyQt6 import QtCore,QtGui,QtWidgets
 from PyQt6.QtCore import QPoint, Qt
 
@@ -24,12 +23,11 @@ class Ui_EXAUT_GUI():
         #EXAUT_GUI.setMenuWidget(MyBar(self))
 
 
-        self.centralwidget = QtWidgets.QWidget(EXAUT_GUI)
-        self.centralwidget.setObjectName("centralwidget")
-        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
-        self.gridLayout.setObjectName("gridLayout")
-        self.SM_Tabs = QtWidgets.QTabWidget(self.centralwidget)
-        self.SM_Tabs.setObjectName("SM_Tabs")
+        #emove all padding centralwidget
+
+
+
+
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.tab)
@@ -37,114 +35,39 @@ class Ui_EXAUT_GUI():
         self.Main_ScrollArea = QtWidgets.QScrollArea(self.tab)
         self.Main_ScrollArea.setWidgetResizable(True)
         self.Main_ScrollArea.setObjectName("Main_ScrollArea")
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 598, 174))
-        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.gridLayout_3 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
-        self.gridLayout_3.setObjectName("gridLayout_3")
-        self.Main_VerLay = QtWidgets.QVBoxLayout()
-        self.Main_VerLay.setObjectName("Main_VerLay")
-        self.Main_Grid_TabButton = QtWidgets.QGridLayout()
-        self.Main_Grid_TabButton.setObjectName("Main_Grid_TabButton")
-        self.Main_Button_InsertRec = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
-        self.Main_Button_InsertRec.setMinimumSize(QtCore.QSize(30, 30))
-        self.Main_Button_InsertRec.setMaximumSize(QtCore.QSize(30, 30))
+
+
+
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
-        self.Main_Button_InsertRec.setFont(font)
-        self.Main_Button_InsertRec.setObjectName("Main_Button_InsertRec")
-        self.Main_Grid_TabButton.addWidget(self.Main_Button_InsertRec, 0, 4, 1, 1)
-        self.Main_Label_Buttons = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-        self.Main_Label_Buttons.setMinimumSize(QtCore.QSize(70, 30))
-        self.Main_Label_Buttons.setMaximumSize(QtCore.QSize(70, 30))
+
+
         font = QtGui.QFont()
         font.setPointSize(12)
-        self.Main_Label_Buttons.setFont(font)
-        self.Main_Label_Buttons.setObjectName("Main_Label_Buttons")
-        self.Main_Grid_TabButton.addWidget(self.Main_Label_Buttons, 0, 2, 1, 1)
-        self.Main_CB_Buttons = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
-        self.Main_CB_Buttons.setMinimumSize(QtCore.QSize(240, 30))
-        self.Main_CB_Buttons.setMaximumSize(QtCore.QSize(240, 30))
-        self.Main_CB_Buttons.setObjectName("Main_CB_Buttons")
-        self.Main_Grid_TabButton.addWidget(self.Main_CB_Buttons, 0, 3, 1, 1)
-        self.Main_Label_Tabs = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-        self.Main_Label_Tabs.setMinimumSize(QtCore.QSize(45, 30))
-        self.Main_Label_Tabs.setMaximumSize(QtCore.QSize(45, 30))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.Main_Label_Tabs.setFont(font)
-        self.Main_Label_Tabs.setObjectName("Main_Label_Tabs")
-        self.Main_Grid_TabButton.addWidget(self.Main_Label_Tabs, 0, 0, 1, 1)
-        self.Main_CB_Tabs = QtWidgets.QComboBox(self.scrollAreaWidgetContents)
-        self.Main_CB_Tabs.setMinimumSize(QtCore.QSize(120, 30))
-        self.Main_CB_Tabs.setMaximumSize(QtCore.QSize(120, 30))
-        self.Main_CB_Tabs.setObjectName("Main_CB_Tabs")
-        self.Main_Grid_TabButton.addWidget(self.Main_CB_Tabs, 0, 1, 1, 1)
-        self.Main_Button_DeleteRec = QtWidgets.QPushButton(self.scrollAreaWidgetContents)
-        self.Main_Button_DeleteRec.setMinimumSize(QtCore.QSize(30, 30))
-        self.Main_Button_DeleteRec.setMaximumSize(QtCore.QSize(30, 30))
+
+
+
+
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
-        self.Main_Button_DeleteRec.setFont(font)
-        self.Main_Button_DeleteRec.setObjectName("Main_Button_DeleteRec")
-        self.Main_Grid_TabButton.addWidget(self.Main_Button_DeleteRec, 0, 5, 1, 1)
-        self.Main_VerLay.addLayout(self.Main_Grid_TabButton)
+
         self.Main_HorLay_InsDel = QtWidgets.QHBoxLayout()
         self.Main_HorLay_InsDel.setObjectName("Main_HorLay_InsDel")
-        self.Main_VerLay.addLayout(self.Main_HorLay_InsDel)
-        self.Main_ScrollArea_Table = QtWidgets.QScrollArea(self.scrollAreaWidgetContents)
-        self.Main_ScrollArea_Table.setWidgetResizable(True)
-        self.Main_ScrollArea_Table.setObjectName("Main_ScrollArea_Table")
-        self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 551, 109))
-        self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
-        self.gridLayout_4 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents_2)
-        self.gridLayout_4.setObjectName("gridLayout_4")
-        self.Main_Table = QtWidgets.QTableWidget(self.scrollAreaWidgetContents_2)
-        self.Main_Table.setObjectName("Main_Table")
-        self.Main_Table.setColumnCount(0)
-        self.Main_Table.setRowCount(0)
-        self.gridLayout_4.addWidget(self.Main_Table, 0, 0, 1, 1)
-        self.Main_ScrollArea_Table.setWidget(self.scrollAreaWidgetContents_2)
-        self.Main_VerLay.addWidget(self.Main_ScrollArea_Table)
-        self.gridLayout_3.addLayout(self.Main_VerLay, 0, 0, 1, 1)
-        self.Main_ScrollArea.setWidget(self.scrollAreaWidgetContents)
+
+
+
         self.gridLayout_2.addWidget(self.Main_ScrollArea, 0, 0, 1, 1)
-        self.SM_Tabs.addTab(self.tab, "")
-        self.tab_2 = QtWidgets.QWidget()
-        self.tab_2.setObjectName("tab_2")
-        self.gridLayout_5 = QtWidgets.QGridLayout(self.tab_2)
-        self.gridLayout_5.setObjectName("gridLayout_5")
-        self.Tab1_ScrollArea = QtWidgets.QScrollArea(self.tab_2)
-        self.Tab1_ScrollArea.setWidgetResizable(True)
-        self.Tab1_ScrollArea.setObjectName("Tab1_ScrollArea")
-        self.scrollAreaWidgetContents_3 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 117, 91))
-        self.scrollAreaWidgetContents_3.setObjectName("scrollAreaWidgetContents_3")
-        self.gridLayout_6 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents_3)
-        self.gridLayout_6.setObjectName("gridLayout_6")
+
+
+
         self.Tab1_Grid = QtWidgets.QGridLayout()
         self.Tab1_Grid.setObjectName("Tab1_Grid")
-        self.Tab1_Button_1 = QtWidgets.QPushButton(self.scrollAreaWidgetContents_3)
-        self.Tab1_Button_1.setMinimumSize(QtCore.QSize(0, 30))
-        self.Tab1_Button_1.setMaximumSize(QtCore.QSize(16777215, 30))
-        self.Tab1_Button_1.setObjectName("Tab1_Button_1")
-        self.Tab1_Grid.addWidget(self.Tab1_Button_1, 0, 0, 1, 1)
-        self.Tab1_Button_2 = QtWidgets.QPushButton(self.scrollAreaWidgetContents_3)
-        self.Tab1_Button_2.setMinimumSize(QtCore.QSize(0, 30))
-        self.Tab1_Button_2.setMaximumSize(QtCore.QSize(16777215, 30))
-        self.Tab1_Button_2.setObjectName("Tab1_Button_2")
-        self.Tab1_Grid.addWidget(self.Tab1_Button_2, 1, 0, 1, 1)
-        self.gridLayout_6.addLayout(self.Tab1_Grid, 0, 0, 1, 1)
-        self.Tab1_ScrollArea.setWidget(self.scrollAreaWidgetContents_3)
-        self.gridLayout_5.addWidget(self.Tab1_ScrollArea, 0, 0, 1, 1)
-        self.SM_Tabs.addTab(self.tab_2, "")
-        self.gridLayout.addWidget(self.SM_Tabs, 0, 0, 1, 1)
-        EXAUT_GUI.setCentralWidget(self.centralwidget)
+
+
         self.menubar = QtWidgets.QMenuBar(EXAUT_GUI)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 650, 26))
         self.menubar.setObjectName("menubar")
@@ -166,9 +89,6 @@ class Ui_EXAUT_GUI():
         self.menubar.setGeometry(QtCore.QRect(0, 0, 650, 26))
         self.menubar.setCornerWidget(QtWidgets.QWidget(self.menubar), QtCore.Qt.Corner.TopRightCorner)
 
-        self.statusbar = QtWidgets.QStatusBar(EXAUT_GUI)
-        self.statusbar.setObjectName("statusbar")
-        EXAUT_GUI.setStatusBar(self.statusbar)
         self.actionImport_from_Excel = QtGui.QAction(EXAUT_GUI)
         self.actionImport_from_Excel.setObjectName("actionImport_from_Excel")
         self.actionExport_to_Excel = QtGui.QAction(EXAUT_GUI)
@@ -177,6 +97,7 @@ class Ui_EXAUT_GUI():
         self.actionRefresh.setObjectName("actionRefresh")
         self.actionTabsize = QtGui.QAction(EXAUT_GUI)
         self.actionTabsize.setObjectName("actionTabsize")
+        self.actionstaticsize = QtGui.QAction(EXAUT_GUI)
         self.actionOpen_Files_Explorer = QtGui.QAction(EXAUT_GUI)
         self.actionOpen_Files_Explorer.setObjectName("actionOpen_Files_Explorer")
 
@@ -186,6 +107,10 @@ class Ui_EXAUT_GUI():
 
         self.actionAdd_tabto = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_tabto.setObjectName("actionAdd_tabto")
+        self.actionAdd_tablast = QtGui.QAction(EXAUT_GUI)
+        self.actionAdd_tablast.setObjectName("actionAdd_tablast")
+
+
         self.actionAdd_url = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_url.setObjectName("actionAdd_url")
 
@@ -246,29 +171,20 @@ class Ui_EXAUT_GUI():
         self.menuFile.addAction(self.actionOpenTabUrl)
 
         
-        self.menuEdit.addAction(self.actionEdit_mode)
-        self.menuEdit.addAction(self.actionEdit_layout)
+
         self.menuEdit.addAction(self.actionAdd_Seq)
         self.menuEdit.addAction(self.actionAdd_Proc)
         self.menuEdit.addAction(self.actionAdd_Desc)
 
-        self.menuEdit.addAction(self.actionCopy)
-        self.menuEdit.addAction(self.actionCopy_folder)
-
-        self.menuEdit.addAction(self.actionAdd_exe)
-
-        self.menuEdit.addAction(self.actionAdd_url)
-        self.menuEdit.addAction(self.actionAdd_Folder)
-        self.menuEdit.addAction(self.actionTab)
-        self.menuEdit.addAction(self.actionTabUrl)
-        self.menuEdit.addAction(self.actionTabFolder)
-        self.menuEdit.addAction(self.actionAdd_tabto)
-
-        self.menuEdit.addAction(self.sht2tbl)
-
-
+        self.menuEdit_form.addAction(self.actionEdit_layout)
+        self.menuEdit_form.addAction(self.actionEdit_mode)
         self.menuEdit_form.addAction(self.actionTab_Copy)
         self.menuEdit_form.addAction(self.actionTab_Move)
+        self.menuEdit_form.addAction(self.actionTab)
+        self.menuEdit_form.addAction(self.actionTabUrl)
+        self.menuEdit_form.addAction(self.actionTabFolder)
+        self.menuEdit_form.addAction(self.actionAdd_tabto)
+        self.menuEdit_form.addAction(self.actionAdd_tablast)
 
 
         self.menuView.addAction(self.actionRefresh)
@@ -286,31 +202,21 @@ class Ui_EXAUT_GUI():
         self.menubar.addAction(self.menuHelp.menuAction())
         #add self.actionTabsize to menubar
         self.menubar.addAction(self.actionTabsize)
+        self.menubar.addAction(self.actionstaticsize)
 
 
         self.retranslateUi(EXAUT_GUI)
-        self.SM_Tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(EXAUT_GUI)
 
     def retranslateUi(self, EXAUT_GUI):
         _translate = QtCore.QCoreApplication.translate
         #set self.titlebar as the first widget
         EXAUT_GUI.setWindowTitle(_translate("EXAUT_GUI", "EXAUT Server Manager"))
-        self.Main_Button_InsertRec.setToolTip(_translate("EXAUT_GUI", "Insert record into batchsequence"))
-        self.Main_Button_InsertRec.setText(_translate("EXAUT_GUI", "+"))
-        self.Main_Label_Buttons.setText(_translate("EXAUT_GUI", "Buttons"))
-        self.Main_CB_Buttons.setToolTip(_translate("EXAUT_GUI", "Buttons Filter"))
-        self.Main_Label_Tabs.setText(_translate("EXAUT_GUI", "Tabs"))
-        self.Main_CB_Tabs.setToolTip(_translate("EXAUT_GUI", "Tabs Filter"))
-        self.Main_Button_DeleteRec.setToolTip(_translate("EXAUT_GUI", "Delete record from batchsequence"))
-        self.Main_Button_DeleteRec.setText(_translate("EXAUT_GUI", "-"))
-        self.SM_Tabs.setTabText(self.SM_Tabs.indexOf(self.tab), _translate("EXAUT_GUI", "Main"))
-        self.Tab1_Button_1.setText(_translate("EXAUT_GUI", "PushButton"))
-        self.Tab1_Button_2.setText(_translate("EXAUT_GUI", "PushButton"))
-        self.SM_Tabs.setTabText(self.SM_Tabs.indexOf(self.tab_2), _translate("EXAUT_GUI", "Tab 1"))
+
+
         self.menuFile.setTitle(_translate("EXAUT_GUI", "File"))
         self.menuEdit.setTitle(_translate("EXAUT_GUI", "Edit"))
-        self.menuEdit_form.setTitle(_translate("EXAUT_GUI", "Edit Form"))
+        self.menuEdit_form.setTitle(_translate("EXAUT_GUI","Tab"))
         self.menuView.setTitle(_translate("EXAUT_GUI", "View"))
         self.menuTools.setTitle(_translate("EXAUT_GUI", "Tools"))
         self.menuHelp.setTitle(_translate("EXAUT_GUI", "Help"))
@@ -322,6 +228,8 @@ class Ui_EXAUT_GUI():
         self.actionRefresh.setText(_translate("EXAUT_GUI", "Refresh"))
         self.actionRefresh.setShortcut(_translate("EXAUT_GUI", "Ctrl+R"))
         self.actionTabsize.setText(_translate("EXAUT_GUI", "S"))
+        self.actionstaticsize.setText(_translate("EXAUT_GUI", "Static"))
+
         #make actionTabsize text bold
         tf = QtGui.QFont()
         tf.setBold(True)
@@ -336,6 +244,7 @@ class Ui_EXAUT_GUI():
         self.actionAdd_exe.setText(_translate("EXAUT_GUI", "Add .exe"))
         self.actionAdd_exe.setShortcut(_translate("EXAUT_GUI", "Ctrl+A"))
         self.actionAdd_tabto.setText(_translate("EXAUT_GUI", "Add Tabto"))
+        self.actionAdd_tablast.setText(_translate("EXAUT_GUI", "Add Tablast"))
         self.actionAbout.setText(_translate("EXAUT_GUI", "About"))
         self.actionCopy.setText(_translate("EXAUT_GUI", "Copy File"))
         self.sht2tbl.setText(_translate("EXAUT_GUI", "add sht2tbl"))
