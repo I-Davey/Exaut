@@ -1,24 +1,24 @@
 import ctypes
 from PyQt6 import QtGui, QtCore
-from loguru import logger
 from functools import partial
 import os
 #import QVBoxLayout
 from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
 from PyQt6.QtCore import pyqtSignal
 
-from Components.db.Exaut_sql import batchsequence
 class Edit_Popup(QDialog):
     signal_delete = QtCore.pyqtSignal()
     signal_update = pyqtSignal(dict, dict)
     def __init__(self,parent_, data, state = True):
         super().__init__(parent_)
+        self.logger = parent_.logger
         self.resize(300, 300)
         self.setWindowTitle("Edit")
         self.layout = QFormLayout()
         self.setLayout(self.layout)
         self.data = data
         self.parent_ = parent_
+        self.complete = False
 
         self.form_name = self.data["button_data"]["formname"]
         self.tab_name = self.data["button_data"]["tab"]
@@ -40,6 +40,8 @@ class Edit_Popup(QDialog):
 
         self.forms_dd = QComboBox()
         self.forms_dd.addItems([x['formname'] for x in self.data["form_data"]])
+        self.forms_dd.setCurrentIndex(self.forms_dd.findText(self.form_name))
+
         self.forms_dd.currentIndexChanged.connect(self.layered_dd_changed)
 
         self.tabs_dd = QComboBox()
@@ -103,6 +105,11 @@ class Edit_Popup(QDialog):
         editdelete_grid.addWidget(self.delete, 0, 1)
         self.layout.addRow(editdelete_grid)
 
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        if self.complete != True:
+            self.parent_.signal_button_complete.emit(self.tab_name, self.button_name)
+        return super().closeEvent(a0)
+
     def layered_dd_changed(self):
         #forms_dd currentext
         forms_text = self.forms_dd.currentText()
@@ -114,13 +121,17 @@ class Edit_Popup(QDialog):
 #################################################
 
     def on_click_label(self, item):
-        path_text = self.qlineeditdict[item].text()
+        path_text = self.batchsequence_edit_dict[item].text()
         if path_text == "":
             return
         #if realpath
         if os.path.exists(path_text):
             #open file explorer
-            os.startfile(path_text)
+            try:
+                os.startfile(path_text)
+            except Exception as e:
+                self.logger.error("cannot open folder")
+                self.logger.error(e)
 
     def on_click_save(self):
         batchsequence_changes_dict = {}
@@ -138,6 +149,7 @@ class Edit_Popup(QDialog):
         buttons_changes_dict['tab'] = self.tabs_dd.currentText()
         buttons_changes_dict['buttonname'] = self.button_name_edit.text()
         self.signal_update.emit(batchsequence_changes_dict, buttons_changes_dict)
+        self.complete = True
         self.close()
 
     def on_click_delete(self):
@@ -149,6 +161,7 @@ class Edit_Popup(QDialog):
         ret = qm.exec()
         if ret == QMessageBox.StandardButton.Yes:
             self.signal_delete.emit()
+            self.complete = True
             self.close()
 
 class QLabel_temp(QLabel):

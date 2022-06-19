@@ -241,7 +241,7 @@ class Create_sequence(QDialog):
             return True
 
     def add_button(self,tname,bname):
-        new_button = DragButton(bname, self)
+        new_button = DragButton(f"{tname} | {bname}", self)
         new_button.fake_init(self, bname)
         new_button_x = QPushButton("X")
         #run function self.clicked and send the button obj
@@ -256,7 +256,7 @@ class Create_sequence(QDialog):
         self.layout.addRow(grid)
         x = len(self.orderedbuttons)
         arr = [x, new_button, new_button_x]
-        dict_data = {"arrpos":x,"tname":tname,"bname":bname, "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid}
+        dict_data = {"arrpos":x,"tname":tname,"bname":bname,  "btn_item":new_button, "x":new_button.x(), "y":new_button.y(), "x_btn":new_button_x, "grid":grid}
         self.orderedbuttons.append(arr)
         self.button_items.append(dict_data)
         new_button_x.clicked.connect(lambda: self.remove_button(dict_data))
