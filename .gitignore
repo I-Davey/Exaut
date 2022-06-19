@@ -5,5 +5,5 @@ dist/
 
 *.ini
 *.session
-Picat_SGX.spec
+*.spec
 *.db
