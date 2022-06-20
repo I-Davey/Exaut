@@ -10,8 +10,7 @@ from pyzipper import AESZipFile, ZIP_LZMA, WZ_AES
 class Zipdecrypt(PluginInterface):
     load = True
     types = {"source":3,"target":4,"databasename":6}
-    type_types = {"source":["drag_drop", "please select source file"],"target":["drag_drop_folder", "please select destination folder"], "databasename":["text", "please enter password"]}
-    
+    type_types = {"source":["drag_drop", "please select source file"],"target":["drag_drop_folder", "please select destination folder"], "databasename":["text", "please enter password", None, True]}
     callname = "zipdecrypt"
     hooks_handler = ["log"]
 
@@ -25,7 +24,9 @@ class Zipdecrypt(PluginInterface):
     def main(self,  source, destination, password, Popups) -> bool:
         move_from = source
         move_to = destination
-        compression_key =bytes(password, 'utf-8')
+        if password:
+            compression_key =bytes(password, 'utf-8')
         with AESZipFile(move_from) as zf:
-            zf.setpassword(compression_key)
+            if password:
+                zf.setpassword(compression_key)
             zf.extractall(move_to) 

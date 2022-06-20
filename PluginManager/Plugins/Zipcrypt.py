@@ -8,7 +8,7 @@ import ctypes
 class Zipcrypt(PluginInterface):
     load = True
     types = {"source":3,"target":4,"databasename":6}
-    type_types = {"source":["drag_drop_folder", "please select source folder"],"target":["drag_drop_folder", "please select destination folder"], "databasename":["text", "please enter password"]}
+    type_types = {"source":["drag_drop_folder", "please select source folder"],"target":["drag_drop_folder", "please select destination folder"], "databasename":["text", "please enter password",None, True]}
     callname = "zipcrypt"
     hooks_handler = ["log"]
 
@@ -30,11 +30,13 @@ class Zipcrypt(PluginInterface):
             
             move_from = basename(source)
             move_to = destination
-            compression_key =bytes(password, 'utf-8')
+            if password:
+                compression_key =bytes(password, 'utf-8')
             chdir(move_from_fullpath)
 
             zf = AESZipFile(tmpdir + "/" + move_from +".rar", "w", compression=ZIP_LZMA,encryption=WZ_AES)
-            zf.setpassword(compression_key)
+            if password:
+                zf.setpassword(compression_key)
             for dirname, subdirs, files in walk(move_from):
                 for filename in files:
                     zf.write(join(dirname, filename))
