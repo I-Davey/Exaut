@@ -1,13 +1,11 @@
-from array import array
 import ctypes
-from multiprocessing import Event
 from PyQt6 import QtGui, QtCore
 from functools import partial
 import os
 #import QVBoxLayout
 from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
 from PyQt6.QtCore import pyqtSignal
-import pyperclip
+
 class Edit_Popup(QDialog):
     signal_delete = QtCore.pyqtSignal()
     signal_update = pyqtSignal(dict, dict)
@@ -134,10 +132,7 @@ class Edit_Popup(QDialog):
             except Exception as e:
                 self.logger.error("cannot open folder")
                 self.logger.error(e)
-        elif event.button() == QtCore.Qt.MouseButton.RightButton:
-            x = pyperclip.paste()
-            edit_box.setText(x)
-            
+
     def on_click_save(self):
         batchsequence_changes_dict = {}
         buttons_changes_dict = {}
@@ -170,8 +165,7 @@ class Edit_Popup(QDialog):
             self.close()
 
 class QLabel_temp(QLabel):
-    #pyqtsignal(pyqt event)
-    clicked=pyqtSignal(object)
+    clicked=pyqtSignal()
 
     def mousePressEvent(self, ev):
-        self.clicked.emit(ev)
+        self.clicked.emit()
