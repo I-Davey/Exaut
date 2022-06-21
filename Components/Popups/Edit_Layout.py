@@ -1,17 +1,11 @@
-from asyncore import read
-import enum
 from PyQt6 import QtGui, QtCore
-from loguru import logger
 #import QVBoxLayout
 from functools import partial
-from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QFormLayout, QVBoxLayout, QLayout
+from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QPushButton, QDialog,  QFormLayout, QVBoxLayout
 from PyQt6.QtGui import QDrag, QPixmap
 from PyQt6.QtCore import QMimeData, Qt
 
 from PyQt6 import QtWidgets
-import math
-import random
-from sqlalchemy import column
 
 class CustomDropLayout(QWidget):
     def __init__(self, parent, update_function, button_layout, tab, column):

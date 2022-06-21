@@ -1,9 +1,5 @@
-from csv import Dialect
-from sqlalchemy import create_engine
-from sqlalchemy import create_engine, text, MetaData, Table, Column, Integer, String, DateTime, ForeignKey, func, and_, or_, select, update, insert, delete
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import CreateTable
-import sqlalchemy.sql.default_comparator as default_comparator
+from asyncore import write
+from sqlalchemy import Column, Integer, String, func, and_, update
 
 
 from sqlalchemy.orm import declarative_base
@@ -74,6 +70,15 @@ class buttonseries(Base):
     assignname = Column(String(63), primary_key=True)
     runsequence = Column(Integer, primary_key=True)
 
+#CREATE TABLE pluginmap (	plugin TEXT NOT NULL,	types TEXT NOT NULL,	color TEXT, 	color TEXT, "generated" INTEGER,	CONSTRAINT pluginmap_PK PRIMARY KEY (plugin),	CONSTRAINT pluginmap_UN UNIQUE (types));
+class pluginmap(Base):
+    __tablename__ = 'pluginmap'
+    plugin = Column(String(63), primary_key=True)
+    types = Column(String(63), primary_key=True)
+    color = Column(String(63))
+    generated = Column(Integer)
+    
+
 def query1():
     tab = "Builds_new_"
     form = "COPY"
@@ -89,17 +94,39 @@ def query1():
     print(query.compile(compile_kwargs={"literal_binds": True}))
 
 def query2():
-    tab = "Builds_new_"
-    form = "COPY"
+    tab = "Main"
+    form = "MST"
     oldtext = "OAT"
     newtext = "exaut"
     #for batchsequence in batchsequence.tab = tab and batchsequence.formname = form:
-    #if batchsequence.databasename includes text OAT
-    #replace the text oat with exaut
-    query = update(batchsequence).where(and_(batchsequence.tab == tab, batchsequence.formname == form, batchsequence.databasename.like('%'+oldtext+'%'))).values(databasename=func.replace(batchsequence.databasename, oldtext, newtext))   
+    #for buttons in buttons.tab = tab and buttons.formname = form:
+    #if buttons.buttondesc includes text OAT
+    #if batchsequence.filename includes text OAT
+    #if batchsequence.folderpath includes text OAT
+
+
+
+    #replace the part of the text oldtext with newtext
+    query = update(batchsequence).where(and_(batchsequence.tab == tab, batchsequence.formname == form, batchsequence.filename.like('%'+oldtext+'%'), batchsequence.folderpath.like('%'+oldtext+'%'))).values(filename=func.replace(batchsequence.filename, oldtext, newtext)).values(folderpath="D:\IAM\OnInOTech\Exaut")
+    query2 = update(buttons).where(and_(buttons.tab == tab, buttons.formname == form, buttons.buttondesc.like('%'+oldtext+'%'))).values(buttondesc=func.replace(buttons.buttondesc, oldtext, newtext))
     #print query sql
     print(query.compile(compile_kwargs={"literal_binds": True}))
+    print(query2.compile(compile_kwargs={"literal_binds": True}))
 
+def querynew():
+    tab = "Main_oat"
+    form = "MST"
+    oldtext = "Exaut"
+    newtext = "OAT"
+    #FOR button in buttons.tab = tab and buttons.formname = form:
+    #if buttonname includes exaut
+    #batchsequence.buttonname replace exaut with OAT
+    #buttons.buttonname replace exaut with OAT
+    query = update(batchsequence).where(and_(batchsequence.tab == tab, batchsequence.formname == form, batchsequence.buttonname.like('%'+oldtext+'%'))).values(buttonname=func.replace(batchsequence.buttonname, oldtext, newtext))
+    query2 = update(buttons).where(and_(buttons.tab == tab, buttons.formname == form, buttons.buttonname.like('%'+oldtext+'%'))).values(buttonname=func.replace(buttons.buttonname, oldtext, newtext))
+    #print query sql
+    print(query.compile(compile_kwargs={"literal_binds": True}))
+    print(query2.compile(compile_kwargs={"literal_binds": True}))
 
 def query3():
     tab = "Builds_new_"
@@ -113,8 +140,10 @@ def query3():
     query1 = update(batchsequence).where(and_(batchsequence.tab == tab, batchsequence.formname == form, batchsequence.buttonname.like('%'+oldtext+'%'))).values(buttonname=func.replace(batchsequence.buttonname, oldtext, newtext))
     query2 = update(buttons).where(and_(buttons.tab == tab, buttons.formname == form, buttons.buttonname.like('%'+oldtext+'%'))).values(buttonname=func.replace(buttons.buttonname, oldtext, newtext))
     query3 = update(buttonseries).where(and_(buttonseries.tab == tab, buttonseries.formname == form, buttonseries.buttonname.like('%'+oldtext+'%'))).values(buttonname=func.replace(buttonseries.buttonname, oldtext, newtext))
+
     #print query sql
     print(query1.compile(compile_kwargs={"literal_binds": True}))
     print(query2.compile(compile_kwargs={"literal_binds": True}))
     print(query3.compile(compile_kwargs={"literal_binds": True}))
 
+querynew()

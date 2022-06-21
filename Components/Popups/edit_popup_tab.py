@@ -1,6 +1,5 @@
 from PyQt6 import QtGui, QtCore
-from functools import partial
-import os
+
 #import QVBoxLayout
 from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout, QSizePolicy
 from PyQt6.QtCore import pyqtSignal

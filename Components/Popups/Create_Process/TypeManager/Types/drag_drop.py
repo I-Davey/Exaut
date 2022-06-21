@@ -1,8 +1,7 @@
 from .__important.TypeInterface import TypeInterface
-from PyQt6.QtWidgets import QPushButton, QPushButton, QWidget, QVBoxLayout, QMenu, QGridLayout, QLabel
+from PyQt6.QtWidgets import QPushButton, QPushButton, QWidget, QVBoxLayout, QMenu
 from PyQt6.QtCore import Qt, pyqtSignal
 import pyperclip
-from functools import partial
 
 class QFileDrop(QWidget):
     link_signal = pyqtSignal(list)

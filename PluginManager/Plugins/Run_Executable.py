@@ -2,7 +2,6 @@ from array import array
 from .__important.PluginInterface import PluginInterface
 import os
 import ctypes
-import shutil
 import win32api
 
 
