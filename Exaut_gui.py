@@ -83,9 +83,8 @@ class CustomTabArea(QtWidgets.QTabWidget):
             else:
                 file_name = file_name
                 type_ = "folder"
-            print(file_name)
-            print(type_)
-            print(file)
+            if type_ == "lnk":
+                type_ = "exe"
             self.parent_.handle_tab_drag_event(file_name, type_, file)
             return
 
@@ -919,7 +918,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Yes)
         else:
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
-        yes_no_popup.show()
+        yes_no_popup.exec()
         if yes_no_popup.result() == QtWidgets.QMessageBox.StandardButton.Yes:
             self.popup_msgs[key] = True
         else:
