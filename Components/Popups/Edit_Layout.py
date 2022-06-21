@@ -94,17 +94,14 @@ class Edit_Layout(QDialog):
         
 
         self.x_items_grid = QGridLayout()
-        self.x_items_grid.setSpacing(0)
         self.x_items_grid.setContentsMargins(0, 0, 0, 0)
         self.x_items_grid.setObjectName("y_items_grid")
 
         self.y_items_grid = QGridLayout()
-        self.y_items_grid.setSpacing(0)
         self.y_items_grid.setContentsMargins(0, 0, 0, 0)
         self.y_items_grid.setObjectName("y_items_grid")
         
         self.items_grid_centre = QGridLayout()
-        self.items_grid_centre.setSpacing(0)
         self.items_grid_centre.setContentsMargins(0, 0, 0, 0)
         self.items_grid_centre.setObjectName("x_items_grid_centre")
 
@@ -214,7 +211,7 @@ class Edit_Layout(QDialog):
                 ScrollGrid.setObjectName("ScrollGrid")
                 ScrollGrid.setSpacing(0)
                 ScrollGrid.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
-
+                
                 if len(column) == 0:
                     button_layout = QVBoxLayout()
                     ScrollGrid.addLayout(QVBoxLayout())
@@ -222,10 +219,26 @@ class Edit_Layout(QDialog):
 
                 for button in column:
                     button_layout = QVBoxLayout()
+                    button_layout.setContentsMargins(0, 3, 0, 3 )
+                    #set spacing between elements in qvboxlayout
                     ScrollAreaContents.button_layout = button_layout
 
+        
                     new_button = DragButton(button)
+                    color_default = QtGui.QColor(225, 225, 225)
+                    color_border = QtGui.QColor(160, 160, 160)
+                    new_button.setStyleSheet(f"""QPushButton{{
+                            border-style: solid;
+                            background-color: {color_default.name()};
+                            border-width: 1px 1px 1px 1px;
+                            border-radius: 2px;
+                            border-color: {color_border.name()};
+                            padding: 4px;
+                            }}
+                            """)
+                    new_button.setContentsMargins(0, 3, 0, 3)
                     new_button.from_column = i
+                    
                     button_layout.addWidget(new_button)
 
                     new_button.setText(button)

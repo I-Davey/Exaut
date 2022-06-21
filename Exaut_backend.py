@@ -172,7 +172,7 @@ class UserInterfaceHandlerPyQT():
             return True
             
         def yesno(self, message, title="", default="no"):
-            return self.call(self.gui.signal_popup_yesno.emit,(message, title, default))
+            return self.call(self.gui.signal_popup_yesno,(message, title, default))
 
 
         def data_entry(self, message, title=""):
