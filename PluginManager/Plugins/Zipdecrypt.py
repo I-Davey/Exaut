@@ -1,10 +1,4 @@
 from .__important.PluginInterface import PluginInterface
-import ctypes
-import shutil
-import win32api
-from sys import stdout, argv
-from os import walk, chdir
-from os.path import join, basename
 from pyzipper import AESZipFile, ZIP_LZMA, WZ_AES
 
 class Zipdecrypt(PluginInterface):

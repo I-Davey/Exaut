@@ -1,9 +1,6 @@
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
-import shutil
-import win32api
-import subprocess
+
 class Open_Folder(PluginInterface):
     load = True
     #type maps directly to the readsql query results

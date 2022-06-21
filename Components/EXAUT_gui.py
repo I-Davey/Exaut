@@ -158,7 +158,7 @@ class Ui_EXAUT_GUI():
         self.actionAbout = QtGui.QAction(EXAUT_GUI)
         self.actionAbout.setObjectName("actionAbout")
 
-        self.actionEdit_mode = QtGui.QAction('Edit Mode', EXAUT_GUI, checkable=True)
+        self.actionHidden_mode = QtGui.QAction('View Hidden Tabs', EXAUT_GUI, checkable=True)
 
 
         self.actionTab_Copy = QtGui.QAction(EXAUT_GUI)
@@ -177,7 +177,7 @@ class Ui_EXAUT_GUI():
         self.menuEdit.addAction(self.actionAdd_Desc)
 
         self.menuEdit_form.addAction(self.actionEdit_layout)
-        self.menuEdit_form.addAction(self.actionEdit_mode)
+        self.menuEdit_form.addAction(self.actionHidden_mode)
         self.menuEdit_form.addAction(self.actionTab_Copy)
         self.menuEdit_form.addAction(self.actionTab_Move)
         self.menuEdit_form.addAction(self.actionTab)
@@ -260,7 +260,7 @@ class Ui_EXAUT_GUI():
         self.actionTabUrl.setText(_translate("EXAUT_GUI", "Add Tab URL"))
 
         self.actionTabFolder.setText(_translate("EXAUT_GUI", "Add Tab Folder"))
-        self.actionEdit_mode.setText(_translate("EXAUT_GUI", "Edit Mode"))
+        self.actionHidden_mode.setText(_translate("EXAUT_GUI", "Show Hidden Tabs"))
 
         self.actionAdd_url.setText(_translate("EXAUT_GUI", "Add URL"))
         self.actionAdd_Seq.setText(_translate("EXAUT_GUI", "Add Sequence"))
