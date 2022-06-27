@@ -12,6 +12,8 @@ import math,math
 from functools import partial
 import re
 
+import pyperclip
+
 import Components.EXAUT_gui as EXAUT_gui
 from Components.Popups.Create_sequence import Create_sequence
 from Components.Popups.edit_popup_tab import edit_popup_tab
@@ -79,19 +81,32 @@ class CustomTabArea(QtWidgets.QTabWidget):
             if "." in file_name:
                 file_name_split = file_name.split(".")
                 file_name = file_name_split[0]
-                type_ = file_name_split[1]
+                type_ = file_name_split[-1]
             else:
                 file_name = file_name
                 type_ = "folder"
-            if type_ == "lnk":
+            if type_ in ("lnk", "xlsx", "pdf", "db", "txt", "png", "pdf", "jpg", "ini","txt","csv","json", "docx", "doc", "pptx", "vsdx", "xlsb", "log", "htm","gif"):
                 type_ = "exe"
             self.parent_.handle_tab_drag_event(file_name, type_, file)
             return
+    def contextMenuEvent(self, a0: QtGui.QContextMenuEvent) -> None:
+        self.customContextMenu()
+        return super().contextMenuEvent(a0)   
 
-            
+    def customContextMenu(self):
+        #option for Paste that goes to pasteHandler
+        menu = QMenu(self)
+        menu.addAction("Paste URL", self.pasteurlHandler)
+        menu.exec(QtGui.QCursor.pos())
 
+    def pasteurlHandler(self):
+        clipboard = pyperclip.paste()
+        filename = clipboard.split(".")[-1]
+        type_ = "url"
+        self.parent_.handle_tab_drag_event(filename, type_, clipboard)
 
-        
+        print(clipboard)
+        #if url:
         
 class CustomButton(QPushButton):
     
@@ -341,8 +356,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             tab_size = tab_data['tabsize']
             tab_buttons = tab_data['buttons']
             tab_group = tab_data['tabgroup']
-            if tab_group in  ("hidden", "hid", "x") and self.show_hidden_tabs == False:
-                continue
             if tab_grid==None or tab_grid=="":
                 tab_grid = 1
             tab = CustomTabArea(self)

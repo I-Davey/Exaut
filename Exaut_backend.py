@@ -31,7 +31,8 @@ class ConfigHandler:
         except:
             self.logger.error("Could not change directory to %s" % os.path.dirname(sys.argv[0]))
 
-
+        if self.title:
+            current_filename = self.title
         self.file_config = Parse(self.logger, current_filename).cfg
         self.logger.debug(f"filename: {current_filename} + filecfg_arr = {self.file_config}")
         if not self.file_config:
@@ -258,6 +259,7 @@ class UserInterfaceHandlerPyQT():
         newbuttondata.sort(key=lambda button: int(button["columnnum"]) if button["columnnum"] not in ("", None) else -5)
         for button in buttons_data_ordered:
             if button["tab"] not in buttons_tabs:
+                continue
                 buttons_tabs[button["tab"]] = {}
                 buttons_tabs[button["tab"]]["buttons"] = []
                 [buttons_tabs[button["tab"]].update({column.key:None}) for column in tabs.__table__.columns]
@@ -293,9 +295,12 @@ class UserInterfaceHandlerPyQT():
                 mode = "sequence"
             for batchsequence_ in batchsequence_data:
                 if batchsequence_.type == "assignseries":
+                    if mode == "sequence":
+                        res = self.assignseries_handler(self.logger, self.button_click, self.readsql,  button_name, tab_name, batchsequence_)
+                        return res, "assignseries"
                     sequence_thread = Thread(target=self.assignseries_handler, args=(self.logger, self.button_click, self.readsql,  button_name, tab_name, batchsequence_))
                     sequence_thread.start()
-                    return
+                    return True, "assignseries"
                 elif self.pmgr.exists(batchsequence_.type):
                     if mode == "sequence":
                         return self.pmgr.call(batchsequence_.type, batchsequence_._mapping, self.popups), batchsequence_.type
@@ -725,16 +730,45 @@ class UserInterfaceHandlerPyQT():
                 self.alert(f"Error inserting button {button['buttonname']} in form {new_form}")
                 return
 
+
+        series_oldnew = []
         batchsequence_cur = self.readsql(select("*").where(batchsequence.tab == old_tab).where(batchsequence.formname == old_form))
         batchsequence_cur = [dict(item._mapping) for item in batchsequence_cur]
         for batchsequence_ in batchsequence_cur:
             batchsequence_["tab"] = new_tab
             batchsequence_["formname"] = new_form
+            if batchsequence_["type"] == "assignseries":
+                while True:
+                    series = batchsequence_["source"]
+                    new_series = series + "_" + str(randint(1000,10000))
+                    if not self.readsql(select(buttonseries).where(buttonseries.assignname == new_series).where(buttonseries.formname == old_form)):
+                        series_oldnew.append([series, new_series])
+                        batchsequence_["source"] = new_series
+                        break
             q = self.writesql(insert(batchsequence).values(**batchsequence_))
             if not q:
                 self.alert(f"Error inserting batchsequence {batchsequence_['batchsequence']} in form {new_form}")
                 return
+        for series in series_oldnew:
+            old_series = series[0]
+            new_series = series[1] 
+            #copy old series
+            series_cur = self.readsql(select("*").where(buttonseries.assignname == old_series).where(buttonseries.formname == old_form))
+            series_cur = [dict(item._mapping) for item in series_cur]
+            for series_ in series_cur:
+                series_["assignname"] = new_series
+                series_["formname"] = new_form
+                if series_["tab"] == old_tab:
+                    series_["tab"] = new_tab
+                q = self.writesql(insert(buttonseries).values(**series_))
+                if not q:
+                    self.alert(f"Error inserting series {series_['assignname']} in form {new_form}")
+                    return
+        if new_form == old_form:
+            self.gui_refresh()
 
+        
+        """
         buttonseries_cur = self.readsql(select("*").where(buttonseries.formname == old_form).where(buttonseries.tab == old_tab))
         buttonseries_cur = [dict(item._mapping) for item in buttonseries_cur]
         for buttonseries_ in buttonseries_cur:
@@ -745,7 +779,7 @@ class UserInterfaceHandlerPyQT():
                 self.alert(f"Error inserting buttonseries {buttonseries_['buttonseries']} in form {new_form}")
                 return
         self.gui_refresh()
-        
+        """      
     def move_tab_insert(self, new_tab, new_form, old_tab, old_form):
         q = self.writesql(update(tabs).where(tabs.formname == old_form).where(tabs.tab == old_tab).values(formname = new_form, tab = new_tab))
         if not q:
@@ -825,10 +859,10 @@ class UserInterfaceHandlerPyQT():
 
 
 class Loader:
-    def __init__(self, gui):
+    def __init__(self, gui, form = None):
         self.pmgr = PluginHandler()
         self.logger = self.pmgr.return_logger()
-        self.config = ConfigHandler(self.logger, "EXAUT_IAN")
+        self.config = ConfigHandler(self.logger, form)
         self.db = QueryHandler(self.logger, self.config.db_location)
         self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name)
         self.formname = None
@@ -851,7 +885,7 @@ class Test:
 
        
 if __name__ == "__main__":
-    backend = Loader(None)
+    backend = Loader(None, "TEST")
     backend.ui.formname = "test"
     a = backend.ui.load()
     b = backend.ui.refresh()

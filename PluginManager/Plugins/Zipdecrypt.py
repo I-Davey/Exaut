@@ -16,11 +16,19 @@ class Zipdecrypt(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
     def main(self,  source, destination, password, Popups) -> bool:
+        source = source.replace("\\", "/")
+        destination = destination.replace("\\", "/")
         move_from = source
         move_to = destination
         if password:
             compression_key =bytes(password, 'utf-8')
-        with AESZipFile(move_from) as zf:
-            if password:
-                zf.setpassword(compression_key)
-            zf.extractall(move_to) 
+        try:
+            with AESZipFile(move_from) as zf:
+                if password:
+                    zf.setpassword(compression_key)
+                zf.extractall(move_to) 
+        except Exception as e:
+            self.logger.error("Error extracting file from: " + move_from + " to " + move_to)
+            self.logger.error(e)
+            Popups.alert("Error extracting file, please make sure it is closed.", "Error")
+            return False
