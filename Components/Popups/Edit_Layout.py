@@ -189,6 +189,8 @@ class Edit_Layout(QDialog):
 
             for button in buttons:
                 column_num = button[2]
+                if not column_num:
+                    column_num = 1
                 if column_num > len(grid_map) -  1:
                     column_num = len(grid_map) - 1
                 elif column_num < 0:
@@ -264,6 +266,9 @@ class Edit_Layout(QDialog):
             
             self.SM_Tabs.addTab(tab_widget, item)
 
+        if not curtab:
+            curtab = 0
+
         if curtab<0 or curtab > self.SM_Tabs.count()-1:
             self.SM_Tabs.setCurrentIndex(0)
         else:
@@ -285,6 +290,8 @@ class Edit_Layout(QDialog):
     def remove_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()
         curtabtext = self.SM_Tabs.tabText(curtab)
+        if not self.tab_buttons[curtabtext]["grid"]:
+            self.tab_buttons[curtabtext]["grid"] = 1
         if self.tab_buttons[curtabtext]["grid"] > 1:
             self.tab_buttons[curtabtext]["grid"] -= 1
             self.handle_refresh(curtab)
@@ -305,6 +312,8 @@ class Edit_Layout(QDialog):
         #change row of curtab items based on x_coord
         for item in curtab_items:
             for i in range(len(curtab_items)):
+                if not curtab_items[i][1]:
+                    curtab_items[i][1] = 0
                 if curtab_items[i][1] > item[1]:
                     curtab_items[i][0] += 1
     
