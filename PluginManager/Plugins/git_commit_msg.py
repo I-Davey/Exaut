@@ -1,6 +1,5 @@
 from .__important.PluginInterface import PluginInterface
 import os
-from tkinter.simpledialog import askstring
 
 
 class git_commit_msg(PluginInterface):

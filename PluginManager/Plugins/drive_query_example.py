@@ -15,7 +15,7 @@ class drive_query_example(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def getTypeFunc(self, bseq) -> dict:
+    def getTypeFunc(self, bseq, btn) -> dict:
         if bseq["url_type"] == "URL OneNote":
             if bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
@@ -50,7 +50,7 @@ class drive_query_example(PluginInterface):
  
         #remove type from bseq
         del bseq["url_type"]
-        return(bseq)
+        return(bseq, btn)
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
     def main(self, folderpath, filename, source, buttonname, target , Popups) -> bool:

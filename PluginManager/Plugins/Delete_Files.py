@@ -1,8 +1,6 @@
 from .__important.PluginInterface import PluginInterface
 import os
 import ctypes
-import shutil
-import win32api
 
 class Delete_Files(PluginInterface):
     load = True

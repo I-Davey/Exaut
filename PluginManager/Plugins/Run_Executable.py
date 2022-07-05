@@ -2,7 +2,6 @@ from array import array
 from .__important.PluginInterface import PluginInterface
 import os
 import ctypes
-import shutil
 import win32api
 
 
@@ -23,7 +22,7 @@ class Run_Executable(PluginInterface):
         return True
 
 
-    def getTypeFunc(self, bseq) -> dict:
+    def getTypeFunc(self, bseq, btn) -> dict:
         new_file = bseq["path_exe"]
         new_file = new_file.replace("/","\\")
         #delete path_exe
@@ -34,7 +33,7 @@ class Run_Executable(PluginInterface):
             idir = idir+"\\"
         bseq["filename"] = os.path.basename(new_file)
         bseq["folderpath"] = idir
-        return bseq
+        return bseq, btn
 
     def isNumeric(self,n):
         try:

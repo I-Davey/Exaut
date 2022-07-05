@@ -1,4 +1,3 @@
-import ctypes
 from PyQt6 import QtGui, QtCore
 from functools import partial
 import os
@@ -97,7 +96,7 @@ class Edit_Popup(QDialog):
                 qlineedit = QLineEdit(self)
                 qlineedit.setText(value)
                 label = QLabel_temp(key)
-                label.clicked.connect(partial(self.on_click_label, item=key))
+                label.clicked.connect(partial(self.on_click_label, key))
                 self.batchsequence_edit_dict.update({key:qlineedit})
                 self.layout.addRow(label, qlineedit)
             
@@ -169,7 +168,7 @@ class Edit_Popup(QDialog):
             self.close()
 
 class QLabel_temp(QLabel):
-    clicked=pyqtSignal()
-
+    clicked=pyqtSignal(QtGui.QMouseEvent)
+    
     def mousePressEvent(self, ev):
         self.clicked.emit(ev)

@@ -1,17 +1,11 @@
-from asyncore import read
-import enum
 from PyQt6 import QtGui, QtCore
-from loguru import logger
 #import QVBoxLayout
 from functools import partial
-from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QComboBox, QLabel, QPushButton, QDialog,  QMessageBox, QFormLayout, QVBoxLayout, QLayout
+from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QPushButton, QDialog,  QFormLayout, QVBoxLayout
 from PyQt6.QtGui import QDrag, QPixmap
 from PyQt6.QtCore import QMimeData, Qt
 
 from PyQt6 import QtWidgets
-import math
-import random
-from sqlalchemy import column
 
 class CustomDropLayout(QWidget):
     def __init__(self, parent, update_function, button_layout, tab, column):
@@ -62,9 +56,9 @@ class Edit_Layout(QDialog):
         super(Edit_Layout, self).__init__(parent_)
         self.tablist = []
         self.tab_buttons = {}
+        self.start = True
 
         self.SM_Tabs = QtWidgets.QTabWidget()
-        self.SM_Tabs.currentChanged.connect(self.ontabchange)
         self.cur_layout = QFormLayout()
         self.setLayout(self.cur_layout)
 
@@ -75,7 +69,9 @@ class Edit_Layout(QDialog):
         self.SM_Tabs.setDocumentMode(True)
 
 
-        self.curtab = parent_.SM_Tabs.currentIndex()
+        self.curtabtext = parent_.SM_Tabs.tabText(parent_.SM_Tabs.currentIndex())
+        self.curtab = None
+        self.curtabindex = 0
         self.title = parent_.title
         self.tablist = parent_.tablist
         self.tab_buttons = parent_.tab_buttons
@@ -100,17 +96,14 @@ class Edit_Layout(QDialog):
         
 
         self.x_items_grid = QGridLayout()
-        self.x_items_grid.setSpacing(0)
         self.x_items_grid.setContentsMargins(0, 0, 0, 0)
         self.x_items_grid.setObjectName("y_items_grid")
 
         self.y_items_grid = QGridLayout()
-        self.y_items_grid.setSpacing(0)
         self.y_items_grid.setContentsMargins(0, 0, 0, 0)
         self.y_items_grid.setObjectName("y_items_grid")
         
         self.items_grid_centre = QGridLayout()
-        self.items_grid_centre.setSpacing(0)
         self.items_grid_centre.setContentsMargins(0, 0, 0, 0)
         self.items_grid_centre.setObjectName("x_items_grid_centre")
 
@@ -146,10 +139,12 @@ class Edit_Layout(QDialog):
             self.SM_Tabs.removeTab(h)
           
 
+        self.SM_Tabs.currentChanged.connect(self.ontabchange)
 
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
         self.handle_refresh(self.curtab)
+        self.start = False
 
 
     def clear_all(self):
@@ -198,6 +193,8 @@ class Edit_Layout(QDialog):
 
             for button in buttons:
                 column_num = button[2]
+                if not column_num:
+                    column_num = 0
                 if column_num > len(grid_map) -  1:
                     column_num = len(grid_map) - 1
                 elif column_num < 0:
@@ -220,7 +217,7 @@ class Edit_Layout(QDialog):
                 ScrollGrid.setObjectName("ScrollGrid")
                 ScrollGrid.setSpacing(0)
                 ScrollGrid.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
-
+                
                 if len(column) == 0:
                     button_layout = QVBoxLayout()
                     ScrollGrid.addLayout(QVBoxLayout())
@@ -228,10 +225,26 @@ class Edit_Layout(QDialog):
 
                 for button in column:
                     button_layout = QVBoxLayout()
+                    button_layout.setContentsMargins(0, 3, 0, 3 )
+                    #set spacing between elements in qvboxlayout
                     ScrollAreaContents.button_layout = button_layout
 
+        
                     new_button = DragButton(button)
+                    color_default = QtGui.QColor(225, 225, 225)
+                    color_border = QtGui.QColor(160, 160, 160)
+                    new_button.setStyleSheet(f"""QPushButton{{
+                            border-style: solid;
+                            background-color: {color_default.name()};
+                            border-width: 1px 1px 1px 1px;
+                            border-radius: 2px;
+                            border-color: {color_border.name()};
+                            padding: 4px;
+                            }}
+                            """)
+                    new_button.setContentsMargins(0, 3, 0, 3)
                     new_button.from_column = i
+                    
                     button_layout.addWidget(new_button)
 
                     new_button.setText(button)
@@ -257,9 +270,15 @@ class Edit_Layout(QDialog):
             
             self.SM_Tabs.addTab(tab_widget, item)
 
-        if curtab<0 or curtab > self.SM_Tabs.count()-1:
-            self.SM_Tabs.setCurrentIndex(0)
+        if not curtab:
+            for i in range(0, self.SM_Tabs.count()):
+                if self.SM_Tabs.tabText(i) == self.curtabtext:
+                    self.SM_Tabs.setCurrentIndex(i)
+                    self.curtabindex = i
+                    
+                    break
         else:
+            #find the index of the tabtext
             self.SM_Tabs.setCurrentIndex(curtab)
         #set size to self.layout.sizeHint
 
@@ -268,6 +287,8 @@ class Edit_Layout(QDialog):
         combo = self.sizeHint() + self.cur_layout.sizeHint() + self.items_grid_centre.sizeHint()
         if combo.width() > self.width() and combo.height() > self.height():
             self.resize(combo.width(), combo.height())
+        if not self.start:
+            self.curtabtext = self.SM_Tabs.tabText(index)
 
     def add_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()
@@ -278,6 +299,8 @@ class Edit_Layout(QDialog):
     def remove_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()
         curtabtext = self.SM_Tabs.tabText(curtab)
+        if not self.tab_buttons[curtabtext]["grid"]:
+            self.tab_buttons[curtabtext]["grid"] = 1
         if self.tab_buttons[curtabtext]["grid"] > 1:
             self.tab_buttons[curtabtext]["grid"] -= 1
             self.handle_refresh(curtab)
@@ -298,6 +321,8 @@ class Edit_Layout(QDialog):
         #change row of curtab items based on x_coord
         for item in curtab_items:
             for i in range(len(curtab_items)):
+                if not curtab_items[i][1]:
+                    curtab_items[i][1] = 0
                 if curtab_items[i][1] > item[1]:
                     curtab_items[i][0] += 1
     
@@ -334,7 +359,7 @@ class Edit_Layout(QDialog):
         #delete all tab_dict["buttons"] as i with i[2] == column_num
         for i in reversed(range(len(tab_dict["buttons"]))):
             if tab_dict["buttons"][i][2] == column_num:
-                other_items_desc.append(tab_dict["buttons"][i][3])
+                other_items_desc.append(tab_dict["buttons"][i][1])
                 tab_dict["buttons"].pop(i)
         other_items_desc.reverse()
         

@@ -1,12 +1,12 @@
 from time import perf_counter
-from tokenize import tabsize
 
-from psycopg2 import IntegrityError
+from psycopg2 import OperationalError
+
 from Plugins import Plugins 
 import sys
 import os
 from iniconfig import Parse
-from Components.db.Exaut_sql import  forms, tabs, buttons, batchsequence, buttonseries
+from Components.db.Exaut_sql import  forms, tabs, buttons, batchsequence, buttonseries, pluginmap
 from sqlalchemy import create_engine,select, update, insert, delete
 from sqlalchemy.orm import sessionmaker
 from threading import Thread
@@ -26,23 +26,28 @@ class ConfigHandler:
 
     def load_data(self):
         current_filename =  os.path.basename(sys.argv[0]).split(".")[0].upper()
-        os.chdir(os.path.dirname(sys.argv[0]))
-        self.file_config = Parse(current_filename).cfg
+        try:
+            os.chdir(os.path.dirname(sys.argv[0]))
+        except:
+            self.logger.error("Could not change directory to %s" % os.path.dirname(sys.argv[0]))
+
+        if self.title:
+            current_filename = self.title
+        self.file_config = Parse(self.logger, current_filename).cfg
         self.logger.debug(f"filename: {current_filename} + filecfg_arr = {self.file_config}")
         if not self.file_config:
             self.logger.error(f"No [{current_filename}] header in config.ini")
-            input()
+            
             ###GUI_POPUP
             sys.exit()
         else:
             self.form_name = self.file_config["form"]
         
-        db_config = Parse("SQLCONN").cfg
+        db_config = Parse( self.logger,"SQLCONN").cfg
         connectionpath = db_config["connectionpath"]
         connection = db_config["connection"]
         self.db_location = f"{connectionpath}\\{connection}"
         
-
 class PluginHandler():
     def __init__(self):
         self.pmgr = None
@@ -58,6 +63,7 @@ class PluginHandler():
     def return_logger(self):
         x = self.pmgr.handlers["log"]["run"]
         return x
+
 class QueryHandler():
     def __init__(self,logger, db_loc):
         self.logger = logger
@@ -115,10 +121,44 @@ class UserInterfaceHandlerPyQT():
         self.title = ""
         self.form_desc = ""
         self.version = version
-        self.popups = self.Popups(self.gui, self.logger)
+        self.popups = self.Popups(self.gui, self.logger, self)
+        self.handle_plugins()
+        self.refresh(launch = True)
+    def handle_plugins(self):
+        plugin_map = self.pmgr.plugin_map
+        for plugin, types in plugin_map.items():
+            if type(types) == tuple:
+                types = ",".join(types)
+                plugin_map[plugin] = types
+        #from pluginmap db get all plugins and types
+        try:
+            data = self.readsql(select([pluginmap.plugin, pluginmap.types]))
+        except OperationalError as e:
+            self.logger.error(f"Error reading pluginmap, please add table to db")
+            self.logger.error(f"{e}")
+            input("Press enter to exit")
+            sys.exit()
+        #print all items in db
+        map_in_db = {}
+        for item in data:
+            map_in_db[item.plugin] = item.types
+        
+        for item in plugin_map:
+            if item not in map_in_db:
+                self.logger.info(f"Adding plugin {item} to db")
+                self.writesql(insert(pluginmap).values(plugin=item, types=plugin_map[item], generated = 1))
+            else:
+                if plugin_map[item] != map_in_db[item]:
+                    self.logger.info(f"Updating plugin {item} in db")
+                    self.writesql(update(pluginmap).where(plugin = item).values(types=plugin_map[item], generated = 1))
+
+        
+            
+            
 
     class Popups:
-        def __init__(self, gui, logger):
+        def __init__(self, gui, logger, parent_):
+            self.parent_ = parent_
             self.gui =  gui
             self.logger = logger
 
@@ -128,13 +168,18 @@ class UserInterfaceHandlerPyQT():
                 if x not in self.gui.popup_msgs:
                     return x
                 
-
+        def alert(self, msg, title = None):
+            self.parent_.gui.signal_alert.emit(msg, title)
+            return True
+            
         def yesno(self, message, title="", default="no"):
-            return self.call(self.gui.signal_popup_yesno.emit,(message, title, default))
+            return self.call(self.gui.signal_popup_yesno,(message, title, default))
 
 
         def data_entry(self, message, title=""):
             return self.call(self.gui.signal_popup_data, (message, title))
+
+       
             
         def call(self, signal, args):
             key = str(self.random())
@@ -153,14 +198,15 @@ class UserInterfaceHandlerPyQT():
     def user_input(self, input_):
         return input(input_)
 
-    def alert(self, message):
+    def alert(self, message, title = None):
         self.logger.info(message)
-        self.gui.alert(message)
+        self.gui.alert(message, title)
+
 
     def gui_refresh(self):
         self.gui.signal_refresh.emit()
 
-    def refresh(self):
+    def refresh(self, launch = False):
 
         tab_info = self.readsql(select('*').where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()))
         self.buttondata = self.readsql(select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()))
@@ -168,6 +214,17 @@ class UserInterfaceHandlerPyQT():
         newbuttondata = []
         types_ = self.readsql(select(batchsequence.type, batchsequence.tab, batchsequence.buttonname).where(batchsequence.formname == self.formname))
         types_ = [dict(item._mapping) for item in types_]
+
+        colors = self.readsql(select(pluginmap.types, pluginmap.color))
+        colors = [list(dict(item._mapping).values()) for item in colors]
+        colors_dict = {}
+        for item in colors:
+            if "," in item[0]:
+                for item2 in item[0].split(","):
+                    colors_dict[item2] = item[1]
+            else:
+                colors_dict[item[0]] = item[1]
+
         for button in self.buttondata:
 
             newbutton = button._asdict()
@@ -175,10 +232,18 @@ class UserInterfaceHandlerPyQT():
             for type_ in types_:
                 if newbutton["buttonname"] == type_["buttonname"] and newbutton["tab"] == type_["tab"]:
                     newbutton["type"] = type_["type"]
+                    if type_["type"] in colors_dict:
+                        newbutton["color"] = colors_dict[type_["type"]]
+                    else:
+                        self.logger.warning(f"Type: {type_['type']} not found in pluginmap.")
+                        colors_dict[type_["type"]] = None
+                        newbutton["color"] = None
                     found = True
             if not found:
-                self.logger.warning(f"Button '{newbutton['buttonname']}' on Tab '{newbutton['tab']}'  not found in batchsequence")
+                if launch:
+                    self.logger.warning(f"Button '{newbutton['buttonname']}' on Tab '{newbutton['tab']}'  not found in batchsequence")
                 newbutton["type"] = None
+                newbutton["color"] = None
             newbuttondata.append(newbutton)
 
 
@@ -194,11 +259,12 @@ class UserInterfaceHandlerPyQT():
         newbuttondata.sort(key=lambda button: int(button["columnnum"]) if button["columnnum"] not in ("", None) else -5)
         for button in buttons_data_ordered:
             if button["tab"] not in buttons_tabs:
+                continue
                 buttons_tabs[button["tab"]] = {}
                 buttons_tabs[button["tab"]]["buttons"] = []
                 [buttons_tabs[button["tab"]].update({column.key:None}) for column in tabs.__table__.columns]
 
-            buttons_tabs[button["tab"]]["buttons"].append([button["buttonsequence"], button["buttonname"], button["columnnum"], button["buttondesc"], button["type"]])
+            buttons_tabs[button["tab"]]["buttons"].append([button["buttonsequence"], button["buttonname"], button["columnnum"], button["buttondesc"], button["type"], button["color"]])
         self.tab_buttons = buttons_tabs
         self.tablist = [tab.tab for tab in tab_info]
         return(self.tablist, self.tab_buttons)
@@ -210,12 +276,13 @@ class UserInterfaceHandlerPyQT():
         form_desc = form_data.formdesc if form_data else None
         if form_title == None:
             self.logger.warning(f"No form with name {self.formname}")
-            inpt = self.user_input("createform")
-            if inpt == "y":
-                inpt = self.user_input("createform_desc")
+            inpt = self.popups.yesno(f"No form with name {self.formname} found. Do you want to create it?", title = "Form not found")
+            if inpt:
+                inpt = self.popups.data_entry(f"Enter form Description", title = "Form Description")
                 if inpt:
-                    self.writesql(insert(forms).values(forms.formdesc == inpt, forms.formname == self.formname))
-                    form_desc = inpt
+                    self.writesql(insert(forms).values(formname = self.formname, formdesc = inpt))
+                    self.logger.info(f"Form {self.formname} created")
+                    return self.load()
         self.title = str(form_title)
         self.form_desc = str(form_desc)
         return(self.title, self.form_desc)
@@ -229,9 +296,12 @@ class UserInterfaceHandlerPyQT():
                 mode = "sequence"
             for batchsequence_ in batchsequence_data:
                 if batchsequence_.type == "assignseries":
+                    if mode == "sequence":
+                        res = self.assignseries_handler(self.logger, self.button_click, self.readsql,  button_name, tab_name, batchsequence_)
+                        return res, "assignseries"
                     sequence_thread = Thread(target=self.assignseries_handler, args=(self.logger, self.button_click, self.readsql,  button_name, tab_name, batchsequence_))
                     sequence_thread.start()
-                    return
+                    return True, "assignseries"
                 elif self.pmgr.exists(batchsequence_.type):
                     if mode == "sequence":
                         return self.pmgr.call(batchsequence_.type, batchsequence_._mapping, self.popups), batchsequence_.type
@@ -661,16 +731,45 @@ class UserInterfaceHandlerPyQT():
                 self.alert(f"Error inserting button {button['buttonname']} in form {new_form}")
                 return
 
+
+        series_oldnew = []
         batchsequence_cur = self.readsql(select("*").where(batchsequence.tab == old_tab).where(batchsequence.formname == old_form))
         batchsequence_cur = [dict(item._mapping) for item in batchsequence_cur]
         for batchsequence_ in batchsequence_cur:
             batchsequence_["tab"] = new_tab
             batchsequence_["formname"] = new_form
+            if batchsequence_["type"] == "assignseries":
+                while True:
+                    series = batchsequence_["source"]
+                    new_series = series + "_" + str(randint(1000,10000))
+                    if not self.readsql(select(buttonseries).where(buttonseries.assignname == new_series).where(buttonseries.formname == old_form)):
+                        series_oldnew.append([series, new_series])
+                        batchsequence_["source"] = new_series
+                        break
             q = self.writesql(insert(batchsequence).values(**batchsequence_))
             if not q:
                 self.alert(f"Error inserting batchsequence {batchsequence_['batchsequence']} in form {new_form}")
                 return
+        for series in series_oldnew:
+            old_series = series[0]
+            new_series = series[1] 
+            #copy old series
+            series_cur = self.readsql(select("*").where(buttonseries.assignname == old_series).where(buttonseries.formname == old_form))
+            series_cur = [dict(item._mapping) for item in series_cur]
+            for series_ in series_cur:
+                series_["assignname"] = new_series
+                series_["formname"] = new_form
+                if series_["tab"] == old_tab:
+                    series_["tab"] = new_tab
+                q = self.writesql(insert(buttonseries).values(**series_))
+                if not q:
+                    self.alert(f"Error inserting series {series_['assignname']} in form {new_form}")
+                    return
+        if new_form == old_form:
+            self.gui_refresh()
 
+        
+        """
         buttonseries_cur = self.readsql(select("*").where(buttonseries.formname == old_form).where(buttonseries.tab == old_tab))
         buttonseries_cur = [dict(item._mapping) for item in buttonseries_cur]
         for buttonseries_ in buttonseries_cur:
@@ -681,7 +780,7 @@ class UserInterfaceHandlerPyQT():
                 self.alert(f"Error inserting buttonseries {buttonseries_['buttonseries']} in form {new_form}")
                 return
         self.gui_refresh()
-        
+        """      
     def move_tab_insert(self, new_tab, new_form, old_tab, old_form):
         q = self.writesql(update(tabs).where(tabs.formname == old_form).where(tabs.tab == old_tab).values(formname = new_form, tab = new_tab))
         if not q:
@@ -761,10 +860,10 @@ class UserInterfaceHandlerPyQT():
 
 
 class Loader:
-    def __init__(self, gui):
+    def __init__(self, gui, form = None):
         self.pmgr = PluginHandler()
         self.logger = self.pmgr.return_logger()
-        self.config = ConfigHandler(self.logger, "EXAUT_IAN")
+        self.config = ConfigHandler(self.logger, form)
         self.db = QueryHandler(self.logger, self.config.db_location)
         self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name)
         self.formname = None
@@ -787,7 +886,7 @@ class Test:
 
        
 if __name__ == "__main__":
-    backend = Loader(None)
+    backend = Loader(None, "TEST")
     backend.ui.formname = "test"
     a = backend.ui.load()
     b = backend.ui.refresh()

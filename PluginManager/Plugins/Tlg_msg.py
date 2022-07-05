@@ -1,13 +1,6 @@
 from .__important.PluginInterface import PluginInterface
-import os
-import ctypes
-import webbrowser
-import subprocess
-import asyncio
-from threading import Lock
-from telethon import TelegramClient, events, utils, functions, tl
-from telethon.tl.types import PeerChat, PeerChannel
 
+import asyncio
 
 
     

@@ -1,7 +1,6 @@
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
-import shutil
+
 class Run_Command(PluginInterface):
     load = True
     types = {"dir":0,"command":3}

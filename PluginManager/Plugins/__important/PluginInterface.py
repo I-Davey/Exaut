@@ -16,6 +16,6 @@ class PluginInterface:
     def getHooks(self) -> list:
         return [self.hooks_handler, self.hooks_method]
 
-    def getTypeFunc(self, bseq) -> dict:
-        return(bseq)
+    def getTypeFunc(self, bseq, btn) -> dict:
+        return(bseq, btn)
     

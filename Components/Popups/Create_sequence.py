@@ -9,6 +9,8 @@ class DragButton(QPushButton):
     def fake_init(self, parent_, bname):
         self.parent_ = parent_
         self.bname = bname
+        #set text alignment to left
+        self.setStyleSheet("QPushButton { text-align: left; }")
 
     def mousePressEvent(self, event):
         self.__mousePressPos = None
@@ -242,6 +244,9 @@ class Create_sequence(QDialog):
 
     def add_button(self,tname,bname):
         new_button = DragButton(f"{tname} | {bname}", self)
+
+        #align text in new_button to left
+        new_button
         new_button.fake_init(self, bname)
         new_button_x = QPushButton("X")
         #run function self.clicked and send the button obj
