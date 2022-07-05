@@ -37,7 +37,7 @@ class ConfigHandler:
         self.logger.debug(f"filename: {current_filename} + filecfg_arr = {self.file_config}")
         if not self.file_config:
             self.logger.error(f"No [{current_filename}] header in config.ini")
-            input()
+            
             ###GUI_POPUP
             sys.exit()
         else:
@@ -276,12 +276,13 @@ class UserInterfaceHandlerPyQT():
         form_desc = form_data.formdesc if form_data else None
         if form_title == None:
             self.logger.warning(f"No form with name {self.formname}")
-            inpt = self.user_input("createform")
-            if inpt == "y":
-                inpt = self.user_input("createform_desc")
+            inpt = self.popups.yesno(f"No form with name {self.formname} found. Do you want to create it?", title = "Form not found")
+            if inpt:
+                inpt = self.popups.data_entry(f"Enter form Description", title = "Form Description")
                 if inpt:
-                    self.writesql(insert(forms).values(forms.formdesc == inpt, forms.formname == self.formname))
-                    form_desc = inpt
+                    self.writesql(insert(forms).values(formname = self.formname, formdesc = inpt))
+                    self.logger.info(f"Form {self.formname} created")
+                    return self.load()
         self.title = str(form_title)
         self.form_desc = str(form_desc)
         return(self.title, self.form_desc)

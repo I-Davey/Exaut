@@ -56,9 +56,9 @@ class Edit_Layout(QDialog):
         super(Edit_Layout, self).__init__(parent_)
         self.tablist = []
         self.tab_buttons = {}
+        self.start = True
 
         self.SM_Tabs = QtWidgets.QTabWidget()
-        self.SM_Tabs.currentChanged.connect(self.ontabchange)
         self.cur_layout = QFormLayout()
         self.setLayout(self.cur_layout)
 
@@ -69,7 +69,9 @@ class Edit_Layout(QDialog):
         self.SM_Tabs.setDocumentMode(True)
 
 
-        self.curtab = parent_.SM_Tabs.currentIndex()
+        self.curtabtext = parent_.SM_Tabs.tabText(parent_.SM_Tabs.currentIndex())
+        self.curtab = None
+        self.curtabindex = 0
         self.title = parent_.title
         self.tablist = parent_.tablist
         self.tab_buttons = parent_.tab_buttons
@@ -137,10 +139,12 @@ class Edit_Layout(QDialog):
             self.SM_Tabs.removeTab(h)
           
 
+        self.SM_Tabs.currentChanged.connect(self.ontabchange)
 
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
         self.handle_refresh(self.curtab)
+        self.start = False
 
 
     def clear_all(self):
@@ -190,7 +194,7 @@ class Edit_Layout(QDialog):
             for button in buttons:
                 column_num = button[2]
                 if not column_num:
-                    column_num = 1
+                    column_num = 0
                 if column_num > len(grid_map) -  1:
                     column_num = len(grid_map) - 1
                 elif column_num < 0:
@@ -267,11 +271,14 @@ class Edit_Layout(QDialog):
             self.SM_Tabs.addTab(tab_widget, item)
 
         if not curtab:
-            curtab = 0
-
-        if curtab<0 or curtab > self.SM_Tabs.count()-1:
-            self.SM_Tabs.setCurrentIndex(0)
+            for i in range(0, self.SM_Tabs.count()):
+                if self.SM_Tabs.tabText(i) == self.curtabtext:
+                    self.SM_Tabs.setCurrentIndex(i)
+                    self.curtabindex = i
+                    
+                    break
         else:
+            #find the index of the tabtext
             self.SM_Tabs.setCurrentIndex(curtab)
         #set size to self.layout.sizeHint
 
@@ -280,6 +287,8 @@ class Edit_Layout(QDialog):
         combo = self.sizeHint() + self.cur_layout.sizeHint() + self.items_grid_centre.sizeHint()
         if combo.width() > self.width() and combo.height() > self.height():
             self.resize(combo.width(), combo.height())
+        if not self.start:
+            self.curtabtext = self.SM_Tabs.tabText(index)
 
     def add_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()
@@ -350,7 +359,7 @@ class Edit_Layout(QDialog):
         #delete all tab_dict["buttons"] as i with i[2] == column_num
         for i in reversed(range(len(tab_dict["buttons"]))):
             if tab_dict["buttons"][i][2] == column_num:
-                other_items_desc.append(tab_dict["buttons"][i][3])
+                other_items_desc.append(tab_dict["buttons"][i][1])
                 tab_dict["buttons"].pop(i)
         other_items_desc.reverse()
         

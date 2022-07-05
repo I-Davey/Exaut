@@ -85,7 +85,7 @@ class CustomTabArea(QtWidgets.QTabWidget):
             else:
                 file_name = file_name
                 type_ = "folder"
-            if type_ in ("lnk", "xlsx", "pdf", "db", "txt", "png", "pdf", "jpg", "ini","txt","csv","json", "docx", "doc", "pptx", "vsdx", "xlsb", "log", "htm","gif"):
+            if type_ in ("lnk", "xlsx", "pdf", "db", "txt", "png", "pdf", "jpg", "ini","txt","csv","json", "docx", "doc", "pptx", "vsdx", "xlsb", "log", "htm","gif", "mdgm"):
                 type_ = "exe"
             self.parent_.handle_tab_drag_event(file_name, type_, file)
             return
@@ -358,6 +358,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             tab_group = tab_data['tabgroup']
             if tab_grid==None or tab_grid=="":
                 tab_grid = 1
+            if tab_group in ("x", "hidden", "hide", "hid"):
+                if not self.show_hidden_tabs:
+                    continue
             tab = CustomTabArea(self)
             tab.setToolTip(str(tab_desc))
             tab.setObjectName("Tab_"+str(tab_name))
@@ -386,7 +389,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             tab_buttons_copy[tab_name]["allitems"] = [tab, TabGrid, ScrollArea, ScrollAreaContents, ScrollGrid, Grid, button_arr]
             self.button_cache = tab_buttons_copy
 
-        if self.curTab<0 or self.curTab > self.SM_Tabs.count()-1:
+        if not self.curTab or self.curTab > self.SM_Tabs.count()-1:
             self.SM_Tabs.setCurrentIndex(0)
         else:
             self.SM_Tabs.setCurrentIndex(self.curTab)
@@ -394,7 +397,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
         self.logger.success("Refreshed code")
-        #self.actionHidden_mode_toggled(self.edit_mode)
+        #on actionhidden mode press. run show_hidden_tabs_handler
+        self.actionHidden_mode.setChecked(self.show_hidden_tabs)
         self.refreshing = False
         self.get_tab_change(self.curTab)
 
@@ -458,7 +462,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         color_clicked_border = color_border
 
         return(default_color, color_hover, color_hover_border, color_border,  color_clicked_border, color_clicked)
-
 
     def get_tab_change(self,n, **kwargs):
         if self.refreshing:

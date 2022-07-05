@@ -19,6 +19,8 @@ class selection(TypeInterface):
        #only allow one folder to be selected
         self.q_widget = self.create_object()
         self.q_widget.addItems(arguments)
+        #sort by name
+        self.q_widget.model().sort(0)
 
         if is_optional:
             description = "(Optional) " + description

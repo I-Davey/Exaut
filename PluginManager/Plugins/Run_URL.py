@@ -6,7 +6,7 @@ import subprocess
 class Run_URL(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"source":3, "buttonname":11, "target":4}
-    type_types = {"url_type":["selection", "Select URL Type", ["Classic URL", "URL OneNote", "URL OneNote Desktop", "URL Telegram",  "URL TradingView", "MS Edge"]], "source":["text", "Enter URL"], "__Name":"URL"}
+    type_types = {"url_type":["selection", "Select URL Type", ["Classic URL", "URL OneNote Win10", "URL OneNote Desktop", "URL Telegram",  "URL TradingView", "URL Slack", "MS Edge"]], "source":["text", "Enter URL"], "__Name":"URL"}
 
     callname = "url"
     hooks_handler = ["log"]
@@ -15,8 +15,8 @@ class Run_URL(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def getTypeFunc(self, bseq) -> dict:
-        if bseq["url_type"] == "URL OneNote":
+    def getTypeFunc(self, bseq, btn) -> dict:
+        if bseq["url_type"] == "URL OneNote Win10":
             if bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
 
@@ -24,6 +24,8 @@ class Run_URL(PluginInterface):
         elif bseq["url_type"] == "URL OneNote Desktop":
             if bseq["source"].find("onenotedesktop:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenotedesktop:"):]
+
+                    
             elif bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
                     #repplace onenote: with onenotedesktop:
@@ -32,13 +34,29 @@ class Run_URL(PluginInterface):
         elif bseq["url_type"] == "URL TradingView":
                     bseq["source"] =  "tradingview: "+bseq["source"]
 
+        elif bseq["url_type"] == "URL Slack":
+                    if "/client/" in bseq["source"]:
+                            if "buttondesc" not in btn:
+                                btn["buttondesc"] = "Slack Website URL"
+
+                        
+                    elif "/archives/" in bseq["source"]: 
+                            if "buttondesc" not in btn:
+                                btn["buttondesc"] = "Slack Application URL"
+
         elif bseq["url_type"] == "URL Telegram":
             #spit by / and take the last and second lsat items
             split_url = bseq["source"].split("/")
             if len(split_url)>2:
-                post = split_url[-1]
-                channel = split_url[-2]
-                bseq["source"] = f"tg://privatepost?channel={channel}&post={post}"
+                if split_url[-1][0] == "+":
+                    group = f"{split_url[-1][1:]}"
+                    #open to the group as a chat
+                    bseq["source"] = f"tg://join?invite={group}"
+                else:
+                    post = split_url[-1]
+                    channel = split_url[-2]
+                    bseq["source"] = f"tg://privatepost?channel={channel}&post={post}"
+
         elif bseq["url_type"] == "MS Edge":
             bseq["folderpath"] = "C:\Program Files (x86)\Microsoft\Edge\Application"
             bseq["filename"] = "msedge.exe"
@@ -48,9 +66,11 @@ class Run_URL(PluginInterface):
             #remove bseq["target"]
             bseq.pop("target")
  
+        if "buttondesc" not in btn:
+            btn["buttondesc"] = bseq["url_type"]
         #remove type from bseq
         del bseq["url_type"]
-        return(bseq)
+        return(bseq, btn)
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
     def main(self, folderpath, filename, source, buttonname, target , Popups) -> bool:
