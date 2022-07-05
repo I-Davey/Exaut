@@ -1,6 +1,5 @@
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
 import shutil
 
 class Delete_all(PluginInterface):
@@ -15,14 +14,14 @@ class Delete_all(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def getTypeFunc(self, bseq) -> dict:
+    def getTypeFunc(self, bseq, btn) -> dict:
         if "type_" in bseq:
             if bseq["type_"] == "all items":
                 bseq["type"] == "delall"
             elif bseq["type_"] == "non (.) items":
                 bseq["type"] == "delalldot"
         del bseq["type_"]
-        return bseq
+        return bseq, btn
 
     def main(self,source, bname, type_, Popups) -> bool:
         #if the last character is not a slash, add it

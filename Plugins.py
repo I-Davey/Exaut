@@ -32,6 +32,7 @@ class PluginManager:
         # key is type class, value is true if on else false
         self.plugins = {}
         self.plugin_loc = {}
+        self.plugin_map = {}
 
 
     
@@ -44,6 +45,7 @@ class PluginManager:
                         logger.warning("Plugin {} is not active".format(plugin))
                         continue
                     self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item}})
+                    self.plugin_map.update({plugin : current_item.callname})
                     #check if current_item.callname is a tuple, if it is add twice
                     if type(current_item.callname) == tuple:
                         for item in current_item.callname:
@@ -200,6 +202,7 @@ class Plugins:
         self.plugins = []
         self.plugin_loc = {}
         self.plugin_type_types  = {}
+        self.plugin_map = {}
         self.error = None
         self.fail = False
         
@@ -219,6 +222,7 @@ class Plugins:
 
         pluginmanager = PluginManager()
         self.plugins, self.plugin_loc, self.plugin_type_types = pluginmanager.initialisePlugins(self.handlers, self.methods, self.plugin_type_types)
+        self.plugin_map = pluginmanager.plugin_map
 
         #logger.success(f"handler dict: {self.handlers}")
         #logger.success(f"method dict: {self.methods}")

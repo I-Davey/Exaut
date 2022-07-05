@@ -1,7 +1,5 @@
 from .__important.PluginInterface import PluginInterface
-from tkinter.messagebox import askyesno
-#import yes no option tkinter
-from PyQt6.QtWidgets import QMessageBox
+
 class warning(PluginInterface):
     load = True
     types = {"message":3}

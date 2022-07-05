@@ -1,8 +1,5 @@
 from .__important.PluginInterface import PluginInterface
-import os
-import ctypes
-import shutil
-import win32api
+
 class tabto(PluginInterface):
     load = True
     types = {"filename":1, "type_":2}

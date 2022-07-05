@@ -1,6 +1,5 @@
 from .__important.TypeInterface import TypeInterface
 from PyQt6.QtWidgets import  QFileDialog, QHBoxLayout, QLabel, QPushButton
-from functools import partial
 
 
 

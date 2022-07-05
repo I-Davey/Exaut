@@ -1,21 +1,17 @@
-from asyncio import Handle
-from typing import Tuple
 
 from PyQt6.QtCore import QThread
-from loguru import logger
 #import QVBoxLayout
 from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu
 from PyQt6.QtCore import Qt, pyqtSignal
 import pyperclip
 from .TypeManager.Types_handler import Types
 from functools import partial
-import collections
-from PyQt6 import QtWidgets
+
 #{'Zipcrypt': {'source': ['folder', 'please select source folder'], 'target': ['folder', 'please select destination folder'], 'databasename': ['text', 'please enter password']}}
 class Create_Process(QDialog):
     signal_insert = pyqtSignal(dict, dict)
 
-    def __init__(self, parent_, PluginManager, formname, tabname):
+    def __init__(self, parent_, PluginManager, formname, tabname, existing=False, type_=None, **kwargs):
         
         super().__init__(parent_)
         self.parent_ = parent_
@@ -25,7 +21,7 @@ class Create_Process(QDialog):
         self.setWindowTitle(f"Create New Button - {tabname}")
         self.layout = QFormLayout()
         self.setLayout(self.layout)
-
+        self.existing = existing
 
         self.typemgr = Types()
         self.threads = []
@@ -66,7 +62,51 @@ class Create_Process(QDialog):
         self.generated_widget_layout = QFormLayout()
         self.layout.addRow(self.generated_widget_layout)
 
+        if existing:
+            self.handle_existing(type_, **kwargs)
 
+    def handle_existing(self, type_, **kwargs):
+        if type_ == "exe":
+            filename = kwargs["filename"]
+            path = kwargs["file"]
+            #set current type on form to exe\
+            #find exe in multiselect
+            for i in range(self.multiselect.count()):
+                if self.multiselect.itemText(i).lower() == "exe":
+                    self.multiselect.setCurrentIndex(i)
+            for item in self.type_data:
+                if item.key == "path_exe":
+                    item.data = path
+                    item.q_widget.setText(path)
+            self.button_name.setText("Run " + filename)
+        elif type_ == "folder":
+            filename = kwargs["filename"]
+            path = kwargs["file"]
+            for i in range(self.multiselect.count()):
+                if self.multiselect.itemText(i).lower() == "open folder":
+                    self.multiselect.setCurrentIndex(i)
+            for item in self.type_data:
+                if item.key == "folderpath":
+                    item.data = path
+                    item.q_widget.setText(path)
+            self.button_name.setText("Folder " + filename)
+        elif type_ == "url":
+            for i in range(self.multiselect.count()):
+                if self.multiselect.itemText(i).lower() == "url":
+                    self.multiselect.setCurrentIndex(i)
+            for item in self.type_data:
+                if item.key == "source":
+                    item.data = kwargs["file"]
+                    item.q_widget.setText(kwargs["file"])
+            url = kwargs["file"]
+            if "onenote:" in url:
+                 url = url.split("onenote:")[1]
+                 if ".one#" in url:
+                    url = url.split(".one#")[1]
+                    if "&" in url:
+                        url = url.split("&")[0]
+                        url = url.replace("%20", " ")
+                        self.button_name.setText(url)
         
     def handlemultiselect(self):
         self.multiselect.addItems(self.type_list)
@@ -216,9 +256,11 @@ class Create_Process(QDialog):
 
 
         #handles special functions for changing data within the type python file (complex 😳😳😭😭😏😏 )
-        batchsequence_value_dict = self.PluginManager.plugins[self.chosen_type]['object'].getTypeFunc(batchsequence_value_dict) 
+        batchsequence_value_dict, button_value_dict = self.PluginManager.plugins[self.chosen_type]['object'].getTypeFunc(batchsequence_value_dict, button_value_dict) 
         self.signal_insert.emit(batchsequence_value_dict, button_value_dict)
         self.parent_.refresh()
+        if self.existing:
+            self.close()
         self.multiselect.setCurrentIndex(0)
         
     def browse_folder(self, db_key):

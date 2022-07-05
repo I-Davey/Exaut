@@ -4,8 +4,6 @@ from auth.my_uuid import uuid
 import hashlib
 import json
 import sys
-import ctypes
-from tkinter.simpledialog import askstring
 
 class Auth:
     def __init__(self, parent_ = None) -> None:

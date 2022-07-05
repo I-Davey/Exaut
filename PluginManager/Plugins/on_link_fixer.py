@@ -1,10 +1,6 @@
 from .__important.PluginInterface import PluginInterface
-import os
-import ctypes
-import shutil
-import win32api
+
 import pyperclip
-from tkinter.simpledialog import askstring
 
 class on_link_fixer(PluginInterface):
     load = True
