@@ -13,7 +13,7 @@ class Copy(PluginInterface):
     hooks_handler = ["log"]
 
 
-    def getTypeFunc(self, bseq) -> dict:
+    def getTypeFunc(self, bseq, btn) -> dict:
         new_file = bseq["path_exe"]
         new_file = new_file.replace("/","\\")
         #delete path_exe
@@ -24,7 +24,7 @@ class Copy(PluginInterface):
             idir = idir+"\\"
         bseq["filename"] = os.path.basename(new_file)
         bseq["source"] = idir
-        return bseq
+        return bseq, btn
 
     def main(self, batch_name,file_name,file_source,file_destination,run_sequence,new_name, Popups) -> bool: 
         if not new_name:

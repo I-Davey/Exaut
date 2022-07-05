@@ -146,4 +146,4 @@ def query3():
     print(query2.compile(compile_kwargs={"literal_binds": True}))
     print(query3.compile(compile_kwargs={"literal_binds": True}))
 
-querynew()
+#querynew()

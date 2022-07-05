@@ -1,5 +1,4 @@
 
-from genericpath import exists
 from PyQt6.QtCore import QThread
 #import QVBoxLayout
 from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu
@@ -99,6 +98,15 @@ class Create_Process(QDialog):
                 if item.key == "source":
                     item.data = kwargs["file"]
                     item.q_widget.setText(kwargs["file"])
+            url = kwargs["file"]
+            if "onenote:" in url:
+                 url = url.split("onenote:")[1]
+                 if ".one#" in url:
+                    url = url.split(".one#")[1]
+                    if "&" in url:
+                        url = url.split("&")[0]
+                        url = url.replace("%20", " ")
+                        self.button_name.setText(url)
         
     def handlemultiselect(self):
         self.multiselect.addItems(self.type_list)
@@ -248,7 +256,7 @@ class Create_Process(QDialog):
 
 
         #handles special functions for changing data within the type python file (complex 😳😳😭😭😏😏 )
-        batchsequence_value_dict = self.PluginManager.plugins[self.chosen_type]['object'].getTypeFunc(batchsequence_value_dict) 
+        batchsequence_value_dict, button_value_dict = self.PluginManager.plugins[self.chosen_type]['object'].getTypeFunc(batchsequence_value_dict, button_value_dict) 
         self.signal_insert.emit(batchsequence_value_dict, button_value_dict)
         self.parent_.refresh()
         if self.existing:
