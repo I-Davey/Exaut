@@ -14,12 +14,15 @@ import re
 
 import pyperclip
 
-import Components.EXAUT_gui as EXAUT_gui
-from Components.Popups.Create_sequence import Create_sequence
-from Components.Popups.edit_popup_tab import edit_popup_tab
-from Components.Popups.Edit_Popup import Edit_Popup
-from Components.Popups.Edit_Layout import Edit_Layout
-from Components.Popups.Create_Process.Create_Process import Create_Process
+
+import json
+
+import frontend.EXAUT_gui as EXAUT_gui
+from frontend.Popups.Create_sequence import Create_sequence
+from frontend.Popups.edit_popup_tab import edit_popup_tab
+from frontend.Popups.Edit_Popup import Edit_Popup
+from frontend.Popups.Edit_Layout import Edit_Layout
+from frontend.Popups.Create_Process.Create_Process import Create_Process
 from time import perf_counter
 import nest_asyncio
 from Exaut_backend import Loader
@@ -246,6 +249,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_refresh = QtCore.pyqtSignal()
     signal_move_start = QtCore.pyqtSignal(bool)
     signal_popup_yesno = QtCore.pyqtSignal(str,str,str,str)
+    signal_popup_custom = QtCore.pyqtSignal(str,str,str,str,str) ###TODO
     signal_popup_data = QtCore.pyqtSignal(str,str,str)
     signal_popup_tabto = QtCore.pyqtSignal(str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
@@ -599,6 +603,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def db_refresh(self):
         self.tablist, self.tab_buttons = self.backend.ui.refresh()
+        #write self.tab_buttons to a file
+        with open("example_json2.json", "w") as f:
+            f.write(json.dumps(self.tablist))
 
     def add_tab(self):
         self.db_refresh()

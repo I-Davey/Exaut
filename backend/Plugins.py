@@ -2,19 +2,19 @@
 
 items = {"Handlers": [], "Methods": [], "Plugins": []}
 beforedir = dir()
-from PluginManager.Handlers import *
+from Addons.Handlers import *
 afterdir = dir()
 for item in afterdir:
     if item not in beforedir and item not in  ("beforedir", "HandlerInterface"):
         items["Handlers"].append(item)
 beforedir = dir()
-from PluginManager.Methods import *
+from Addons.Methods import *
 afterdir = dir()
 for item in afterdir:
     if item not in beforedir and item not in ("beforedir", "MethodInterface"):
         items["Methods"].append(item)
 beforedir = dir()
-from PluginManager.Plugins import *
+from Addons.Plugins import *
 afterdir = dir()
 for item in afterdir:
     if item not in beforedir and item not in ("beforedir", "PluginInterface"):
