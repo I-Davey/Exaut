@@ -2,15 +2,15 @@ from time import perf_counter
 
 from psycopg2 import OperationalError
 
-from Plugins import Plugins 
+from backend.Plugins import Plugins 
 import sys
 import os
-from iniconfig import Parse
-from Components.db.Exaut_sql import  forms, tabs, buttons, batchsequence, buttonseries, pluginmap
+from backend.iniconfig import Parse
+from backend.db.Exaut_sql import  forms, tabs, buttons, batchsequence, buttonseries, pluginmap, actions
 from sqlalchemy import create_engine,select, update, insert, delete
 from sqlalchemy.orm import sessionmaker
 from threading import Thread
-from version import version
+from backend.version import version
 from random import randint
 import time
 
@@ -69,6 +69,17 @@ class QueryHandler():
         self.logger = logger
         self.engine = create_engine(f'sqlite:///{db_loc}', echo=False, future=True)
         self.Session = sessionmaker(self.engine)
+        self.check_tables_exist()
+
+    def check_tables_exist(self):
+        #if forms does not exist, create it
+        tables = ["forms", "tabs", "buttons", "batchsequence", "buttonseries", "pluginmap", "actions"]
+        for table in tables:
+            if not  self.engine.dialect.has_table(self.engine.connect(), table):
+                self.logger.debug(f"Table: {table} does not exist, creating")
+                curtable = eval(table)
+                curtable.metadata.create_all(self.engine)
+                self.logger.success(f"Successfully created {table}")
         
     def readsql(self, query, one=False, log = False, timer = False):
         if log:
@@ -150,7 +161,20 @@ class UserInterfaceHandlerPyQT():
             else:
                 if plugin_map[item] != map_in_db[item]:
                     self.logger.info(f"Updating plugin {item} in db")
-                    self.writesql(update(pluginmap).where(plugin = item).values(types=plugin_map[item], generated = 1))
+                    self.writesql(update(pluginmap).where(plugin == item).values(types=plugin_map[item], generated = 1))
+        
+        data = self.readsql(select([actions.plugin]))
+        action_arr = [action.plugin for action in data]
+        for plugin, values in self.pmgr.plugin_type_types.items():
+            if plugin not in action_arr:
+                if len(values) == 1 or type(values) != list:
+                    name = plugin
+                else:
+                    name = values[1]
+                self.logger.info(f'Adding action "{name}" to db as plugin "{plugin}"')
+                self.writesql(insert(actions).values(action=name,plugin=plugin, category=None, generated=1 ))
+                self.logger.success(f'Successfully added action "{name}" to db')
+            
 
         
             
