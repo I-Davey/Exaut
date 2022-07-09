@@ -78,7 +78,14 @@ class pluginmap(Base):
     color = Column(String(63))
     generated = Column(Integer)
     
+class actions(Base):
+    __tablename__ = 'actions'
+    action = Column(String(63), primary_key=True)
+    plugin = Column(String(63), primary_key=True)
+    category = Column(String(63))
+    generated = Column(Integer)
 
+#create table actions
 def query1():
     tab = "Builds_new_"
     form = "COPY"
