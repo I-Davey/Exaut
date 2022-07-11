@@ -1,6 +1,5 @@
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
 
 class Delete_Files(PluginInterface):
     load = True
@@ -27,10 +26,10 @@ class Delete_Files(PluginInterface):
                         self.logger.success("file deleted: "+source+"\\"+f)
                         return True
                     except:
-                        ctypes.windll.user32.MessageBoxW(0,"Problem deleting \""+source+"\\"+f+"\"?","Failed delete: "+bname,0)
+                        Popups.alert(f"Problem deleting {source}\\{f}", f"Failed delete: {bname}!")
                         return False
 
         else:
             self.logger.error("Source path does not exist: "+source)
-            ctypes.windll.user32.MessageBoxW(0,"Problem removing "+source+"\\","Warning: cleardir: "+bname+"!", 0)
+            Popups.alert(f"Problem removing {source}", f"Warning: cleardir: {bname}!")
             return False

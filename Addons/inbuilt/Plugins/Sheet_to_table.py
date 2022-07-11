@@ -3,7 +3,6 @@ import os
 from openpyxl import load_workbook
 from openpyxl.worksheet.table import Table
 from openpyxl.utils import get_column_letter
-import ctypes
 class Sheet_to_table(PluginInterface):
     load = True
     types = {"source":3,"target":4}
@@ -19,6 +18,7 @@ class Sheet_to_table(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
     def main(self, source, target, Popups) -> bool:
+        self.Popups = Popups
         for file in os.listdir(source):
             if file.endswith(".xlsx") or file.endswith(".xls"):
                 save_name = os.path.join(target, file)
@@ -50,7 +50,7 @@ class Sheet_to_table(PluginInterface):
         except PermissionError as e:
             self.logger.warning(f"Permission error, please close {targetfilename}")
             self.logger.error(e)
-            x = ctypes.windll.user32.MessageBoxW(0, f"Permission error, please close {file_name}", "Error", 0)
+            self.Popups.alert(f"Permission error, please close {file_name}", f"Error: {e}")
             #if the popup is exited
             try:
                 wb.save(targetfilename)

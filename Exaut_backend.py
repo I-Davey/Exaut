@@ -6,12 +6,13 @@ from backend.Plugins import Plugins
 import sys
 import os
 from backend.iniconfig import Parse
-from backend.db.Exaut_sql import  forms, tabs, buttons, batchsequence, buttonseries, pluginmap, actions
+from backend.db.Exaut_sql import  *
 from sqlalchemy import create_engine,select, update, insert, delete
 from sqlalchemy.orm import sessionmaker
 from threading import Thread
 from backend.version import version
 from random import randint
+from backend.actions.actions import Actions_Handler
 import time
 
 class ConfigHandler:
@@ -73,7 +74,6 @@ class QueryHandler():
 
     def check_tables_exist(self):
         #if forms does not exist, create it
-        tables = ["forms", "tabs", "buttons", "batchsequence", "buttonseries", "pluginmap", "actions"]
         for table in tables:
             if not  self.engine.dialect.has_table(self.engine.connect(), table):
                 self.logger.debug(f"Table: {table} does not exist, creating")
@@ -113,7 +113,25 @@ class QueryHandler():
                     self.logger.error(f"Error: {e}")
                 return False
             
-
+    def get_table_query(self, tbl):
+        info_arr = []
+        session = self.Session()
+        for row in session.query(tbl).all():
+            row_dict = row.__dict__
+            #remove the _sa_instance_state attribute
+            del row_dict["_sa_instance_state"]
+            info_arr.append(row_dict)
+        session.close()
+        return info_arr
+            
+    
+    def read_mult(self, queries:list, log = False):
+        with self.Session.begin() as session:
+            for query in queries:
+                if log:
+                    self.logger.info(query.compile(dialect=self.engine.dialect))
+                data = session.execute(query).all()
+                yield data
     
 
 class UserInterfaceHandlerPyQT():
@@ -122,6 +140,7 @@ class UserInterfaceHandlerPyQT():
         self.logger = logger
         self.readsql = db.readsql
         self.writesql = db.writesql
+        self.read_mult = db.read_mult
         self.pmgr = pmgr
         self.initial = True
         self.formname = formname
@@ -135,6 +154,8 @@ class UserInterfaceHandlerPyQT():
         self.popups = self.Popups(self.gui, self.logger, self)
         self.handle_plugins()
         self.refresh(launch = True)
+        self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
+        print(self.actions)
     def handle_plugins(self):
         plugin_map = self.pmgr.plugin_map
         for plugin, types in plugin_map.items():
@@ -144,6 +165,9 @@ class UserInterfaceHandlerPyQT():
         #from pluginmap db get all plugins and types
         try:
             data = self.readsql(select([pluginmap.plugin, pluginmap.types]))
+            for row in data:
+                if "," in row.types:
+                    self.writesql(delete(pluginmap).where(pluginmap.plugin == row.plugin).where(pluginmap.types == row.types))
         except OperationalError as e:
             self.logger.error(f"Error reading pluginmap, please add table to db")
             self.logger.error(f"{e}")
@@ -152,17 +176,34 @@ class UserInterfaceHandlerPyQT():
         #print all items in db
         map_in_db = {}
         for item in data:
-            map_in_db[item.plugin] = item.types
-        
-        for item in plugin_map:
-            if item not in map_in_db:
-                self.logger.info(f"Adding plugin {item} to db")
-                self.writesql(insert(pluginmap).values(plugin=item, types=plugin_map[item], generated = 1))
+            if item.plugin not in map_in_db:
+                map_in_db[item.plugin] = item.types
             else:
-                if plugin_map[item] != map_in_db[item]:
-                    self.logger.info(f"Updating plugin {item} in db")
-                    self.writesql(update(pluginmap).where(plugin == item).values(types=plugin_map[item], generated = 1))
+                map_in_db[item.plugin] += "," + item.types
         
+        for item, value in plugin_map.items():
+                if item not in map_in_db:
+                    for item2 in value.split(","):
+                        self.logger.info(f"Adding plugin {value} to db")
+                        self.writesql(insert(pluginmap).values(plugin=item, types=item2, generated = 1))
+                else:
+                    a = plugin_map[item].split(",")
+                    b = map_in_db[item].split(",")
+                    a.sort()
+                    b.sort()
+                    if a != b:
+                        for item2 in b:
+                            if item2 not in a:
+                                self.logger.info(f"Removing plugin {item2} from db")
+                                self.writesql(delete(pluginmap).where(pluginmap.plugin == item2))
+                        #add new plugins
+                        for item2 in a:
+                            if item2 not in b:
+                                self.logger.info(f"Adding type {item2} to db")
+                                self.writesql(insert(pluginmap).values(plugin=item, types=item2, generated = 1))
+                                
+
+
         data = self.readsql(select([actions.plugin]))
         action_arr = [action.plugin for action in data]
         for plugin, values in self.pmgr.plugin_type_types.items():
@@ -172,7 +213,10 @@ class UserInterfaceHandlerPyQT():
                 else:
                     name = values[1]
                 self.logger.info(f'Adding action "{name}" to db as plugin "{plugin}"')
-                self.writesql(insert(actions).values(action=name,plugin=plugin, category=None, generated=1 ))
+                x = self.writesql(insert(actions).values(action=name,plugin=plugin, category=None, sequence = 0, generated=1 ))
+                if not x:
+                    self.logger.error(f"Error adding action {name} to db")
+                    input("Press enter to continue")
                 self.logger.success(f'Successfully added action "{name}" to db')
             
 
@@ -232,14 +276,16 @@ class UserInterfaceHandlerPyQT():
 
     def refresh(self, launch = False):
 
-        tab_info = self.readsql(select('*').where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()))
-        self.buttondata = self.readsql(select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()))
-        #select type for button in buttondata and append to buttondata
-        newbuttondata = []
-        types_ = self.readsql(select(batchsequence.type, batchsequence.tab, batchsequence.buttonname).where(batchsequence.formname == self.formname))
-        types_ = [dict(item._mapping) for item in types_]
+        tab_info, self.buttondata, types_, colors = self.read_mult([select('*').where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()), 
+                                                                    select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()), 
+                                                                    select(batchsequence.type, batchsequence.tab, batchsequence.buttonname).where(batchsequence.formname == self.formname), 
+                                                                    select(pluginmap.types, pluginmap.color)])
 
-        colors = self.readsql(select(pluginmap.types, pluginmap.color))
+        
+
+        newbuttondata = []
+
+        types_ = [dict(item._mapping) for item in types_]
         colors = [list(dict(item._mapping).values()) for item in colors]
         colors_dict = {}
         for item in colors:
@@ -420,10 +466,10 @@ class UserInterfaceHandlerPyQT():
     
     def button_map(self):
         
-        form_data = self.readsql(select(forms.formname).order_by(forms.formname.asc()), timer=True)
+        form_data, tab_data, button_data = self.read_mult([select(forms.formname).order_by(forms.formname.asc()),
+                                    select(tabs.formname, tabs.tab).where(tabs.formname.in_([form.formname for form in form_data])).order_by(tabs.formname.asc(), tabs.tabsequence.asc()),
+                                    select(buttons.formname, buttons.tab, buttons.buttonname).where(buttons.formname.in_([form.formname for form in form_data])).order_by(buttons.formname.asc(), buttons.tab.asc())])
 
-        tab_data = self.readsql(select(tabs.formname, tabs.tab).where(tabs.formname.in_([form.formname for form in form_data])).order_by(tabs.formname.asc(), tabs.tabsequence.asc()),timer=True)
-        button_data = self.readsql(select(buttons.formname, buttons.tab, buttons.buttonname).where(buttons.formname.in_([form.formname for form in form_data])).order_by(buttons.formname.asc(), buttons.tab.asc()),timer=True)
         dict_struct = {}
         dict_struct["button_data"]        = [dict(item._mapping) for item in button_data]
         dict_struct["form_data"]          = [dict(item._mapping) for item in form_data]
@@ -510,7 +556,7 @@ class UserInterfaceHandlerPyQT():
             self.alert(f"Error updating batchsequence {button['buttonname']} on tab {button['tab']} in form {self.title}")
             return
 
-        q = self.writesql(update(buttonseries).where(buttonseries.buttonname == button["buttonname"]).where(buttonseries.tab == button["tab"]).where(buttonseries.formname == self.title).values((buttonseries.buttonname == button["buttonname"],buttonseries.tab == button["tab"],buttonseries.formname == self.title)))
+        q = self.writesql(update(buttonseries).where(buttonseries.buttonname == button["buttonname"]).where(buttonseries.tab == button["tab"]).where(buttonseries.formname == self.title).values(buttonname = button_new["buttonname"],tab = button_new["tab"],formname = button_new["formname"]))
         if not q:
             self.alert(f"Error updating buttonseries {button['buttonname']} on tab {button['tab']} in form {self.title}")
             return

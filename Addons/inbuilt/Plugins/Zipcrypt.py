@@ -1,10 +1,9 @@
 from .__important.PluginInterface import PluginInterface
 from os import walk, chdir, getcwd
 from os.path import join, basename
-import tempfile
+from tempfile import TemporaryDirectory
 from pyzipper import AESZipFile, ZIP_LZMA, WZ_AES
-import shutil
-import ctypes
+from shutil import copy
 class Zipcrypt(PluginInterface):
     load = True
     types = {"source":3,"target":4,"databasename":6}
@@ -22,7 +21,7 @@ class Zipcrypt(PluginInterface):
 
     def main(self,source, destination, password, Popups) -> bool:
         curdir = getcwd()
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with TemporaryDirectory() as tmpdir:
             #replace all \\ in source, destination with /
             source = source.replace("\\", "/")
             destination = destination.replace("\\", "/")
@@ -45,7 +44,7 @@ class Zipcrypt(PluginInterface):
                     zf.write(join(dirname, filename))
             zf.close()
             try:
-                shutil.copy(tmpdir + "/" + move_from +".rar", move_to)
+                copy(tmpdir + "/" + move_from +".rar", move_to)
                 self.logger.success("Successfully copied file from: " + tmpdir + "/" + move_from +".rar" + " to " + move_to )
                 
             except Exception as e:
@@ -53,7 +52,7 @@ class Zipcrypt(PluginInterface):
                 self.logger.error("File is: " + tmpdir + "/" + move_from +".rar")
                 self.logger.error(e)
                 chdir(curdir)
-                ctypes.windll.user32.MessageBoxW(0, "Error copying file, please make sure it is closed.", "Error", 0)
+                Popups.alert("Error copying file, please make sure it is closed.", "Error: " + str(e))
                 return False
         chdir(curdir)
         return True

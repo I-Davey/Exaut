@@ -1,7 +1,6 @@
 
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
 
 class Run_Executable_Loc(PluginInterface):
     load = True
@@ -24,6 +23,7 @@ class Run_Executable_Loc(PluginInterface):
             return(True)
     
     def main(self,path,filename,param, target, Popups) -> bool:
+        self.Popups = Popups
 
         if filename == None:
             filename = ""
@@ -39,7 +39,7 @@ class Run_Executable_Loc(PluginInterface):
         elif param == None and target != None:
             if not os.path.exists(target):
                 self.logger.error(f"path not found at location {target}")
-                ctypes.windll.user32.MessageBoxW(0,f"path not found at location {target}",f"Failed exe 1!",0)
+                Popups.alert(f"path not found at location {target}", f"Failed exe 1!")
                 return False
             res = self.tryrunpath(path, filename, target)
             return res
@@ -50,7 +50,7 @@ class Run_Executable_Loc(PluginInterface):
         else:
             if not os.path.exists(target):
                 self.logger.error(f"path not found at location {target}")
-                ctypes.windll.user32.MessageBoxW(0,f"path not found at location {target}",f"Failed exe 2!",0)
+                Popups.alert(f"path not found at location {target}", f"Failed exe 2!")
                 return False
 
             self.tryrunpath(path, filename,target, param)
@@ -67,7 +67,7 @@ class Run_Executable_Loc(PluginInterface):
             return True
         except Exception as e:
             self.logger.error(e)
-            ctypes.windll.user32.MessageBoxW(0,str(e),f"Failed exe 3!",0)
+            self.Popups.alert(f"Failed exe 3!", f"Failed exe 3!")
             return False
 
     def tryrunpath(self,path,filename, target, param = ""):
@@ -86,7 +86,7 @@ class Run_Executable_Loc(PluginInterface):
             return True
         except Exception as e:
             self.logger.error(e)
-            ctypes.windll.user32.MessageBoxW(0,str(e),f"Failed exe 4!",0)
+            self.Popups.alert(str(e), f"Failed exe 4!")
             return False
 
 

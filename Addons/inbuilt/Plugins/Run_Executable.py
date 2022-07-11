@@ -1,7 +1,6 @@
 from array import array
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
 import win32api
 
 
@@ -65,26 +64,26 @@ class Run_Executable(PluginInterface):
                         try:
                             win32api.WinExec("\""+path+"\\"+file+"\" \""+param+"\"")
                         except:
-                            ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
+                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?", "Failed exe: "+bname+"! \\"+str(otherval))
                     else:
                         #check if specfile is a list
                         
                         if not isinstance(specfile, list) and os.path.exists(specfile)==False:
-                            ctypes.windll.user32.MessageBoxW(0,str(specfile[0])+" does not exist?","Failed exe!",0)
+                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?", "Failed exe: "+bname+"! \\"+str(otherval))
                         else:
                             try:
                                 win32api.WinExec("\""+path+"\\"+file+"\" \""+specfile[0]+"\"")
                                 os.chdir(orig_dir)
                                 return True
                             except:
-                                ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
+                                Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval))
                 else:
                     try:
                         os.startfile("\""+path+"\\"+file+"\"")
                         os.chdir(orig_dir)
                         return True
                     except:
-                        ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval),0)
+                        Popups.alert("Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval))
             elif ftype=="py":
                 if specfile!=None and specfile!="" and specfile!="None":
                     param = specfile
@@ -95,24 +94,24 @@ class Run_Executable(PluginInterface):
                             os.chdir(orig_dir)
                             return True
                         except:
-                            ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
+                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
                     else:
                         if os.path.exists(specfile[0])==False:
-                            ctypes.windll.user32.MessageBoxW(0,str(specfile[0])+" does not exist?","Failed py!",0)
+                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
                         else:
                             try:
                                 win32api.WinExec("python \""+path+"\\"+file+"\" \""+specfile[0]+"\"")
                                 os.chdir(orig_dir)
                                 return True
                             except:
-                                ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
+                                Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
                 else:
                     try:
                         win32api.WinExec("python \""+path+"\\"+file+"\"")
                         os.chdir(orig_dir)
                         return True
                     except:
-                        ctypes.windll.user32.MessageBoxW(0,"Problem running \""+path+"\\"+file+"\"?","Failed py: "+bname+"! \\"+str(otherval),0)
+                        Popups.alert("Problem running \""+path+"\\"+file+"\"?","Failed py: "+bname+"! \\"+str(otherval))
         else:
             actualpath = path+"\\"+file
             self.logger.error(f"Program not found at location {actualpath}")
