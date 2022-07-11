@@ -1,6 +1,5 @@
 from .__important.PluginInterface import PluginInterface
 import os
-import ctypes
 import shutil
 
 
@@ -34,12 +33,13 @@ class Copy(PluginInterface):
         fail_handler = "Failed copy: "+batch_name+"! \\"+str(run_sequence)
         
         if not os.path.exists(full_file_source):
-            ctypes.windll.user32.MessageBoxW(0,full_file_source+" source does not exist?",fail_handler,0)
+            Popups.alert( "File does not exist: "+full_file_source, fail_handler)
             return False
         if not os.path.exists(file_destination): 
             os.system("mkdir \""+file_destination+"\"") 
             if os.path.exists(file_destination)==False: 
-                ctypes.windll.user32.MessageBoxW(0,file_destination+" target does not exist?",fail_handler,0) 
+
+                Popups.alert( "Target does not exist: "+file_destination, fail_handler)
                 return False
         try:
             shutil.copy2(full_file_source,full_file_destination) #copy file
@@ -48,10 +48,10 @@ class Copy(PluginInterface):
             return True
         except:
             if not os.path.exists(full_file_destination): 
-                ctypes.windll.user32.MessageBoxW(0,f"Problem copying {full_file_source} to {full_file_destination}?",fail_handler,0)  
+                Popups.alert(f"Problem copying {full_file_source} to {full_file_destination}?", fail_handler)
                 return False
             else: 
-                ctypes.windll.user32.MessageBoxW(0,f"Problem copying {full_file_source} to {full_file_destination}. Check if file is open.",fail_handler,0) 
+                Popups.alert(f"Problem copying {full_file_source} to {full_file_destination}. Check if file is open.", fail_handler)
                 return False
     def load_self(self, hooks):
         self.logger = hooks["log"]

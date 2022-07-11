@@ -2,20 +2,26 @@
 
 items = {"Handlers": [], "Methods": [], "Plugins": []}
 beforedir = dir()
-from Addons.Handlers import *
+from Addons.inbuilt.Handlers import *
 afterdir = dir()
 for item in afterdir:
     if item not in beforedir and item not in  ("beforedir", "HandlerInterface"):
         items["Handlers"].append(item)
 beforedir = dir()
-from Addons.Methods import *
+from Addons.inbuilt.Methods import *
 afterdir = dir()
 for item in afterdir:
     if item not in beforedir and item not in ("beforedir", "MethodInterface"):
         items["Methods"].append(item)
+
+from time import perf_counter
+start_time = perf_counter()
 beforedir = dir()
-from Addons.Plugins import *
+from Addons.inbuilt.Plugins import *
 afterdir = dir()
+end_time = perf_counter()
+print("Plugins: " + str(end_time - start_time))
+
 for item in afterdir:
     if item not in beforedir and item not in ("beforedir", "PluginInterface"):
         items["Plugins"].append(item)

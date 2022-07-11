@@ -1,11 +1,13 @@
 
+from time import perf_counter
+start_time = perf_counter()
+
 print("loading..")
 from PyQt6 import QtCore,QtGui,QtWidgets
 
 from PyQt6.QtWidgets import *
 from PyQt6 import QtGui
 
-from time import perf_counter
 
 import os,sys
 import math,math
@@ -27,6 +29,9 @@ from time import perf_counter
 import nest_asyncio
 from Exaut_backend import Loader
 import webbrowser
+
+end_time = perf_counter()
+print(f"Time taken to load: {end_time - start_time}")
 #Import CustomContextMenu
 
 
@@ -604,8 +609,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def db_refresh(self):
         self.tablist, self.tab_buttons = self.backend.ui.refresh()
         #write self.tab_buttons to a file
-        with open("example_json2.json", "w") as f:
-            f.write(json.dumps(self.tablist))
+
 
     def add_tab(self):
         self.db_refresh()
