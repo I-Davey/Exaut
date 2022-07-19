@@ -7,7 +7,7 @@ from shutil import copy
 class Zipcrypt(PluginInterface):
     load = True
     types = {"source":3,"target":4,"databasename":6}
-    type_types = {"source":["drag_drop_folder", "please select source folder"],"target":["drag_drop_folder", "please select destination folder"], "databasename":["text", "please enter password",None, True]}
+    type_types = {"source":["drag_drop_folder", "please select source folder"],"target":["drag_drop_folder", "please select destination folder"], "databasename":["text", "please enter password",None, True], "__Name":"Zip Encrypt"}
     callname = "zipcrypt"
     hooks_handler = ["log"]
 

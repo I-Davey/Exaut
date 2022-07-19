@@ -11,7 +11,7 @@ class versionhandler(PluginInterface):
     types = {"source":3}
     callname = "setversion"
     hooks_handler = ["log"]
-    type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
+    type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}, "__Name":"Version Handler"}
 
     def load_self(self, hooks):
         self.logger = hooks["log"]

@@ -83,7 +83,7 @@ class edit_popup_tab(QDialog):
         self.close()
 
     def on_click_delete(self):
-            qm = QMessageBox()
+            qm = QMessageBox(self)
             qm.setText("Are you sure you want to delete?")
             qm.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             qm.setDefaultButton(QMessageBox.StandardButton.No)

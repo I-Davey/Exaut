@@ -3,7 +3,7 @@ from .__important.PluginInterface import PluginInterface
 class warning(PluginInterface):
     load = True
     types = {"message":3}
-    type_types = {"source":{"type":"text", "description":"please enter the message", "optional":True}}
+    type_types = {"source":{"type":"text", "description":"please enter the message", "optional":True}, "__Name":"Warning"}
     done = True
 
     callname = "warning"

@@ -3,7 +3,7 @@ import time
 class delay(PluginInterface):
     load = True
     types = {"folderpath":0}
-    type_types = {"folderpath":{"type":"text", "description":"enter delay"}}
+    type_types = {"folderpath":{"type":"text", "description":"enter delay"}, "__Name":"Delay"}
 
     callname = "delay"
     hooks_handler = ["log"]

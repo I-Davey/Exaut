@@ -75,7 +75,7 @@ class Create_sequence(QDialog):
         self._parent = parent
         self.orderedbuttons = []
         super().__init__(parent)
-
+        self._parent.api.edit_sequence_load()
         self.setWindowTitle("Sequence Builder")
         self.mainmainlayout = QVBoxLayout()
         self.mainlayout = QFormLayout()
