@@ -20,7 +20,10 @@ class Ui_EXAUT_GUI():
         self.titlebar.setContentsMargins(0,0,0,0)
         self.titlebar.addStretch(-1)
         self.pressing = False
-        #EXAUT_GUI.setMenuWidget(MyBar(self))
+        ###
+        ###EXAUT_GUI.setMenuWidget(MyBar(self))
+        #hide the menu bar
+        ###EXAUT_GUI.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint) 
 
 
         #emove all padding centralwidget
@@ -83,9 +86,13 @@ class Ui_EXAUT_GUI():
         self.menuTools.setObjectName("menuTools")
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
+        ###
         EXAUT_GUI.setMenuBar(self.menubar)
-        #place menubar below the title bar
-        #self.menubar.setNativeMenuBar(False)
+        ###place menubar below the title bar
+        #self.titlebar.addWidget(self.menubar)
+        EXAUT_GUI
+        
+        self.menubar.setNativeMenuBar(False)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 650, 26))
         self.menubar.setCornerWidget(QtWidgets.QWidget(self.menubar), QtCore.Qt.Corner.TopRightCorner)
 
@@ -122,6 +129,9 @@ class Ui_EXAUT_GUI():
 
         self.actionAdd_Proc = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Proc.setObjectName("actionAdd_Proc")
+
+        self.actionAdd_action = QtGui.QAction(EXAUT_GUI)
+        self.actionAdd_action.setObjectName("actionAdd_action")
 
         self.actionAdd_Desc = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Desc.setObjectName("actionAdd_Desc")
@@ -174,6 +184,7 @@ class Ui_EXAUT_GUI():
 
         self.menuEdit.addAction(self.actionAdd_Seq)
         self.menuEdit.addAction(self.actionAdd_Proc)
+        self.menuEdit.addAction(self.actionAdd_action)
         self.menuEdit.addAction(self.actionAdd_Desc)
 
         self.menuEdit_form.addAction(self.actionEdit_layout)
@@ -210,8 +221,9 @@ class Ui_EXAUT_GUI():
 
     def retranslateUi(self, EXAUT_GUI):
         _translate = QtCore.QCoreApplication.translate
-        #set self.titlebar as the first widget
-        EXAUT_GUI.setWindowTitle(_translate("EXAUT_GUI", "EXAUT Server Manager"))
+        #ashow self.titlebar
+        EXAUT_GUI.setWindowTitle(_translate("EXAUT_GUI", "EXAUT"))
+        
 
 
         self.menuFile.setTitle(_translate("EXAUT_GUI", "File"))
@@ -265,6 +277,8 @@ class Ui_EXAUT_GUI():
         self.actionAdd_url.setText(_translate("EXAUT_GUI", "Add URL"))
         self.actionAdd_Seq.setText(_translate("EXAUT_GUI", "Add Sequence"))
         self.actionAdd_Proc.setText(_translate("EXAUT_GUI", "Add New Button"))
+        self.actionAdd_action.setText(_translate("EXAUT_GUI", "Add Action"))
+        
 
         self.actionAdd_Desc.setText(_translate("EXAUT_GUI", "Add Description"))
 

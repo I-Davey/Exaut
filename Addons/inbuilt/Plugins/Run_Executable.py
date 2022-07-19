@@ -13,7 +13,7 @@ class Run_Executable(PluginInterface):
     types = {"ftype":2, "path":0, "file":1,"specfile_1":3,"specfile_2":4,"specfile_3":5, "bname":11, "otherval":9}
     type_types = {"path_exe":{"type":"drag_drop_file", "description":"please select the executable","args":"EXE Files (*.exe);;Excel Files (*.xlsx *.xlsm *.xlsb *.xls);;SQLite DB Files (*.db);;All Files (*.*)"}, "__Name":"Exe"}
     action_map = {""}
-    callname = "exe","py"
+    callname = "exe"
     hooks_handler = ["log"]
 
     def load_self(self, hooks):
