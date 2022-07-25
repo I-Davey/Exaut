@@ -35,10 +35,11 @@ class browse_file(TypeInterface):
     def handle_click(self,  file, arguments = None, **other):
         #if folder is a folder
         if file and isfile(file):
+            #rightclick on file
             #get dir from folder
-            file = file.split("/")
+            file = file.split("\\")
             file.pop()
-            file = "/".join(file)
+            file = "\\".join(file)
             return self.q_object(None, "Select File", file,  filter=arguments if arguments else "All Files (*)")
         return self.q_object(None, "Select File", filter=arguments if arguments else "All Files (*)" )
 

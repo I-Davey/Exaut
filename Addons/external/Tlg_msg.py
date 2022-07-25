@@ -1,11 +1,11 @@
-from .__important.PluginInterface import PluginInterface
+from __important.PluginInterface import PluginInterface
 
 import asyncio
 
 
     
 class Tlg_msg(PluginInterface):
-    load = True
+    load = False
     types = {"source":3, "target":4}
     type_types = "tlg send msg"
 

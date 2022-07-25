@@ -1,5 +1,5 @@
 
-
+from Addons.inbuilt.Plugins.__important.PluginInterface import PluginInterface
 items = {"Handlers": [], "Methods": [], "Plugins": []}
 beforedir = dir()
 from Addons.inbuilt.Handlers import *
@@ -211,6 +211,8 @@ class Plugins:
         self.plugin_map = {}
         self.error = None
         self.fail = False
+        self.plugininterface = PluginInterface
+        
         
         global handlers
         global methods

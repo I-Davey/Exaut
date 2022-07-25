@@ -1,0 +1,7 @@
+pyperclip
+tabula
+pandas
+pypdf2
+openpyxl
+pydrive2
+pydrive

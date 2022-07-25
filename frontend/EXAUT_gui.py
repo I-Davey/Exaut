@@ -127,6 +127,11 @@ class Ui_EXAUT_GUI():
         self.actionAdd_Seq = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Seq.setObjectName("actionAdd_Seq")
 
+
+        self.actionedit_mode = QtGui.QAction(EXAUT_GUI)
+        self.actionedit_mode.setObjectName("actionedit_mode")
+
+
         self.actionAdd_Proc = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Proc.setObjectName("actionAdd_Proc")
 
@@ -196,6 +201,7 @@ class Ui_EXAUT_GUI():
         self.menuEdit_form.addAction(self.actionTabFolder)
         self.menuEdit_form.addAction(self.actionAdd_tabto)
         self.menuEdit_form.addAction(self.actionAdd_tablast)
+        self.menuEdit_form.addAction(self.actionedit_mode)
 
 
         self.menuView.addAction(self.actionRefresh)
@@ -276,6 +282,7 @@ class Ui_EXAUT_GUI():
 
         self.actionAdd_url.setText(_translate("EXAUT_GUI", "Add URL"))
         self.actionAdd_Seq.setText(_translate("EXAUT_GUI", "Add Sequence"))
+        self.actionedit_mode.setText(_translate("EXAUT_GUI", "Edit Mode"))
         self.actionAdd_Proc.setText(_translate("EXAUT_GUI", "Add New Button"))
         self.actionAdd_action.setText(_translate("EXAUT_GUI", "Add Action"))
         

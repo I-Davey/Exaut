@@ -461,6 +461,7 @@ class Actions(QMainWindow):
         if self.mode == "edit":
             temp_batchsequence_value_dict = self.temp_data[0]
             temp_button_value_dict = self.temp_data[1]
+            #delete from buttons dict 
             self.update_action(temp_batchsequence_value_dict, temp_button_value_dict,batchsequence_value_dict, button_value_dict, self.data.chosen_action)
             self.temp_data = batchsequence_value_dict, button_value_dict, self.data.chosen_action
         elif self.mode == "save":
