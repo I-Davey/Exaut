@@ -1,4 +1,4 @@
-from .__important.PluginInterface import PluginInterface
+from __important.PluginInterface import PluginInterface
 
 class example(PluginInterface):
     load = True

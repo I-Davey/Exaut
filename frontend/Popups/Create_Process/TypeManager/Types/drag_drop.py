@@ -46,7 +46,14 @@ class QFileDrop(QWidget):
         menu = QMenu()
         menu.addAction("copy file/folder", self.copy_file)
         menu.addAction("copy full path", self.copy_file_path)
+        
         menu.exec(self.browse_.mapToGlobal(pos))
+
+    def open_in_explorer(self):
+
+        path2file = self.browse_.text()
+        path2folder = path2file.split("\\")[:-1].join("\\")
+        
 
     def copy_file(self):
         text = self.browse_.text()

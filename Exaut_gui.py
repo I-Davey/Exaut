@@ -77,9 +77,6 @@ class CustomTab(QtWidgets.QTabWidget):
             return
         self.parent_.tab_context_menu(tab_index)
 
-    #accept drops
-
-
 class CustomTabArea(QtWidgets.QTabWidget):
     def __init__(self, parent):
         super(CustomTabArea, self).__init__(parent)
@@ -142,7 +139,6 @@ class CustomTabArea(QtWidgets.QTabWidget):
         self.parent_.handle_tab_drag_event(filename, type_, clipboard)
 
         print(clipboard)
-        #if url:
         
 class CustomButton(QPushButton):
     
@@ -331,6 +327,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionAbout.triggered.connect(self.about_window)
         self.actionRefresh.triggered.connect(self.refresh)
         self.actionAdd_Seq.triggered.connect(self.add_sequence)
+        self.actionedit_mode.triggered.connect(self.edit_mode_handler)
         self.actionAdd_action.triggered.connect(self.handle_actions)
         self.actionAdd_Proc.triggered.connect(self.add_process)
         self.actionEdit_layout.triggered.connect(self.layout_editor)
@@ -405,7 +402,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             tab = CustomTabArea(self)
             tab.setToolTip(str(tab_desc))
             tab.setObjectName("Tab_"+str(tab_name))
-
+            if self.edit_mode:
+                #change tab background color to light red
+                tab.setStyleSheet("background-color: #ffcccc;")
             TabGrid = QtWidgets.QGridLayout(tab)
             ScrollArea = QtWidgets.QScrollArea(tab)
             ScrollArea.setWidgetResizable(True)
@@ -445,6 +444,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def setsizesstatic(self):
         self.size_static = not self.size_static
+
+    def edit_mode_handler(self, pressed):
+        self.edit_mode = not self.edit_mode
+        self.refresh()
 
     def handle_color(self, color):
         default_color = QtGui.QColor(225, 225, 225)
@@ -943,7 +946,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if mode == 1 and not self.current_sequence and not self.edit_mode:
             button.handle_clicked()
             self.api.button_click(buttonname, tabname, button, mode=1)
-        elif mode == 2:
+        elif mode == 2 or self.edit_mode:
             self.api.load_edit_button()
             button.handle_clicked()
             data, state = self.api.edit_button_data(buttonname, tabname)
@@ -955,6 +958,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             pass
         elif mode == 5:
             self.button_copy(buttonname, tabname, type_, mode = True, duplicate=True)
+            
 
         elif self.current_sequence:
             button.handle_clicked()
@@ -1085,9 +1089,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #menu.addAction("actions popup", self.handle_actions)
 
         menu.exec(QtGui.QCursor.pos())
-##############################################################################################################################
-
-
 
 class GUI_Handler:
     def __init__(self,title=None):

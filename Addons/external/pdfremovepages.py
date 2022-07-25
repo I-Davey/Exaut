@@ -1,4 +1,4 @@
-from .__important.PluginInterface import PluginInterface
+from __important.PluginInterface import PluginInterface
 from PyPDF2 import PdfFileReader, PdfFileWriter
 class pdfremovepages(PluginInterface):
     load = True

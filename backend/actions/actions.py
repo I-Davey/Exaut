@@ -53,6 +53,9 @@ class Actions_Handler:
         ac_dict =  {}
         for action in self.actions_data:
             plugin = action["plugin"]
+            if plugin not in self.pmgr.plugin_type_types:
+                continue
+
             plugin_type_types = self.pmgr.plugin_type_types[plugin].copy()
 
             if type(plugin_type_types) is list:
@@ -82,6 +85,8 @@ class Actions_Handler:
 
 
             plugin = action["plugin"]
+            if plugin not in self.pmgr.plugin_type_types:
+                continue
             plugin_type_types = self.pmgr.plugin_type_types[plugin]
 
             if type(plugin_type_types) is not list:
@@ -193,7 +198,6 @@ class Actions_Handler:
 
     def test(self):
         b = self.return_actions_categories_dict()
-        print(b)
         c = self.return_plugins_type_map()
         d = self.get_type_plugin_map()
         
@@ -209,6 +213,5 @@ class Actions_Handler:
         action = 'Run Command'
 
         a = self.plugin_to_action_dict()
-        print(a)
         #self.create_button(batchseq, button, action)
   

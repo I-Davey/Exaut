@@ -1,8 +1,9 @@
 from time import perf_counter
 
 from psycopg2 import OperationalError
-
-from backend.Plugins import Plugins 
+from loguru import logger as temp_start_logger
+from backend.Plugins_inbuilt import Plugins 
+from backend.Plugins_ext import Plugins_Ext
 import sys
 import os
 from backend.edit_button import Edit_Button
@@ -19,12 +20,13 @@ from backend.actions.actions import Actions_Handler
 import time
 
 class ConfigHandler:
-    def __init__(self, logger, title=None):
-        self.logger = logger
+    def __init__(self, title=None):
+        self.logger = temp_start_logger
         self.file_config = None
         self.form_name = None
         self.title = title
         self.db_location = None
+        self.plugin_folder = None
 
         self.load_data()
 
@@ -51,12 +53,16 @@ class ConfigHandler:
         connectionpath = db_config["connectionpath"]
         connection = db_config["connection"]
         self.db_location = f"{connectionpath}\\{connection}"
+        self.plugin_folder = db_config["plugin_folder"]
         
-class PluginHandler():
-    def __init__(self):
+class PluginHandler:
+    def __init__(self, plugin_folder):
         self.pmgr = None
-
+        self.plugin_folder = plugin_folder
         self.load_data()
+        self.logger = self.return_logger()
+        self.load_external_plugins()
+
 
     def load_data(self):
         self.pmgr = Plugins()
@@ -64,6 +70,21 @@ class PluginHandler():
             print(f"Critical error, plugin manager failed to load")
             print(self.pmgr.error)
             sys.exit()
+
+    def load_external_plugins(self):
+        self.pmgr_ext = Plugins_Ext(self.pmgr, self.logger, self.plugin_folder)
+        if self.pmgr_ext.fail == True:
+            print(f"Critical error, plugin manager failed to load")
+            print(self.pmgr_ext.error)
+            sys.exit()
+        self.pmgr.plugin_map.update(self.pmgr_ext.plugin_map)
+        self.pmgr.plugins.update(self.pmgr_ext.plugins)
+        self.pmgr.plugin_type_types.update(self.pmgr_ext.plugin_type_types)
+        self.pmgr.plugin_loc.update(self.pmgr_ext.plugin_loc)
+
+
+        
+
     def return_logger(self):
         x = self.pmgr.handlers["log"]["run"]
         return x
@@ -158,9 +179,10 @@ class UserInterfaceHandlerPyQT():
         self.handle_plugins()
         self.refresh(launch = True)
         self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
-        self.edit_tab = Edit_Tab(self.writesql, self.logger)
+        self.edit_tab_handle()
+    def edit_tab_handle(self):
+        self.edit_tab = Edit_Tab(self.writesql, self.logger, self.alert)
 
-        print(self.actions)
 
     def handle_plugins(self):
         plugin_map = self.pmgr.plugin_map
@@ -200,8 +222,8 @@ class UserInterfaceHandlerPyQT():
                     if a != b:
                         for item2 in b:
                             if item2 not in a:
-                                self.logger.info(f"Removing plugin {item2} from db")
-                                self.writesql(delete(pluginmap).where(pluginmap.plugin == item2))
+                                self.logger.info(f"Removing plugin {item} with type: {item2}  from db")
+                                self.writesql(delete(pluginmap).where(pluginmap.plugin == item).where(pluginmap.types == item2))
                         #add new plugins
                         for item2 in a:
                             if item2 not in b:
@@ -570,8 +592,8 @@ class UserInterfaceHandlerPyQT():
         self.edit_tab.edit_tab_delete(tab_name, form_name)
         self.gui_refresh()
 
-    def edit_tab_update(self, tab_name, form_name, data):
-        self.edit_tab.edit_tab_update(tab_name, form_name, data)
+    def edit_tab_update(self, tab_name, form_name, data, overwrite = False):
+        self.edit_tab.edit_tab_update(tab_name, form_name, data, overwrite)
         self.gui_refresh()
 
 ##edit sequence Functions####################################################################################################
@@ -750,7 +772,6 @@ class UserInterfaceHandlerPyQT():
 ##Button Copy Functions######################################################################################################
 
     def copy_button_insert(self, old_form, old_tab, old_button, new_form, new_tab, new_button):
-        print(old_form, old_tab, old_button, new_form, new_tab, new_button)
         button_cur = self.readsql(select("*").where(buttons.formname == old_form).where(buttons.tab == old_tab).where(buttons.buttonname == old_button))[0]
         button_cur = dict(button_cur._mapping)
         button_cur["formname"] = new_form
@@ -789,9 +810,10 @@ class UserInterfaceHandlerPyQT():
 
 class Loader:
     def __init__(self, gui, form = None):
-        self.pmgr = PluginHandler()
+        self.config = ConfigHandler(form)
+
+        self.pmgr = PluginHandler(self.config.plugin_folder)
         self.logger = self.pmgr.return_logger()
-        self.config = ConfigHandler(self.logger, form)
         self.db = QueryHandler(self.logger, self.config.db_location)
         self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name)
         self.formname = None
