@@ -990,7 +990,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Yes)
         else:
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
-        yes_no_popup.show()
+        yes_no_popup.exec()
         if yes_no_popup.result() == QtWidgets.QMessageBox.StandardButton.Yes:
             self.popup_msgs[key] = True
         else:

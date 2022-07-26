@@ -90,6 +90,7 @@ class Create_Process(QDialog):
                     item.data = path
                     item.q_widget.setText(path)
             self.button_name.setText("Folder " + filename)
+            self.button_description.setPlaceholderText("Open Folder " + path)
         elif type_ == "url":
             for i in range(self.multiselect.count()):
                 if self.multiselect.itemText(i).lower() == "url":
@@ -173,7 +174,7 @@ class Create_Process(QDialog):
         self.button_name.setPlaceholderText(type_1)
         self.generated_widget_layout.addRow(QLabel("Button Name"), self.button_name)
         self.button_description = QLineEdit()
-        self.button_description.setPlaceholderText(" Description")
+        #check placeholder text of button_description
         self.generated_widget_layout.addRow(QLabel("(optional) Description"), self.button_description)
         #if self.plugin_types[type_] is a function
 
@@ -250,6 +251,9 @@ class Create_Process(QDialog):
             batchsequence_value_dict[item.key] = item.data
         if self.button_description.text() != "":
             button_value_dict["buttondesc"]= self.button_description.text()
+        else:
+            #set buttondesc to placeholder text
+            button_value_dict["buttondesc"] = self.button_description.placeholderText()
         button_value_dict.update(both_value_dict)
         button_value_dict["buttonsequence"] = "0"
         button_value_dict["columnnum"] = "0"
