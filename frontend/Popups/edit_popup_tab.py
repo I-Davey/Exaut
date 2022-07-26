@@ -1,10 +1,10 @@
 from PyQt6 import QtGui, QtCore
 
 #import QVBoxLayout
-from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout, QSizePolicy, QMessageBox
+from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QMainWindow,  QMessageBox, QWidget, QGridLayout, QSizePolicy, QMessageBox
 from PyQt6.QtCore import pyqtSignal
 
-class edit_popup_tab(QDialog):
+class edit_popup_tab(QMainWindow):
     signal_delete = QtCore.pyqtSignal()
     signal_update = pyqtSignal(dict, bool)
     def __init__(self,parent_,tab_name, data, cur_tabs):
@@ -13,8 +13,10 @@ class edit_popup_tab(QDialog):
         self.logger = parent_.logger
         self.resize(300, 300)
         self.setWindowTitle("Edit")
-        self.layout = QFormLayout()
+        mainwidget = QWidget(self)
+        self.layout = QFormLayout(mainwidget)
         self.setLayout(self.layout)
+        self.setCentralWidget(mainwidget)
 
         self.tabname = tab_name
         self.cur_tabs = cur_tabs
