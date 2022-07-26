@@ -19,6 +19,10 @@ class Folder_Copy(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
     def main(self, type_,source, target, Popups) -> bool:
+        #check if dir exists
+        if not os.path.exists(target):
+            os.makedirs(target)
+
         self.copylist = []
         if type_ == "foldercopynew":
             #copy all files in folder from source to target that have a more recent date stamp then the old files
