@@ -103,7 +103,7 @@ class edit_popup_tab(QDialog):
         for key, value in self.data.copy().items():
             if value in ('None', ""):
                 self.data[key] = None
-        self.signal_update.emit(self.data, True)
+        self.signal_update.emit(self.data, False)
         self.complete = True
         self.close()
 
