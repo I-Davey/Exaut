@@ -2,12 +2,12 @@ from __important.PluginInterface import PluginInterface
 import os 
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
-class teststuff(PluginInterface):
-    load = True
+class pyqt_popup_example(PluginInterface):
+    load = False
     types = {}
     type_types = { "__Name":"t1"}
 
-    callname = "test1"
+    callname = "PYQT in Action Example"
     hooks_handler = ["log"]
 
 
