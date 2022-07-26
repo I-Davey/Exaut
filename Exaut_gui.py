@@ -278,7 +278,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_refresh = QtCore.pyqtSignal()
     signal_move_start = QtCore.pyqtSignal(bool)
     signal_popup_yesno = QtCore.pyqtSignal(str,str,str,str)
-    signal_popup_custom = QtCore.pyqtSignal(str,str,str,str,str) ###TODO
+    #pass signal_popup_custom with any data tytpe
+    signal_popup_custom = QtCore.pyqtSignal(str, object)
     signal_popup_data = QtCore.pyqtSignal(str,str,str)
     signal_popup_tabto = QtCore.pyqtSignal(str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
@@ -318,6 +319,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
+        self.signal_popup_custom.connect(self.popup_custom)
         self.signal_popup_data.connect(self.data_entry_popup)
         self.signal_refresh.connect(self.refresh)
         self.signal_button_complete.connect(self.handle_button_complete)
@@ -975,7 +977,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         alert_popup.setText(message)
         alert_popup.setIcon(icon)
         alert_popup.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
-        alert_popup.exec()
+        alert_popup.show()
 
 
     def yes_no_popup(self,key, message, title, default):
@@ -988,7 +990,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Yes)
         else:
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
-        yes_no_popup.exec()
+        yes_no_popup.show()
         if yes_no_popup.result() == QtWidgets.QMessageBox.StandardButton.Yes:
             self.popup_msgs[key] = True
         else:
@@ -1002,6 +1004,12 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.popup_msgs[key] = None
         else:
             self.popup_msgs[key] = text
+
+    def popup_custom(self,key, component):
+        component = component(self)
+        component.show()
+        component.signal.connect(lambda x: self.popup_msgs.update({key:x}))
+
 
     def tabto(self,key, tabname):
         if not bool(tabname):

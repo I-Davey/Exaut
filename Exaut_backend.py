@@ -260,7 +260,7 @@ class UserInterfaceHandlerPyQT():
                     return x
                 
         def alert(self, msg, title = None):
-            self.parent_.gui.signal_alert.emit(msg, title)
+            self.parent_.gui.signal_alert.emit(str(msg), title)
             return True
             
         def yesno(self, message, title="", default="no"):
@@ -269,6 +269,9 @@ class UserInterfaceHandlerPyQT():
 
         def data_entry(self, message, title=""):
             return self.call(self.gui.signal_popup_data, (message, title))
+
+        def custom(self, component):
+            return self.call(self.gui.signal_popup_custom, (component))
 
        
             

@@ -359,29 +359,30 @@ class Actions(QMainWindow):
         self.labels.append(button_description)
         
         all_info = self.data.handle_action_types(items, action)
-        for item in all_info[1]:
-            pyqt_object = item[0]["type"]
-            #if pyqt object is a layout
-            if pyqt_object.isWidgetType():
-                if item[0]["optional"]:
-                    item[0]["description"] = "(Optional) " + item[0]["description"]
+        if all_info[0]:
+            for item in all_info[1]:
+                pyqt_object = item[0]["type"]
+                #if pyqt object is a layout
+                if pyqt_object.isWidgetType():
+                    if item[0]["optional"]:
+                        item[0]["description"] = "(Optional) " + item[0]["description"]
 
-                label = QLabel(item[0]["description"])
-                layout = QHBoxLayout()
-                layout.addWidget(label)
-                layout.addWidget(pyqt_object)
-                self.object_vertical_layout.addLayout(layout)
-                self.pyqt_components_map.append((pyqt_object, item[1], item[0]["optional"], item))
-                self.labels.append(label)
-            else:
-                #get widget at point 0 in item:QLayout
-                widget = item[0]["type"].itemAt(0).widget()
-                widget2 = item[0]["type"].itemAt(1).widget()
-                self.labels.append(widget)
-                self.labels.append(widget2)
-                
-                self.object_vertical_layout.addLayout(pyqt_object)
-                self.pyqt_components_map.append((pyqt_object, item[1], item[0]["optional"], item))
+                    label = QLabel(item[0]["description"])
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(pyqt_object)
+                    self.object_vertical_layout.addLayout(layout)
+                    self.pyqt_components_map.append((pyqt_object, item[1], item[0]["optional"], item))
+                    self.labels.append(label)
+                else:
+                    #get widget at point 0 in item:QLayout
+                    widget = item[0]["type"].itemAt(0).widget()
+                    widget2 = item[0]["type"].itemAt(1).widget()
+                    self.labels.append(widget)
+                    self.labels.append(widget2)
+                    
+                    self.object_vertical_layout.addLayout(pyqt_object)
+                    self.pyqt_components_map.append((pyqt_object, item[1], item[0]["optional"], item))
         self.delete_button.hide()
         self.edit_button.hide()
         self.save_button.show()
