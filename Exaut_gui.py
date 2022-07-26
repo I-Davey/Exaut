@@ -438,7 +438,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.SM_Tabs.currentChanged.connect(self.get_tab_change)
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
-        self.logger.success("Refreshed code")
+        if not start:
+            self.logger.success("Refreshed data")
+        else:
+            self.logger.success("Loaded data")
         #on actionhidden mode press. run show_hidden_tabs_handler
         self.actionHidden_mode.setChecked(self.show_hidden_tabs)
         self.refreshing = False
@@ -531,9 +534,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 for num, (buttonsequence, buttonname, columnnum, buttondesc, type_, color) in enumerate(tab_buttons):
 
                     Grid.setRowStretch(9999,3)
-                    if color != None:
-                        button = CustomButton(ScrollAreaContents, *self.handle_color(color))
-                    elif type_ == "assignseries":
+
+                    if type_ == "assignseries":
                         button = CustomButton(
                             ScrollAreaContents,
                             color_border=QtGui.QColor(255, 107, 38),
@@ -541,6 +543,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                             color_hover_border=QtGui.QColor(247, 92, 20),
                             clicked_color=QtGui.QColor(255, 170, 127),
                             clicked_border=QtGui.QColor(255, 170, 0))
+                    elif color != None:
+                        button = CustomButton(ScrollAreaContents, *self.handle_color(color))
                     elif type_ == None:
                         #color red
                         button = CustomButton(

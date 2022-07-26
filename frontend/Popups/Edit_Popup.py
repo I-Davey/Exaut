@@ -20,7 +20,6 @@ class Edit_Popup(QMainWindow):
         self.complete = False
         widget = QWidget()
         self.layout = QFormLayout(widget)
-        self.setLayout(self.layout)
 
         self.setCentralWidget(widget)
 
