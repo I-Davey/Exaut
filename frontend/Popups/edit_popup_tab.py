@@ -15,7 +15,6 @@ class edit_popup_tab(QMainWindow):
         self.setWindowTitle("Edit")
         mainwidget = QWidget(self)
         self.layout = QFormLayout(mainwidget)
-        self.setLayout(self.layout)
         self.setCentralWidget(mainwidget)
 
         self.tabname = tab_name

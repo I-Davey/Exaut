@@ -177,7 +177,7 @@ class UserInterfaceHandlerPyQT():
         self.version = version
         self.popups = self.Popups(self.gui, self.logger, self)
         self.handle_plugins()
-        self.refresh(launch = True)
+        #self.refresh(launch = True)
         self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
         self.edit_tab_handle()
     def edit_tab_handle(self):
@@ -331,9 +331,11 @@ class UserInterfaceHandlerPyQT():
                     if type_["type"] in colors_dict:
                         newbutton["color"] = colors_dict[type_["type"]]
                     else:
-                        self.logger.warning(f"Type: {type_['type']} not found in pluginmap.")
+                        self.logger.warning(f"Type: {type_['type']} not found in pluginmap.. adding placeholder as red")
+
+                        self.writesql(insert(pluginmap).values(plugin=type_["type"], types=None, color="255,0,0,1", generated = 0))
                         colors_dict[type_["type"]] = None
-                        newbutton["color"] = None
+                        newbutton["color"] = "256,0,0,1"
                     found = True
             if not found:
                 if launch:

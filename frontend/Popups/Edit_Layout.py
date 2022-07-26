@@ -62,7 +62,6 @@ class Edit_Layout(QMainWindow):
         centralwdgt = QtWidgets.QWidget(self)
         self.cur_layout = QFormLayout(centralwdgt)
         self.setCentralWidget(centralwdgt)
-        self.setLayout(self.cur_layout)
 
         #add widget
         self.SM_Tabs.setObjectName("SM_Tabs")
