@@ -64,7 +64,13 @@ class Run_URL(PluginInterface):
             bseq["target"] = None
             #remove bseq["target"]
             bseq.pop("target")
- 
+        
+        else:
+            if "mail.google" in bseq["source"]:
+                btn["buttondesc"] = "Google Mail"
+            elif "main.proton" in bseq["source"]:
+                btn["buttondesc"] = "Proton Mail"
+  
         if "buttondesc" not in btn or btn["buttondesc"] == "":
             btn["buttondesc"] = bseq["url_type"]
         #remove type from bseq
