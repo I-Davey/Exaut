@@ -1,5 +1,5 @@
 
-from .__important.PluginInterface import PluginInterface
+from __important.PluginInterface import PluginInterface
 import os
 
 class Run_Executable_Loc(PluginInterface):

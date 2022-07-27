@@ -65,7 +65,7 @@ class Run_URL(PluginInterface):
             #remove bseq["target"]
             bseq.pop("target")
  
-        if "buttondesc" not in btn:
+        if "buttondesc" not in btn or btn["buttondesc"] == "":
             btn["buttondesc"] = bseq["url_type"]
         #remove type from bseq
         del bseq["url_type"]
