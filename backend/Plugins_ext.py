@@ -1,7 +1,7 @@
 
 
 
-import asyncio
+from threading import Thread
 from inspect import iscoroutinefunction
 import os
 import sys
@@ -166,7 +166,8 @@ class Plugins_Ext:
             newargs.append(plugins)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
-                asyncio.run(self.plugins[name]["run"](*newargs))
+                t = Thread(target=self.plugins[name]["run"], args=newargs)
+                t.start()
             else:
                 x = self.plugins[name]["run"](*newargs)
                 return x
