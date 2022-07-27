@@ -479,7 +479,7 @@ class UserInterfaceHandlerPyQT():
 
 
     def add_tabto(self, tabto, tab_name, form):
-        q = self.writesql(insert(buttons).values(formname = form, tab = tab_name, buttonname = tabto, columnnum = 0, buttonsequence = 0))
+        q = self.writesql(insert(buttons).values(formname = form, tab = tab_name, buttonname = tabto, buttondesc="tabto", columnnum = 0, buttonsequence = 0))
         if not q:
             self.alert(f"Error adding button {tabto} to {tab_name} in {form}")
             return

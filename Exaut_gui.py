@@ -31,7 +31,6 @@ from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
 from frontend.Popups.actions.Actions import Actions
 from time import perf_counter
-import nest_asyncio
 from Exaut_backend import Loader
 import webbrowser
 

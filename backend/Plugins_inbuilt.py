@@ -1,4 +1,5 @@
 
+from concurrent.futures import thread
 from Addons.inbuilt.Plugins.__important.PluginInterface import PluginInterface
 items = {"Handlers": [], "Methods": [], "Plugins": []}
 beforedir = dir()
@@ -28,7 +29,7 @@ for item in afterdir:
 
 
 from loguru import logger
-import asyncio
+from threading import Thread
 from inspect import iscoroutinefunction
 
 
@@ -261,7 +262,9 @@ class Plugins:
             newargs.append(plugins)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
-                asyncio.run(self.plugins[name]["run"](*newargs))
+
+                t = Thread(target=self.plugins[name]["run"], args=newargs)
+                t.start()
             else:
                 x = self.plugins[name]["run"](*newargs)
                 return x
