@@ -20,7 +20,10 @@ class Ui_EXAUT_GUI():
         self.titlebar.setContentsMargins(0,0,0,0)
         self.titlebar.addStretch(-1)
         self.pressing = False
-        #EXAUT_GUI.setMenuWidget(MyBar(self))
+        ###
+        ###EXAUT_GUI.setMenuWidget(MyBar(self))
+        #hide the menu bar
+        ###EXAUT_GUI.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint) 
 
 
         #emove all padding centralwidget
@@ -77,15 +80,22 @@ class Ui_EXAUT_GUI():
         self.menuEdit.setObjectName("menuEdit")
         self.menuEdit_form = QtWidgets.QMenu(self.menubar)
         self.menuEdit_form.setObjectName("menuEdit")
+
+
+
         self.menuView = QtWidgets.QMenu(self.menubar)
         self.menuView.setObjectName("menuView")
         self.menuTools = QtWidgets.QMenu(self.menubar)
         self.menuTools.setObjectName("menuTools")
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
+        ###
         EXAUT_GUI.setMenuBar(self.menubar)
-        #place menubar below the title bar
-        #self.menubar.setNativeMenuBar(False)
+        ###place menubar below the title bar
+        #self.titlebar.addWidget(self.menubar)
+        EXAUT_GUI
+        
+        self.menubar.setNativeMenuBar(False)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 650, 26))
         self.menubar.setCornerWidget(QtWidgets.QWidget(self.menubar), QtCore.Qt.Corner.TopRightCorner)
 
@@ -120,8 +130,16 @@ class Ui_EXAUT_GUI():
         self.actionAdd_Seq = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Seq.setObjectName("actionAdd_Seq")
 
+
+        self.actionedit_mode = QtGui.QAction(EXAUT_GUI)
+        self.actionedit_mode.setObjectName("actionedit_mode")
+
+
         self.actionAdd_Proc = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Proc.setObjectName("actionAdd_Proc")
+
+        self.actionAdd_action = QtGui.QAction(EXAUT_GUI)
+        self.actionAdd_action.setObjectName("actionAdd_action")
 
         self.actionAdd_Desc = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_Desc.setObjectName("actionAdd_Desc")
@@ -167,6 +185,10 @@ class Ui_EXAUT_GUI():
         self.actionTab_Move = QtGui.QAction(EXAUT_GUI)
         self.actionTab_Move.setObjectName("actionTab_Move")
 
+        self.actionForm_Change = QtGui.QAction(EXAUT_GUI)
+        self.actionForm_Change.setObjectName("actionForm_Change")
+
+
         self.menuFile.addAction(self.actionOpen_Files_Explorer)
         self.menuFile.addAction(self.actionOpenTabUrl)
 
@@ -174,20 +196,26 @@ class Ui_EXAUT_GUI():
 
         self.menuEdit.addAction(self.actionAdd_Seq)
         self.menuEdit.addAction(self.actionAdd_Proc)
+        self.menuEdit.addAction(self.actionAdd_action)
         self.menuEdit.addAction(self.actionAdd_Desc)
 
         self.menuEdit_form.addAction(self.actionEdit_layout)
         self.menuEdit_form.addAction(self.actionHidden_mode)
         self.menuEdit_form.addAction(self.actionTab_Copy)
         self.menuEdit_form.addAction(self.actionTab_Move)
+
         self.menuEdit_form.addAction(self.actionTab)
         self.menuEdit_form.addAction(self.actionTabUrl)
         self.menuEdit_form.addAction(self.actionTabFolder)
         self.menuEdit_form.addAction(self.actionAdd_tabto)
         self.menuEdit_form.addAction(self.actionAdd_tablast)
+        self.menuEdit_form.addAction(self.actionedit_mode)
 
 
         self.menuView.addAction(self.actionRefresh)
+
+        self.menuTools.addAction(self.actionForm_Change)
+
         self.menuTools.addAction(self.actionImport_from_Excel)
         self.menuTools.addAction(self.actionExport_to_Excel)
         self.menuTools.addAction(self.customimportexport)
@@ -210,8 +238,9 @@ class Ui_EXAUT_GUI():
 
     def retranslateUi(self, EXAUT_GUI):
         _translate = QtCore.QCoreApplication.translate
-        #set self.titlebar as the first widget
-        EXAUT_GUI.setWindowTitle(_translate("EXAUT_GUI", "EXAUT Server Manager"))
+        #ashow self.titlebar
+        EXAUT_GUI.setWindowTitle(_translate("EXAUT_GUI", "EXAUT"))
+        
 
 
         self.menuFile.setTitle(_translate("EXAUT_GUI", "File"))
@@ -256,6 +285,7 @@ class Ui_EXAUT_GUI():
         
         self.actionTab_Move.setText(_translate("EXAUT_GUI", "Move Tab -> Form"))
         self.actionTab_Copy.setText(_translate("EXAUT_GUI", "Copy Tab -> Form"))
+        self.actionForm_Change.setText(_translate("EXAUT_GUI", "Change Form"))
 
         self.actionTabUrl.setText(_translate("EXAUT_GUI", "Add Tab URL"))
 
@@ -264,7 +294,10 @@ class Ui_EXAUT_GUI():
 
         self.actionAdd_url.setText(_translate("EXAUT_GUI", "Add URL"))
         self.actionAdd_Seq.setText(_translate("EXAUT_GUI", "Add Sequence"))
+        self.actionedit_mode.setText(_translate("EXAUT_GUI", "Edit Mode"))
         self.actionAdd_Proc.setText(_translate("EXAUT_GUI", "Add New Button"))
+        self.actionAdd_action.setText(_translate("EXAUT_GUI", "Add Action"))
+        
 
         self.actionAdd_Desc.setText(_translate("EXAUT_GUI", "Add Description"))
 

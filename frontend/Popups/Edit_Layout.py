@@ -1,7 +1,7 @@
 from PyQt6 import QtGui, QtCore
 #import QVBoxLayout
 from functools import partial
-from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QPushButton, QDialog,  QFormLayout, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QPushButton, QWidget,  QFormLayout, QVBoxLayout, QMainWindow
 from PyQt6.QtGui import QDrag, QPixmap
 from PyQt6.QtCore import QMimeData, Qt
 
@@ -49,7 +49,7 @@ class QTabWidgetHandler(QTabWidget):
         self.parent_ = parent_
     
 
-class Edit_Layout(QDialog):
+class Edit_Layout(QMainWindow):
     signal_save = QtCore.pyqtSignal(dict)
 
     def __init__(self, parent_):
@@ -59,8 +59,9 @@ class Edit_Layout(QDialog):
         self.start = True
 
         self.SM_Tabs = QtWidgets.QTabWidget()
-        self.cur_layout = QFormLayout()
-        self.setLayout(self.cur_layout)
+        centralwdgt = QtWidgets.QWidget(self)
+        self.cur_layout = QFormLayout(centralwdgt)
+        self.setCentralWidget(centralwdgt)
 
         #add widget
         self.SM_Tabs.setObjectName("SM_Tabs")

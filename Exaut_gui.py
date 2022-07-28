@@ -1,18 +1,24 @@
 
+from argparse import Action
+from time import perf_counter
+start_time = perf_counter()
+
 print("loading..")
 from PyQt6 import QtCore,QtGui,QtWidgets
 
 from PyQt6.QtWidgets import *
 from PyQt6 import QtGui
 
-from time import perf_counter
+import traceback
 
+import time
 import os,sys
 import math,math
 from functools import partial
 import re
 
 import pyperclip
+
 
 
 import json
@@ -23,10 +29,13 @@ from frontend.Popups.edit_popup_tab import edit_popup_tab
 from frontend.Popups.Edit_Popup import Edit_Popup
 from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
+from frontend.Popups.actions.Actions import Actions
 from time import perf_counter
-import nest_asyncio
 from Exaut_backend import Loader
 import webbrowser
+
+end_time = perf_counter()
+print(f"Time taken to load: {end_time - start_time}")
 #Import CustomContextMenu
 
 
@@ -34,6 +43,29 @@ class CustomTab(QtWidgets.QTabWidget):
     def __init__(self, parent):
         super(CustomTab, self).__init__(parent)
         self.parent_ = parent
+        #self.add_buttons()
+
+    def add_buttons(self):
+        self.leftbutton = QToolButton(self)
+        self.leftbutton.setText('<')
+        font = self.leftbutton.font()
+        font.setBold(True)
+        self.leftbutton.setFont(font)
+
+        self.rightbutton = QToolButton(self)
+        self.rightbutton.setText('>')
+        font = self.rightbutton.font()
+        font.setBold(True)
+        self.rightbutton.setFont(font)
+
+        cornerwidget = QWidget()
+        hgrid = QHBoxLayout(cornerwidget)
+        hgrid.addWidget(self.leftbutton)
+        hgrid.addWidget(self.rightbutton)
+        hgrid.setContentsMargins(0, 0, 0, 0)
+        self.setCornerWidget(cornerwidget)
+
+
     
     
 
@@ -43,9 +75,6 @@ class CustomTab(QtWidgets.QTabWidget):
         if tab_index == -1:
             return
         self.parent_.tab_context_menu(tab_index)
-
-    #accept drops
-
 
 class CustomTabArea(QtWidgets.QTabWidget):
     def __init__(self, parent):
@@ -88,7 +117,7 @@ class CustomTabArea(QtWidgets.QTabWidget):
             else:
                 file_name = file_name
                 type_ = "folder"
-            if type_ in ("lnk", "xlsx", "pdf", "db", "txt", "png", "pdf", "jpg", "ini","txt","csv","json", "docx", "doc", "pptx", "vsdx", "xlsb", "log", "htm","gif", "mdgm"):
+            if type_ in ("lnk", "xlsx", "pdf", "db", "txt", "png", "pdf", "jpg", "ini","txt","csv","json", "docx", "doc", "pptx", "vsdx", "xlsb", "log", "htm","gif", "mdgm", "zip"):
                 type_ = "exe"
             self.parent_.handle_tab_drag_event(file_name, type_, file)
             return
@@ -109,7 +138,6 @@ class CustomTabArea(QtWidgets.QTabWidget):
         self.parent_.handle_tab_drag_event(filename, type_, clipboard)
 
         print(clipboard)
-        #if url:
         
 class CustomButton(QPushButton):
     
@@ -249,14 +277,15 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_refresh = QtCore.pyqtSignal()
     signal_move_start = QtCore.pyqtSignal(bool)
     signal_popup_yesno = QtCore.pyqtSignal(str,str,str,str)
-    signal_popup_custom = QtCore.pyqtSignal(str,str,str,str,str) ###TODO
+    #pass signal_popup_custom with any data tytpe
+    signal_popup_custom = QtCore.pyqtSignal(str, object)
     signal_popup_data = QtCore.pyqtSignal(str,str,str)
     signal_popup_tabto = QtCore.pyqtSignal(str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
 
 
     def __init__(self,parent=None):
-        super(UI_Window,self).__init__(parent)
+        super(UI_Window,self).__init__(parent, QtCore.Qt.WindowType.WindowStaysOnTopHint)
         self.setupUi(self)
         self.tablist = []
         self.tab_buttons = {}
@@ -277,8 +306,11 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.show_hidden_tabs = False
 
         self.SM_Tabs = CustomTab(self)
-        self.setCentralWidget(self.SM_Tabs)
 
+        central_widget = QtWidgets.QWidget()
+        self.setCentralWidget(central_widget)
+
+        self.setCentralWidget(self.SM_Tabs) 
 
         self.handle_connects()
         self.load()
@@ -286,6 +318,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
+        self.signal_popup_custom.connect(self.popup_custom)
         self.signal_popup_data.connect(self.data_entry_popup)
         self.signal_refresh.connect(self.refresh)
         self.signal_button_complete.connect(self.handle_button_complete)
@@ -295,12 +328,15 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionAbout.triggered.connect(self.about_window)
         self.actionRefresh.triggered.connect(self.refresh)
         self.actionAdd_Seq.triggered.connect(self.add_sequence)
+        self.actionedit_mode.triggered.connect(self.edit_mode_handler)
+        self.actionAdd_action.triggered.connect(self.handle_actions)
         self.actionAdd_Proc.triggered.connect(self.add_process)
         self.actionEdit_layout.triggered.connect(self.layout_editor)
         self.actionAdd_Desc.triggered.connect(self.add_description)
         self.actionTabsize.triggered.connect(self.ChangeTabSize)
         self.actionTab_Copy.triggered.connect(self.tab_copy)
         self.actionTab_Move.triggered.connect(self.tab_move)
+        self.actionForm_Change.triggered.connect(self.form_change)
         self.actionTab.triggered.connect(self.add_tab)
         self.actionTabUrl.triggered.connect(self.add_tab_url)
         self.actionTabFolder.triggered.connect(self.add_tab_folder)
@@ -320,6 +356,26 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def show_hidden_tabs_handler(self):
         self.show_hidden_tabs = not self.show_hidden_tabs
         self.refresh()
+
+
+    def form_change(self):
+        all_forms = self.api.get_forms()
+        form_list = [x.formname for x in all_forms]
+
+        #find self.form_title position in form_list
+        pos_form_title = form_list.index(self.form_title)
+        response = QtWidgets.QInputDialog.getItem(self, "Form Change", "Select Form", form_list, pos_form_title, False)
+        new_title = response[0]
+        if new_title:
+            self.api.formname = new_title
+            self.curTab = 0
+
+            self.load()
+            self.refresh()
+            self.logger.info("Form changed to: " + new_title)
+
+        else:
+            self.logger.debug("No form selected")
 
     def load(self):
         form_title, form_desc = self.api.load()
@@ -368,7 +424,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             tab = CustomTabArea(self)
             tab.setToolTip(str(tab_desc))
             tab.setObjectName("Tab_"+str(tab_name))
-
+            if self.edit_mode:
+                #change tab background color to light red
+                tab.setStyleSheet("background-color: #ffcccc;")
             TabGrid = QtWidgets.QGridLayout(tab)
             ScrollArea = QtWidgets.QScrollArea(tab)
             ScrollArea.setWidgetResizable(True)
@@ -400,7 +458,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.SM_Tabs.currentChanged.connect(self.get_tab_change)
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
-        self.logger.success("Refreshed code")
+        if not start:
+            self.logger.success("Refreshed data")
+        else:
+            self.logger.success("Loaded data")
         #on actionhidden mode press. run show_hidden_tabs_handler
         self.actionHidden_mode.setChecked(self.show_hidden_tabs)
         self.refreshing = False
@@ -408,6 +469,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def setsizesstatic(self):
         self.size_static = not self.size_static
+
+    def edit_mode_handler(self, pressed):
+        self.edit_mode = not self.edit_mode
+        self.refresh()
 
     def handle_color(self, color):
         default_color = QtGui.QColor(225, 225, 225)
@@ -489,9 +554,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 for num, (buttonsequence, buttonname, columnnum, buttondesc, type_, color) in enumerate(tab_buttons):
 
                     Grid.setRowStretch(9999,3)
-                    if color != None:
-                        button = CustomButton(ScrollAreaContents, *self.handle_color(color))
-                    elif type_ == "assignseries":
+
+                    if type_ == "assignseries":
                         button = CustomButton(
                             ScrollAreaContents,
                             color_border=QtGui.QColor(255, 107, 38),
@@ -499,6 +563,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                             color_hover_border=QtGui.QColor(247, 92, 20),
                             clicked_color=QtGui.QColor(255, 170, 127),
                             clicked_border=QtGui.QColor(255, 170, 0))
+                    elif color != None:
+                        button = CustomButton(ScrollAreaContents, *self.handle_color(color))
                     elif type_ == None:
                         #color red
                         button = CustomButton(
@@ -510,6 +576,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                             clicked_border=QtGui.QColor(255, 170, 0))
                     else:
                         button = CustomButton(ScrollAreaContents)
+
                     self.button_dict[f"{curtabtext}|{buttonname}"] = button
                     button.setToolTip(str(buttondesc))
                     button.setText(str(buttonname))
@@ -556,6 +623,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                         button_arr[y] += 1
                     Grid.addWidget(button, x, y, 1, 1)
                     button.clicked.connect(partial(self.button_click,buttonname,curtabtext,button,mode=1))
+
+                    #print(f"{buttonname} {t2-t1} {t4-t2} {final_time-t4}")
+
         #curtabtext
         #check if maximized
         
@@ -574,7 +644,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 None
 
     def Alert(self, message, title="Alert", icon=QtWidgets.QMessageBox.Icon.Warning):
-        msg = QtWidgets.QMessageBox()
+        msg = QtWidgets.QMessageBox(self)
         msg.setIcon(icon)
         msg.setText(message)
         msg.setWindowTitle(title)
@@ -597,6 +667,11 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 ###################################################################################################################################
 
+    def handle_actions(self):
+        curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+        self.actions_popup = Actions(self.form_title,curtab, self.api.get_actions, self.api.action_get_typemap, self.api.return_plugins_type_map, self.api.action_return_categories, self.api.action_change_category, self.api.actions_save, self.api.actions_update, self.api.actions_delete, self)
+        self.actions_popup.show()
+        None
 
 
 ##Other GUI Handlers###############################################################################################################
@@ -604,8 +679,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def db_refresh(self):
         self.tablist, self.tab_buttons = self.backend.ui.refresh()
         #write self.tab_buttons to a file
-        with open("example_json2.json", "w") as f:
-            f.write(json.dumps(self.tablist))
+
 
     def add_tab(self):
         self.db_refresh()
@@ -680,6 +754,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def add_sequence(self):
         self.db_refresh()
         if not self.current_sequence:
+            
             self.current_sequence = Create_sequence(self)
             self.current_sequence.signal_save.connect(partial(self.api.edit_sequence_save))
             self.current_sequence.show()
@@ -901,7 +976,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if mode == 1 and not self.current_sequence and not self.edit_mode:
             button.handle_clicked()
             self.api.button_click(buttonname, tabname, button, mode=1)
-        elif mode == 2:
+        elif mode == 2 or self.edit_mode:
+            self.api.load_edit_button()
             button.handle_clicked()
             data, state = self.api.edit_button_data(buttonname, tabname)
             self.edit_button(data, state, button)        
@@ -912,6 +988,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             pass
         elif mode == 5:
             self.button_copy(buttonname, tabname, type_, mode = True, duplicate=True)
+            
 
         elif self.current_sequence:
             button.handle_clicked()
@@ -922,17 +999,17 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def alert(self, message, title=None):
         icon=QtWidgets.QMessageBox.Icon.Warning
 
-        alert_popup = QtWidgets.QMessageBox()
+        alert_popup = QtWidgets.QMessageBox(self)
         if title:
             alert_popup.setWindowTitle(title)
         alert_popup.setText(message)
         alert_popup.setIcon(icon)
         alert_popup.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
-        alert_popup.exec()
+        alert_popup.show()
 
 
     def yes_no_popup(self,key, message, title, default):
-        yes_no_popup = QtWidgets.QMessageBox()
+        yes_no_popup = QtWidgets.QMessageBox(self)
         if title:
             yes_no_popup.setWindowTitle(title)
         yes_no_popup.setText(message)
@@ -956,6 +1033,12 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         else:
             self.popup_msgs[key] = text
 
+    def popup_custom(self,key, component):
+        component = component(self)
+        component.show()
+        component.signal.connect(lambda x: self.popup_msgs.update({key:x}))
+
+
     def tabto(self,key, tabname):
         if not bool(tabname):
             if self.lasttab:
@@ -973,7 +1056,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 ##others######################################################################################################################
     def about_window(self):
-        about = QtWidgets.QMessageBox()
+        about = QtWidgets.QMessageBox(self)
         about.setWindowTitle("About ExAuT - OnInO Technologies")
         #set QtWidgets.QMessageBox.Icon.Information
         about.setWindowIcon(self.icon)
@@ -981,6 +1064,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         about.setText(f"Version: {self.api.version}\n\nForm: {self.title}\n\nCopyright (c) 2022 OnInO Technologies\n\nAll rights reserved.")
         about.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         about.exec()
+
 
 
     def add_description(self):
@@ -1030,6 +1114,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                                         5))
 
         menu.addAction("Edit Layout", self.layout_editor)
+        
         menu.exec(QtGui.QCursor.pos())
 
     def tab_context_menu(self, tab_index):
@@ -1037,9 +1122,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #get text from tab
         tab_name = self.SM_Tabs.tabText(tab_index)
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
-        menu.exec(QtGui.QCursor.pos())
-##############################################################################################################################
+        #menu.addAction("actions popup", self.handle_actions)
 
+        menu.exec(QtGui.QCursor.pos())
 
 class GUI_Handler:
     def __init__(self,title=None):
@@ -1053,8 +1138,8 @@ class GUI_Handler:
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = UI_Window()
         self.window.show()
-        self.app.exec()
-        nest_asyncio.apply()
+        x = self.app.exec()
+
         sys.exit()
 
     def UI_Window(self):

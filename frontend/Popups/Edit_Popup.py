@@ -2,23 +2,26 @@ from PyQt6 import QtGui, QtCore
 from functools import partial
 import os
 #import QVBoxLayout
-from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog,  QMessageBox, QComboBox, QGridLayout
+from PyQt6.QtWidgets import QPushButton, QWidget,  QFormLayout, QLineEdit, QLabel, QPushButton, QMainWindow,  QMessageBox, QComboBox, QGridLayout
 from PyQt6.QtCore import pyqtSignal
 import pyperclip
 
-class Edit_Popup(QDialog):
+class Edit_Popup(QMainWindow):
     signal_delete = QtCore.pyqtSignal()
     signal_update = pyqtSignal(dict, dict)
     def __init__(self,parent_, data, state = True):
+        
         super().__init__(parent_)
         self.logger = parent_.logger
         self.resize(300, 300)
         self.setWindowTitle("Edit")
-        self.layout = QFormLayout()
-        self.setLayout(self.layout)
         self.data = data
         self.parent_ = parent_
         self.complete = False
+        widget = QWidget()
+        self.layout = QFormLayout(widget)
+
+        self.setCentralWidget(widget)
 
         self.form_name = self.data["button_data"]["formname"]
         self.tab_name = self.data["button_data"]["tab"]
@@ -156,7 +159,12 @@ class Edit_Popup(QDialog):
         self.close()
 
     def on_click_delete(self):
-        qm = QMessageBox()
+        qm = QMessageBox(self)
+        if self.parent_.edit_mode:
+            self.signal_delete.emit()
+            self.complete = True
+            self.close()
+            return
         qm.setText("Are you sure you want to delete?")
         qm.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         qm.setDefaultButton(QMessageBox.StandardButton.No)
