@@ -26,13 +26,14 @@ class QFileDrop(QWidget):
 
     def handle_call_func(self, args = None):
         if self.db_key == "drag_drop_file":
-            res = self.call_func(args)
+            res = self.call_func(self.browse_.text(), args)
         else:
-            res = self.call_func()
+            res = self.call_func(self.browse_.text())
         if res:
             if type(res) == tuple:
                 res = res[0] 
-            self.browse_.setText(res)
+            if res:
+                self.browse_.setText(res)
 
     def add_browse(self):
         self.layout.addWidget(self.browse_)
@@ -46,14 +47,7 @@ class QFileDrop(QWidget):
         menu = QMenu()
         menu.addAction("copy file/folder", self.copy_file)
         menu.addAction("copy full path", self.copy_file_path)
-        
         menu.exec(self.browse_.mapToGlobal(pos))
-
-    def open_in_explorer(self):
-
-        path2file = self.browse_.text()
-        path2folder = path2file.split("\\")[:-1].join("\\")
-        
 
     def copy_file(self):
         text = self.browse_.text()
@@ -95,6 +89,12 @@ class QFileDrop(QWidget):
             links = []
             for url in event.mimeData().urls():
                 links.append(str(url.toLocalFile()))
+            for position, url in enumerate(links):
+                #replace / with \\
+                url = url.replace("/", "\\")
+                links[position] = url
+
+            
             self.link_signal.emit( links)
             self.browse_.setText(links[0])
 
