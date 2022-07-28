@@ -64,6 +64,7 @@ class Create_Process(QDialog):
 
         if existing:
             self.handle_existing(type_, **kwargs)
+            self.multiselect.setEnabled(False)
 
     def handle_existing(self, type_, **kwargs):
         if type_ == "exe":
