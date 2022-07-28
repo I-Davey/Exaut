@@ -11,7 +11,7 @@ from PyQt6 import QtGui
 
 import traceback
 
-
+import time
 import os,sys
 import math,math
 from functools import partial
@@ -368,6 +368,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         new_title = response[0]
         if new_title:
             self.api.formname = new_title
+            self.curTab = 0
 
             self.load()
             self.refresh()
@@ -575,6 +576,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                             clicked_border=QtGui.QColor(255, 170, 0))
                     else:
                         button = CustomButton(ScrollAreaContents)
+
                     self.button_dict[f"{curtabtext}|{buttonname}"] = button
                     button.setToolTip(str(buttondesc))
                     button.setText(str(buttonname))
@@ -621,6 +623,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                         button_arr[y] += 1
                     Grid.addWidget(button, x, y, 1, 1)
                     button.clicked.connect(partial(self.button_click,buttonname,curtabtext,button,mode=1))
+
+                    #print(f"{buttonname} {t2-t1} {t4-t2} {final_time-t4}")
+
         #curtabtext
         #check if maximized
         

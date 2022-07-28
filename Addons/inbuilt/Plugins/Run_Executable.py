@@ -25,6 +25,7 @@ class Run_Executable(PluginInterface):
         new_file = bseq["path_exe"]
         new_file = new_file.replace("/","\\")
         #delete path_exe
+        btn["buttondesc"] = bseq["path_exe"]
         del bseq["path_exe"]
         print(new_file)
         idir = os.path.dirname(new_file)
