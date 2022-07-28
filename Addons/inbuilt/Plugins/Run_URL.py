@@ -70,6 +70,8 @@ class Run_URL(PluginInterface):
                 btn["buttondesc"] = "Google Mail"
             elif "main.proton" in bseq["source"]:
                 btn["buttondesc"] = "Proton Mail"
+            elif "drive.google" in bseq["source"]:
+                btn["buttondesc"] = "Google Drive"
   
         if "buttondesc" not in btn or btn["buttondesc"] == "":
             btn["buttondesc"] = bseq["url_type"]
