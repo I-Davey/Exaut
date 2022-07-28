@@ -336,6 +336,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionTabsize.triggered.connect(self.ChangeTabSize)
         self.actionTab_Copy.triggered.connect(self.tab_copy)
         self.actionTab_Move.triggered.connect(self.tab_move)
+        self.actionForm_Change.triggered.connect(self.form_change)
         self.actionTab.triggered.connect(self.add_tab)
         self.actionTabUrl.triggered.connect(self.add_tab_url)
         self.actionTabFolder.triggered.connect(self.add_tab_folder)
@@ -355,6 +356,25 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def show_hidden_tabs_handler(self):
         self.show_hidden_tabs = not self.show_hidden_tabs
         self.refresh()
+
+
+    def form_change(self):
+        all_forms = self.api.get_forms()
+        form_list = [x.formname for x in all_forms]
+
+        #find self.form_title position in form_list
+        pos_form_title = form_list.index(self.form_title)
+        response = QtWidgets.QInputDialog.getItem(self, "Form Change", "Select Form", form_list, pos_form_title, False)
+        new_title = response[0]
+        if new_title:
+            self.api.formname = new_title
+
+            self.load()
+            self.refresh()
+            self.logger.info("Form changed to: " + new_title)
+
+        else:
+            self.logger.debug("No form selected")
 
     def load(self):
         form_title, form_desc = self.api.load()

@@ -477,6 +477,9 @@ class UserInterfaceHandlerPyQT():
 
 ##other functions#############################################################################################################
 
+    def get_forms(self):
+        return self.readsql(select(forms.formname, forms.formdesc).order_by(forms.formname.asc()))
+        
 
     def add_tabto(self, tabto, tab_name, form):
         q = self.writesql(insert(buttons).values(formname = form, tab = tab_name, buttonname = tabto, buttondesc="tabto", columnnum = 0, buttonsequence = 0))
@@ -810,7 +813,6 @@ class UserInterfaceHandlerPyQT():
             return
         if new_form == self.title:
             self.gui_refresh()
-#############################################################################################################################
 
 
 class Loader:
@@ -835,13 +837,7 @@ class Test:
             self.logger.warning("form not found")
             self.form_break = True
             return "n"
-
-    
-
-
-
-
-       
+     
 if __name__ == "__main__":
     backend = Loader(None, "TEST")
     backend.ui.formname = "test"
