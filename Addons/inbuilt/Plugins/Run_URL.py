@@ -70,9 +70,21 @@ class Run_URL(PluginInterface):
                 btn["buttondesc"] = "Google Mail"
             elif "main.proton" in bseq["source"]:
                 btn["buttondesc"] = "Proton Mail"
-            elif "drive.google" in bseq["source"]:
+            elif "drive.google.com/drive/folder" in bseq["source"]:
+                btn["buttondesc"] = "GD Folder"
+            elif "drive.google.com" in bseq["source"]:
                 btn["buttondesc"] = "Google Drive"
-  
+            elif "docs.google.com/spreadsheet" in bseq["source"]:
+                btn["buttondesc"] = "GD Sheet"
+            elif "docs.google.com/presentation" in bseq["source"]:
+                btn["buttondesc"] = "GD Slides"
+            elif "docs.google.com/document" in bseq["source"]:
+                btn["buttondesc"] = "GD Document"
+            elif "docs.google.com/form" in bseq["source"]:
+                btn["buttondesc"] = "GD Form"
+            
+            
+
         if "buttondesc" not in btn or btn["buttondesc"] == "":
             btn["buttondesc"] = bseq["url_type"]
         #remove type from bseq
