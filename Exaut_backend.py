@@ -333,8 +333,8 @@ class UserInterfaceHandlerPyQT():
                     else:
                         self.logger.warning(f"Type: {type_['type']} not found in pluginmap.. adding placeholder as red")
 
-                        self.writesql(insert(pluginmap).values(plugin=type_["type"], types=None, color="255,0,0,1", generated = 0))
-                        colors_dict[type_["type"]] = None
+                        self.writesql(insert(pluginmap).values(plugin=type_["type"], types=type_["type"], color="255,0,0,1", generated = 1))
+                        colors_dict[type_["type"]] = "."
                         newbutton["color"] = "256,0,0,1"
                     found = True
             if not found:
