@@ -80,6 +80,9 @@ class Ui_EXAUT_GUI():
         self.menuEdit.setObjectName("menuEdit")
         self.menuEdit_form = QtWidgets.QMenu(self.menubar)
         self.menuEdit_form.setObjectName("menuEdit")
+
+
+
         self.menuView = QtWidgets.QMenu(self.menubar)
         self.menuView.setObjectName("menuView")
         self.menuTools = QtWidgets.QMenu(self.menubar)
@@ -182,6 +185,10 @@ class Ui_EXAUT_GUI():
         self.actionTab_Move = QtGui.QAction(EXAUT_GUI)
         self.actionTab_Move.setObjectName("actionTab_Move")
 
+        self.actionForm_Change = QtGui.QAction(EXAUT_GUI)
+        self.actionForm_Change.setObjectName("actionForm_Change")
+
+
         self.menuFile.addAction(self.actionOpen_Files_Explorer)
         self.menuFile.addAction(self.actionOpenTabUrl)
 
@@ -196,6 +203,7 @@ class Ui_EXAUT_GUI():
         self.menuEdit_form.addAction(self.actionHidden_mode)
         self.menuEdit_form.addAction(self.actionTab_Copy)
         self.menuEdit_form.addAction(self.actionTab_Move)
+
         self.menuEdit_form.addAction(self.actionTab)
         self.menuEdit_form.addAction(self.actionTabUrl)
         self.menuEdit_form.addAction(self.actionTabFolder)
@@ -205,6 +213,9 @@ class Ui_EXAUT_GUI():
 
 
         self.menuView.addAction(self.actionRefresh)
+
+        self.menuTools.addAction(self.actionForm_Change)
+
         self.menuTools.addAction(self.actionImport_from_Excel)
         self.menuTools.addAction(self.actionExport_to_Excel)
         self.menuTools.addAction(self.customimportexport)
@@ -274,6 +285,7 @@ class Ui_EXAUT_GUI():
         
         self.actionTab_Move.setText(_translate("EXAUT_GUI", "Move Tab -> Form"))
         self.actionTab_Copy.setText(_translate("EXAUT_GUI", "Copy Tab -> Form"))
+        self.actionForm_Change.setText(_translate("EXAUT_GUI", "Change Form"))
 
         self.actionTabUrl.setText(_translate("EXAUT_GUI", "Add Tab URL"))
 
