@@ -983,6 +983,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
         #popup with form dropdown and button dropdown
         self.tabto_create_popup = QtWidgets.QDialog()
+        self.tabto_create_popup.setWindowTitle("Create Tabto")
 
         self.tabto_create_popup.setFixedSize(300,200)
         self.tabto_create_popup.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
