@@ -19,7 +19,25 @@ class Edit_Popup(QMainWindow):
         self.parent_ = parent_
         self.complete = False
         widget = QWidget()
+
+
+
+        
+        self.save = QPushButton(self)
+        self.save.setText("Update")
+        self.save.clicked.connect(self.on_click_save)
+        if not state:
+            self.save.setDisabled(True)
+
+        self.delete = QPushButton(self)
+        self.delete.setText("Delete")
+        self.delete.clicked.connect(self.on_click_delete)
+
         self.layout = QFormLayout(widget)
+        editdelete_grid = QGridLayout()
+        editdelete_grid.addWidget(self.save, 0, 0)
+        editdelete_grid.addWidget(self.delete, 0, 1)
+        self.layout.addRow(editdelete_grid)
 
         self.setCentralWidget(widget)
 
@@ -53,16 +71,6 @@ class Edit_Popup(QMainWindow):
 
         self.button_name_edit = QLineEdit(self)
         self.button_name_edit.setText((self.button_name))
-
-        self.save = QPushButton(self)
-        self.save.setText("Update")
-        self.save.clicked.connect(self.on_click_save)
-        if not state:
-            self.save.setDisabled(True)
-
-        self.delete = QPushButton(self)
-        self.delete.setText("Delete")
-        self.delete.clicked.connect(self.on_click_delete)
 
         self.layout.addRow("Form name", self.forms_dd)
         self.layout.addRow("Tab name", self.tabs_dd)
@@ -103,10 +111,6 @@ class Edit_Popup(QMainWindow):
                 self.batchsequence_edit_dict.update({key:qlineedit})
                 self.layout.addRow(label, qlineedit)
             
-        editdelete_grid = QGridLayout()
-        editdelete_grid.addWidget(self.save, 0, 0)
-        editdelete_grid.addWidget(self.delete, 0, 1)
-        self.layout.addRow(editdelete_grid)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.complete != True:
