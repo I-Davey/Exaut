@@ -85,11 +85,19 @@ class Singstat_Infographic(PluginInterface):
         df = df.drop(columns=["position"])
 
         #load into excel
-        df.to_excel(source + "/singstat_infographic.xlsx")
-        self.logger.success("Singstat Infographic Scraper: Saved to " + source + "/singstat_infographic.xlsx")
-        
+        while True:
+            try:
+                df.to_excel(source + "/singstat_infographic.xlsx")
+                self.logger.success("Singstat Infographic Scraper: Saved to " + source + "/singstat_infographic.xlsx")
+                return True
+            except:
+                self.logger.error("Singstat Infographic Scraper: Could not save to " + source + "/singstat_infographic.xlsx")
+                x = Popups.yesno("Singstat Infographic Scraper: Could not save to " + source + "/singstat_infographic.xlsx, Would you like to Retry?", "Singstat Infographic Scraper")
+                if not x:
+                    return False
+            
 
-    
+        
 
 
 
