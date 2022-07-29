@@ -286,8 +286,8 @@ class UserInterfaceHandlerPyQT():
             del self.gui.popup_msgs[key]
             return res
 
-        def tabto(self, tab):
-            return self.call(self.gui.signal_popup_tabto, (tab))
+        def tabto(self, tab, form = None):
+            return self.call(self.gui.signal_popup_tabto, (tab, form))
 
     def user_input(self, input_):
         return input(input_)
@@ -481,12 +481,13 @@ class UserInterfaceHandlerPyQT():
         return self.readsql(select(forms.formname, forms.formdesc).order_by(forms.formname.asc()))
         
 
-    def add_tabto(self, tabto, tab_name, form):
-        q = self.writesql(insert(buttons).values(formname = form, tab = tab_name, buttonname = tabto, buttondesc="tabto", columnnum = 0, buttonsequence = 0))
+    def add_tabto(self,  tabto, form, tab_name, old_form):
+        buttonname = f"{form}|{tabto}"
+        q = self.writesql(insert(buttons).values(formname = old_form, tab = tab_name, buttonname = buttonname,  buttondesc=f"tabto form:{form} | tab:{tabto}", columnnum = 0, buttonsequence = 0))
         if not q:
             self.alert(f"Error adding button {tabto} to {tab_name} in {form}")
             return
-        q = self.writesql(insert(batchsequence).values(formname = form, tab = tab_name, buttonname = tabto, runsequence=0, filename=tabto, type = "tabto"))
+        q = self.writesql(insert(batchsequence).values(formname = old_form, tab = tab_name, buttonname = buttonname,  folderpath = form, runsequence=0, filename=tabto, type = "tabto"))
         if not q:
             self.alert(f"Error adding batchsequence {tabto} to {tab_name} in {form}")
             return
