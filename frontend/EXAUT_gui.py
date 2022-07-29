@@ -131,7 +131,7 @@ class Ui_EXAUT_GUI():
         self.actionAdd_Seq.setObjectName("actionAdd_Seq")
 
 
-        self.actionedit_mode = QtGui.QAction(EXAUT_GUI)
+        self.actionedit_mode = QtGui.QAction(EXAUT_GUI,  checkable=True)
         self.actionedit_mode.setObjectName("actionedit_mode")
 
 
@@ -200,7 +200,6 @@ class Ui_EXAUT_GUI():
         self.menuEdit.addAction(self.actionAdd_Desc)
 
         self.menuEdit_form.addAction(self.actionEdit_layout)
-        self.menuEdit_form.addAction(self.actionHidden_mode)
         self.menuEdit_form.addAction(self.actionTab_Copy)
         self.menuEdit_form.addAction(self.actionTab_Move)
 
@@ -210,6 +209,7 @@ class Ui_EXAUT_GUI():
         self.menuEdit_form.addAction(self.actionAdd_tabto)
         self.menuEdit_form.addAction(self.actionAdd_tablast)
         self.menuEdit_form.addAction(self.actionedit_mode)
+        self.menuEdit_form.addAction(self.actionHidden_mode)
 
 
         self.menuView.addAction(self.actionRefresh)
