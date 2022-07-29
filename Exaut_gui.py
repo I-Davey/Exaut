@@ -280,7 +280,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     #pass signal_popup_custom with any data tytpe
     signal_popup_custom = QtCore.pyqtSignal(str, object)
     signal_popup_data = QtCore.pyqtSignal(str,str,str)
-    signal_popup_tabto = QtCore.pyqtSignal(str, str)
+    signal_popup_tabto = QtCore.pyqtSignal(str, str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
 
 
@@ -737,13 +737,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         curtabtext = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
         self.api.add_tablast("tablast", curtabtext, self.form_title)
 
-    def add_tabto(self):
-        self.db_refresh()
-        curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
-        tab_to = QInputDialog.getItem(self, "Add Tab", "Tab To:", self.tablist, 0, False)
-        if not tab_to[1] or tab_to[0] == "":
-            return
-        self.api.add_tabto(tab_to[0], curtab, self.form_title)
+   
 
     def add_process(self):
         self.db_refresh()
@@ -969,6 +963,90 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
             
+
+#create_todo
+
+
+    def add_tabto(self):
+
+
+       
+        self.tabto_create_form_dict = self.api.button_map()
+    
+        self.tabto_create_form_dropdown = QtWidgets.QComboBox()
+        self.tabto_create_tab_dropdown = QtWidgets.QComboBox()
+
+        self.tabto_create_form_dropdown.addItems(list(self.tabto_create_form_dict.keys()))
+        self.tabto_create_form_dropdown.currentTextChanged.connect(self.button_copy_form_change)
+
+
+
+        #popup with form dropdown and button dropdown
+        self.tabto_create_popup = QtWidgets.QDialog()
+
+        self.tabto_create_popup.setFixedSize(300,200)
+        self.tabto_create_popup.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
+        self.tabto_create_popup.setModal(True)
+        self.tabto_create_popup.setWindowIcon(QtGui.QIcon(self.icon))
+
+        gridlayout = QtWidgets.QGridLayout()
+        self.tabto_create_popup.setLayout(gridlayout)
+        #add form dropdown
+        self.tabto_create_form_dropdown_label = QtWidgets.QLabel("Form:")
+        self.tabto_create_form_dropdown_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.tabto_create_form_dropdown_label.setFixedWidth(50)
+        self.tabto_create_form_dropdown_label.setFixedHeight(20)
+        gridlayout.addWidget(self.tabto_create_form_dropdown_label, 0, 0)
+        gridlayout.addWidget(self.tabto_create_form_dropdown, 0, 1)
+
+        #add button dropdown
+        self.tabto_create_tab_dropdown_label = QtWidgets.QLabel("Tab:")
+        self.tabto_create_tab_dropdown_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.tabto_create_tab_dropdown_label.setFixedWidth(50)
+        self.tabto_create_tab_dropdown_label.setFixedHeight(20)
+        gridlayout.addWidget(self.tabto_create_tab_dropdown_label, 1, 0)
+        gridlayout.layout().addWidget(self.tabto_create_tab_dropdown, 1, 1)
+
+
+
+
+
+        #save button:
+
+        self.tabto_create_save_button = QtWidgets.QPushButton("Create")
+        #button expand to fill row, columnspan 2
+        self.tabto_create_save_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.tabto_create_save_button.setFixedHeight(30)
+        
+        gridlayout.addWidget(self.tabto_create_save_button, 3, 1)
+        self.tabto_create_save_button.clicked.connect(self.tabto_create_save)
+
+
+
+        self.tabto_create_form_dropdown.setCurrentIndex(self.tabto_create_form_dropdown.findText(self.form_title))
+        self.button_copy_form_change(self.form_title)
+
+        self.tabto_create_popup.show()
+
+    def tabto_create_save(self):
+        #get form and button
+        form = self.tabto_create_form_dropdown.currentText()
+    
+        tab = self.tabto_create_tab_dropdown.currentText()
+
+
+        curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+
+        self.api.add_tabto(tab, form, curtab, self.form_title)
+
+        
+        self.tabto_create_popup.close()
+
+    def button_copy_form_change(self, form):
+        self.tabto_create_tab_dropdown.clear()
+        self.tabto_create_tab_dropdown.addItems(list(self.tabto_create_form_dict[form].keys()))
+        
+
 ###################################################################################################################################
 
 ##Gui->Backend Query Handlers######################################################################################################
@@ -1039,17 +1117,29 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         component.signal.connect(lambda x: self.popup_msgs.update({key:x}))
 
 
-    def tabto(self,key, tabname):
-        if not bool(tabname):
+    def tabto(self,key, tabname, form = None):
+        if form:
+            self.api.formname = form
+            self.curTab = 0
+
+            self.load()
+            self.refresh()
+            self.logger.info("Form changed to: " + form)
+
+        if bool(tabname):
+            self.lasttab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+            index = [index for index in range(self.SM_Tabs.count()) if str(tabname) == self.SM_Tabs.tabText(index)]
+            
+        else:
             if self.lasttab:
                 index = [index for index in range(self.SM_Tabs.count()) if str(self.lasttab) == self.SM_Tabs.tabText(index)]
             else:
                 index = ""
-        else:
-            self.lasttab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
-            index = [index for index in range(self.SM_Tabs.count()) if str(tabname) == self.SM_Tabs.tabText(index)]
+
+
         if len(index)>0:
             self.SM_Tabs.setCurrentIndex(index[0])
+        
         self.popup_msgs[key] = True
             
 ##############################################################################################################################
