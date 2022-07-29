@@ -1119,21 +1119,36 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
     def tabto(self,key, tabname, form = None):
-        if form:
-            self.api.formname = form
-            self.curTab = 0
 
-            self.load()
-            self.refresh()
-            self.logger.info("Form changed to: " + form)
 
-        if bool(tabname):
+        if tabname:
             self.lasttab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+            if form:
+                self.lastform = self.form_title
+                self.api.formname = form
+                self.curTab = 0
+
+                self.load()
+                self.refresh()
+                self.logger.info("Form changed to: " + form)
+
             index = [index for index in range(self.SM_Tabs.count()) if str(tabname) == self.SM_Tabs.tabText(index)]
             
         else:
             if self.lasttab:
+                if self.lastform:
+                    self.api.formname = self.lastform
+                    self.load()
+                    self.refresh()
+                    self.logger.info("Form changed to: " + self.lastform)
+                    self.lastform = None
+                for i in range(self.SM_Tabs.count()):
+                    item = self.SM_Tabs.tabText(i)
+                    if item == self.lasttab:
+                        index = [i]
+                        break
                 index = [index for index in range(self.SM_Tabs.count()) if str(self.lasttab) == self.SM_Tabs.tabText(index)]
+                
             else:
                 index = ""
 
