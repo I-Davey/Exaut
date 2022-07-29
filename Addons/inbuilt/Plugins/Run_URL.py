@@ -82,6 +82,8 @@ class Run_URL(PluginInterface):
                 btn["buttondesc"] = "GD Document"
             elif "docs.google.com/form" in bseq["source"]:
                 btn["buttondesc"] = "GD Form"
+            elif "github.com" in bseq["source"]:
+                btn["buttondesc"] = "GitHub"
             
             
 
