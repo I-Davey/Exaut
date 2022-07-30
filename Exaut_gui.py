@@ -1025,7 +1025,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
         self.tabto_create_form_dropdown.setCurrentIndex(self.tabto_create_form_dropdown.findText(self.form_title))
-        self.button_copy_form_change(self.form_title)
+        self.tabto_form_change(self.form_title)
 
         self.tabto_create_popup.show()
 
@@ -1043,7 +1043,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         
         self.tabto_create_popup.close()
 
-
+    def tabto_form_change(self, form):
+        self.tabto_create_tab_dropdown.clear()
+        self.tabto_create_tab_dropdown.addItems(list(self.tabto_create_form_dict[form].keys()))
         
 
 ###################################################################################################################################
