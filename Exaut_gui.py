@@ -345,6 +345,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionOpen_Files_Explorer.triggered.connect(self.open_tab_folder)
         self.actionOpenTabUrl.triggered.connect(self.open_tab_url)
         self.actionHidden_mode.triggered.connect(self.show_hidden_tabs_handler)
+        self.actionAdd_Form.triggered.connect(self.add_new_form)
 
 
         #lambda self.size_static = not self.size_static
@@ -966,12 +967,18 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 #create_todo
 
+    def add_new_form(self):
+        #popup enter form name
+        self.db_refresh()
+        formname = QInputDialog.getText(self, "Add Form", "Form Name:")
+        if not formname[1] or not formname[0]:
+            return
+        curtabtext = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+        self.api.add_form(formname[0], curtabtext, self.title)
+        self.refresh()
 
     def add_tabto(self):
 
-       # self._button_copy_move_dropdown = None if it doesnt ezxist
-        if "self._button_copy_move_tab_dropdown" not in self.__dict__:
-            self._button_copy_move_tab_dropdown = None
 
 
        
@@ -1038,6 +1045,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         form = self.tabto_create_form_dropdown.currentText()
     
         tab = self.tabto_create_tab_dropdown.currentText()
+        if not tab:
+            tab = " "
 
 
         curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())

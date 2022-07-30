@@ -115,8 +115,13 @@ class Ui_EXAUT_GUI():
         self.actionAdd_exe = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_exe.setObjectName("actionAdd_exe")
 
+        self.actionAdd_Form = QtGui.QAction(EXAUT_GUI)
+        self.actionAdd_Form.setObjectName("actionAdd_Form")
+
         self.actionAdd_tabto = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_tabto.setObjectName("actionAdd_tabto")
+
+
         self.actionAdd_tablast = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_tablast.setObjectName("actionAdd_tablast")
 
@@ -215,6 +220,7 @@ class Ui_EXAUT_GUI():
         self.menuView.addAction(self.actionRefresh)
 
         self.menuTools.addAction(self.actionForm_Change)
+        self.menuTools.addAction(self.actionAdd_Form)
 
         self.menuTools.addAction(self.actionImport_from_Excel)
         self.menuTools.addAction(self.actionExport_to_Excel)
@@ -273,6 +279,7 @@ class Ui_EXAUT_GUI():
         self.actionAdd_exe.setText(_translate("EXAUT_GUI", "Add .exe"))
         self.actionAdd_exe.setShortcut(_translate("EXAUT_GUI", "Ctrl+A"))
         self.actionAdd_tabto.setText(_translate("EXAUT_GUI", "Add Tabto"))
+        self.actionAdd_Form.setText(_translate("EXAUT_GUI", "Add Form"))
         self.actionAdd_tablast.setText(_translate("EXAUT_GUI", "Add Tablast"))
         self.actionAbout.setText(_translate("EXAUT_GUI", "About"))
         self.actionCopy.setText(_translate("EXAUT_GUI", "Copy File"))

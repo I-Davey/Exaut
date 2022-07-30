@@ -481,6 +481,25 @@ class UserInterfaceHandlerPyQT():
         return self.readsql(select(forms.formname, forms.formdesc).order_by(forms.formname.asc()))
         
 
+    def add_form(self, form_name, curtab, curform):
+        x = self.writesql(insert(forms).values(formname = form_name, formdesc = ""))
+        if not x:
+            self.alert(f"Form {form_name} already exists")
+            return False
+        #add button called open {form} 
+        x = self.writesql(insert(buttons).values(formname = curform, tab = curtab, buttonname = "open form " + form_name))
+        if not x:
+            self.alert(f"Button {'open form' + form_name} already exists")
+            return False
+        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname = "open form " + form_name, type = "tabto", folderpath=form_name, filename=" "))
+
+        if not x:
+            self.alert("Error adding batchsequence")
+            return False
+
+
+        self.gui_refresh()
+
     def add_tabto(self,  tabto, form, tab_name, old_form):
         buttonname = f"{form}|{tabto}"
         q = self.writesql(insert(buttons).values(formname = old_form, tab = tab_name, buttonname = buttonname,  buttondesc=f"tabto form:{form} | tab:{tabto}", columnnum = 0, buttonsequence = 0))
