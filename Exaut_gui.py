@@ -969,6 +969,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def add_tabto(self):
 
+       # self._button_copy_move_dropdown = None if it doesnt ezxist
+        if "self._button_copy_move_tab_dropdown" not in self.__dict__:
+            self._button_copy_move_tab_dropdown = None
+
 
        
         self.tabto_create_form_dict = self.api.button_map()
@@ -977,7 +981,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tabto_create_tab_dropdown = QtWidgets.QComboBox()
 
         self.tabto_create_form_dropdown.addItems(list(self.tabto_create_form_dict.keys()))
-        self.tabto_create_form_dropdown.currentTextChanged.connect(self.button_copy_form_change)
+        self.tabto_create_form_dropdown.currentTextChanged.connect(self.tabto_form_change)
 
 
 
