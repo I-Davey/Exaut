@@ -1043,9 +1043,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         
         self.tabto_create_popup.close()
 
-    def button_copy_form_change(self, form):
-        self.tabto_create_tab_dropdown.clear()
-        self.tabto_create_tab_dropdown.addItems(list(self.tabto_create_form_dict[form].keys()))
+
         
 
 ###################################################################################################################################
