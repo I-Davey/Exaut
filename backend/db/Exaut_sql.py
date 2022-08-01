@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, func, and_, null, update
 from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
-tables = ["forms", "tabs", "buttons", "batchsequence", "buttonseries", "pluginmap", "actions", "actions_categories"]
+tables = ["forms", "tabs", "buttons", "batchsequence", "buttonseries", "pluginmap", "actions", "actions_categories", "variables"]
 
 
 #forms ddl: CREATE TABLE forms(formname char (63),formdesc TEXT,primary key(formname));
