@@ -1,6 +1,7 @@
 
 
 
+from genericpath import isdir
 from threading import Thread
 from inspect import iscoroutinefunction
 import os
@@ -39,29 +40,24 @@ for path in python_install_location:
 
 class PluginManager:
     	
-    def __init__(self):
+    def __init__(self, plugin_type_types, plugin_loc):
         # key is type class, value is true if on else false
         self.plugins = {}
-        self.plugin_loc = {}
+        self.plugin_loc = plugin_loc
         self.plugin_map = {}
+        self.plugin_type_types = plugin_type_types
 
 
-    
-    def initialisePlugins(self,logger, handlers, methods, plugin_type_types, plugin_loc, plugin_folder):
-        sys.path.append(plugin_folder)
 
-        for plugin in os.listdir(plugin_folder):
-            try:
-                if plugin.endswith(".py"):
-                    #plugininterface_object = plugininterface()
+    def loadcode(self,logger, handlers, methods, plugin, category = "<Uncategorised>"):
                     plugin = plugin[:-3]
                     exec(f"import {plugin}")
                     
                     current_item = eval(f"{plugin}.{plugin}()")
                     if current_item.load != True:
                         logger.warning(f"{plugin} is not active")
-                        continue
-                    self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item}})
+                        return
+                    self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item, "category" : category}})
                     self.plugin_map.update({plugin : current_item.callname})
 
                         #check if current_item.callname is a tuple, if it is add twice
@@ -80,21 +76,35 @@ class PluginManager:
                     if current_item.type_types != {}:
                         #if is string
                         if isinstance(current_item.type_types, str):
-                            plugin_type_types.update({plugin :[True, current_item.load_types,current_item.type_types]})        
+                            self.plugin_type_types.update({plugin :[True, current_item.load_types,current_item.type_types]})        
                         elif isinstance(current_item.type_types, bool):  
-                                plugin_type_types.update({plugin : [True, current_item.load_types]})
+                                self.plugin_type_types.update({plugin : [True, current_item.load_types]})
                         #if key "__Name exists in current_item.type_types"
                         elif "__Name" in current_item.type_types.keys():
-                            plugin_type_types.update({plugin :[ current_item.type_types,current_item.type_types["__Name"]]})
+                            self.plugin_type_types.update({plugin :[ current_item.type_types,current_item.type_types["__Name"]]})
                         else:
-                            plugin_type_types.update({plugin : current_item.type_types})
+                            self.plugin_type_types.update({plugin : current_item.type_types})
+                        
+            
+    def initialisePlugins(self,logger, handlers, methods, plugin_folder):
+        sys.path.append(plugin_folder)
+
+        for plugin in os.listdir(plugin_folder):
+            try:
+                if plugin.endswith(".py"):
+                  self.loadcode(logger, handlers, methods, plugin)
+            
+                elif isdir(plugin) and not plugin.startswith("__"):
+                    for subplugin in os.listdir(plugin):
+                        if subplugin.endswith(".py"):
+                            self.loadcode(logger, handlers, methods, subplugin, category = plugin)
             except Exception as e:
                 logger.error("There was an error when loading types. Make sure you follow the naming convention when writing your own types.")
                 logger.error(f"Error: {e} on type {plugin}")
-                return self.plugins, self.plugin_loc, plugin_type_types
+                return self.plugins, self.plugin_loc, self.plugin_type_types
             
         logger.success(f"[Initializer]: Successfully loaded {len(self.plugins)} external {'Plugins.' if len(self.plugins) > 1 else 'Plugin'}: {[*self.plugins]}")
-        return self.plugins, self.plugin_loc, plugin_type_types
+        return self.plugins, self.plugin_loc, self.plugin_type_types
 
 
     def hook_handler(self, hooks, handlers):
@@ -133,8 +143,8 @@ class Plugins_Ext:
 
       
 
-        pluginmanager = PluginManager()
-        self.plugins, self.plugin_loc, self.plugin_type_types = pluginmanager.initialisePlugins(self.logger, self.handlers, self.methods, self.plugin_type_types, self.plugin_loc, plugin_folder)
+        pluginmanager = PluginManager( self.plugin_type_types, self.plugin_loc)
+        self.plugins, self.plugin_loc, self.plugin_type_types = pluginmanager.initialisePlugins(self.logger, self.handlers, self.methods, plugin_folder)
         self.plugin_map = pluginmanager.plugin_map
 
         #logger.success(f"handler dict: {self.handlers}")
