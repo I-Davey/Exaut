@@ -18,6 +18,7 @@ from backend.version import version
 from random import randint
 from backend.actions.actions import Actions_Handler
 import time
+import json
 
 class ConfigHandler:
     def __init__(self, title=None):
@@ -184,6 +185,25 @@ class UserInterfaceHandlerPyQT():
         self.edit_tab = Edit_Tab(self.writesql, self.logger, self.alert)
 
 
+    def handle_vars(self):
+        #where form is self.formname or form is "*"
+        q = self.readsql(select (variables.key, variables.value).where(variables.form == self.formname or variables.form == "*"))
+        self.var_dict = {v.key : v.value for v in q}
+
+    def addvar(self, key, value, overwrite = False, global_var = False):
+        self.refresh()
+        form = "*" if global_var else self.formname
+        if key in self.var_dict:
+            if overwrite:
+                self.writesql(variables.update().where(variables.key == key, variables.form == form).values(value = value))
+            else:
+                self.alert(f"Variable {key} already exists, not overwriting")
+        else:
+            self.writesql(insert(variables).values(key = key, value = value, form = form))
+
+        
+
+
     def handle_plugins(self):
         plugin_map = self.pmgr.plugin_map
         for plugin, types in plugin_map.items():
@@ -301,7 +321,7 @@ class UserInterfaceHandlerPyQT():
         self.gui.signal_refresh.emit()
 
     def refresh(self, launch = False):
-
+        self.handle_vars()
         tab_info, self.buttondata, types_, colors = self.read_mult([select('*').where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()), 
                                                                     select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()), 
                                                                     select(batchsequence.type, batchsequence.tab, batchsequence.buttonname).where(batchsequence.formname == self.formname), 
@@ -474,6 +494,70 @@ class UserInterfaceHandlerPyQT():
 
 
 ##Popup Functions#############################################################################################################
+
+
+##EXPORT FUNCTIONS############################################################################################################
+
+    def export_tab(self, tabname):
+        start_time = perf_counter()
+        button_arr = []
+        batchsequence_arr = []
+
+
+        self.refresh()
+        self.logger.info(f"Exporting tab {tabname}")
+        tab = self.tab_buttons[tabname].copy()
+        if "pipeline_path" not in self.var_dict:
+            self.alert(f"Pipeline path not set in variables, please set it")
+            return
+        path = self.var_dict["pipeline_path"] + "/db_data"
+        if not os.path.exists(path):
+            self.alert(f"Pipeline path {path} does not exist")
+            return
+        if not os.path.isdir(path):
+            self.alert(f"Pipeline path {path} is not a directory")
+            return
+        if not os.access(path, os.W_OK):
+            self.alert(f"Pipeline path {path} is not writable")
+            return
+        if not os.access(path, os.R_OK):
+            self.alert(f"Pipeline path {path} is not readable")
+            return
+        
+        filename = tab["formname"] + "_" + tab["tab"] + ".json"
+
+
+        for i, button in enumerate(tab["buttons"]):
+            if button[4] == "assignseries":
+                self.logger.warning(f"assignseries button {button[1]} on tab {tab['tab']} in form {tab['formname']} not exported")
+                continue
+            formname = tab["formname"]
+            tabname = tab["tab"]
+            buttonname = button[1]
+            button_q = self.readsql(select("*").where(buttons.formname == formname).where(buttons.tab == tabname).where(buttons.buttonname == buttonname), one=True)
+            if len(button_q) == 0: 
+                self.logger.warning(f"button {buttonname} on tab {tabname} in form {formname} not exported")
+                continue
+            batchsequence_q = self.readsql(select("*").where(batchsequence.formname == formname).where(batchsequence.tab == tabname).where(batchsequence.buttonname == buttonname), one=True)
+            if len(batchsequence_q) == 0:
+                self.logger.warning(f"batchsequence {buttonname} on tab {tabname} in form {formname} not exported")
+                continue
+            button_dict = dict(button_q._mapping)
+            batchsequence_dict = dict(batchsequence_q._mapping)
+
+            button_arr.append(button_dict)
+            batchsequence_arr.append(batchsequence_dict)
+        
+        tab.pop("buttons")
+
+        final_dict = {"tabs":tab, "buttons":button_arr, "batchsequence":batchsequence_arr}
+
+
+        with open(path + "/" + filename, "w") as f:
+            json.dump(final_dict, f, indent=4)
+        end_time = perf_counter()
+        self.logger.success(f"Exported tab {tabname} to {path}/{filename} in {round((end_time-start_time),2)} seconds")
+
 
 ##other functions#############################################################################################################
 

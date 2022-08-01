@@ -95,3 +95,11 @@ class actions_categories(Base):
     category = Column(String(63), primary_key=True)
     #sequence not null
     sequence = Column(Integer, nullable=False)
+
+
+#CREATE TABLE variables (form TEXT,"key" TEXT,value TEXT,CONSTRAINT variables_PK PRIMARY KEY (form,"key"));
+class variables(Base):
+    __tablename__ = 'variables'
+    form = Column(String(63), primary_key=True)
+    key = Column(String(63), primary_key=True)
+    value = Column(String(255))

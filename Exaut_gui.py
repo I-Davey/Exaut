@@ -30,6 +30,8 @@ from frontend.Popups.Edit_Popup import Edit_Popup
 from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
 from frontend.Popups.actions.Actions import Actions
+from frontend.Popups.actions.TypeManager.Types.drag_drop import drag_drop
+
 from time import perf_counter
 from Exaut_backend import Loader
 import webbrowser
@@ -1241,9 +1243,27 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #get text from tab
         tab_name = self.SM_Tabs.tabText(tab_index)
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
+        menu.addAction("Export Tab", partial(self.export_tab,tab_name))
         #menu.addAction("actions popup", self.handle_actions)
 
         menu.exec(QtGui.QCursor.pos())
+
+    def export_tab(self, tab_name):
+        #if "pipeline_path" not in self.api.var_dict:
+        
+        if "pipeline_path" not in  self.api.var_dict:
+            self.logger.warning("Pipeline path not set")
+            dlg = QtWidgets.QFileDialog()
+            dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+            dlg.setFileMode(QFileDialog.FileMode.Directory)
+            dlg.setWindowTitle("Select DBX Pipeline Folder")
+            if dlg.exec():
+                path = dlg.selectedFiles()[0]
+                self.api.addvar("pipeline_path", path, global_var=True)
+        self.api.export_tab(tab_name)
+
+
+
 
 class GUI_Handler:
     def __init__(self,title=None):
