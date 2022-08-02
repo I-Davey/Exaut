@@ -1,13 +1,17 @@
+from sqlalchemy import insert
 from __important.PluginInterface import PluginInterface
+from backend.db.Exaut_sql import *
 import os 
 import json
-class runbat(PluginInterface):
+
+class plhandler(PluginInterface):
     load = True
     types = {"source":3}
-    type_types = {"source":["drag_drop_file", "Please select Executable"], "__Name":"Run EXE -> Bat"}
+    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Data Pipeline"}
 
-    callname = "exebat"
+    callname = "phndlr"
     hooks_handler = ["log"]
+    hooks_method = ["writesql"]
 
 
 
@@ -15,11 +19,13 @@ class runbat(PluginInterface):
         self.logger = hooks["log"]
         return True
 
+    def load_self_methods(self, hooks):
+        self.writesql = hooks["writesql"].main
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, folder = "C:\\Users\\idave\\Dropbox (Personal)\\pipeline") -> bool: 
+    def main(self, folder , Plugins) -> bool: 
         folder = folder.replace("/", "\\")
         #for file in folder
         filelist = []
@@ -27,7 +33,9 @@ class runbat(PluginInterface):
             if file.endswith(".json"):
                 file = json.loads(open(folder + "\\" + file, "r").read())
                 filelist.append(file)
-        print(filelist)
+        print("done")
+        for file in filelist:
+            print(file)
 
 
         

@@ -30,7 +30,6 @@ from frontend.Popups.Edit_Popup import Edit_Popup
 from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
 from frontend.Popups.actions.Actions import Actions
-from frontend.Popups.actions.TypeManager.Types.drag_drop import drag_drop
 
 from time import perf_counter
 from Exaut_backend import Loader
