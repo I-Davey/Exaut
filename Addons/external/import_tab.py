@@ -118,8 +118,20 @@ class Popup(QDialog):
         tlayout.addWidget(self.label_select_tab)
         tlayout.addWidget(self.select_tab)
 
+
+
+        form_label = QLabel(self)
+        form_label.setText("Select Form")
+        self.form = QComboBox(self)
+        self.form.addItems(list(self.parent_.api.button_map().keys()))
+
+        flayout2 = QHBoxLayout()
+        flayout2.addWidget(form_label)
+        flayout2.addWidget(self.form)
+        
         layout.addLayout(tlayout)
         layout.addLayout(flayout)
+        layout.addLayout(flayout2)
         layout.addWidget(self.save_button)
 
     #if exited
@@ -130,6 +142,8 @@ class Popup(QDialog):
 
 
     def save_button_clicked(self):
-        self.signal.emit((self.fname.text(), self.select_tab.currentText(), self.parent_.form_title))
+        self.signal.emit((self.fname.text(), self.select_tab.currentText(), self.form.currentText()))
         self._done = True
         self.close()
+
+
