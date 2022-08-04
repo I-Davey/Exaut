@@ -42,8 +42,7 @@ class import_tab(PluginInterface):
             return False
         #select dataset from filelist
         if tabname == "":
-            self.logger.error("Tab name cannot be empty")
-            return False
+            tabname == dataset
         if dataset == "":
             self.logger.error("Dataset name cannot be empty")
             return False
