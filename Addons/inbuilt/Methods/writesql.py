@@ -15,25 +15,29 @@ class writesql(MethodInterface):
         self.logger = hooks["log"]
         self.session = hooks["Sqlite"].session
         self.tables = hooks["Sqlite"].tables
+        self.engine = hooks["Sqlite"].engine
+
         return True
 
     def main(self, queries) -> bool:
         if type(queries) is not list:
             queries = [queries]
         with self.session.begin() as sess:
-            try:
                 for query in queries:
-                    sess.execute(query).all()
-                self.session.commit()
+                    #log query
+                    try:
+                        #self.logger.info(query.compile(dialect=self.engine.dialect))
+                        sess.execute(query).all()
+                    except Exception as e:
+                        if "result object does not return rows." not in str(e):
+                            self.logger.error(e)
+                            sess.rollback()
+                            return False     
+                sess.commit()
                 return True
 
 
-            except Exception as e:
-                if "result object does not return rows." not in str(e):
-
-                    self.logger.error(e)
-                    sess.rollback()
-                    return False      
+ 
 
 
             

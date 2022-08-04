@@ -290,8 +290,8 @@ class UserInterfaceHandlerPyQT():
         def data_entry(self, message, title=""):
             return self.call(self.gui.signal_popup_data, (message, title))
 
-        def custom(self, component):
-            return self.call(self.gui.signal_popup_custom, (component))
+        def custom(self, component, *args):
+            return self.call(self.gui.signal_popup_custom, ([component, args]))
 
        
             
@@ -308,6 +308,10 @@ class UserInterfaceHandlerPyQT():
 
         def tabto(self, tab, form = None):
             return self.call(self.gui.signal_popup_tabto, (tab, form))
+
+        def refresh(self):
+            self.parent_.gui_refresh()
+            return True
 
     def user_input(self, input_):
         return input(input_)
