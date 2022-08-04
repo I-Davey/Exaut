@@ -520,6 +520,7 @@ class UserInterfaceHandlerPyQT():
             return
         if not os.path.isdir(path):
             self.alert(f"Pipeline path {path} is not a directory")
+            self.writesql(delete(variables).where(variables.name == "pipeline_path"))
             return
         if not os.access(path, os.W_OK):
             self.alert(f"Pipeline path {path} is not writable")
