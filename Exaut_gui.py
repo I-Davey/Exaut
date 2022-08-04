@@ -1126,8 +1126,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         else:
             self.popup_msgs[key] = text
 
-    def popup_custom(self,key, component):
-        component = component(self)
+    def popup_custom(self,key, objlist):
+        component, args = objlist
+        component = component(self, *args)
         component.show()
         component.signal.connect(lambda x: self.popup_msgs.update({key:x}))
 

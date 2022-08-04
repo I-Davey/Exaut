@@ -29,7 +29,8 @@ class Add_Form(PluginInterface):
         a = [x["formname"] for x in q]
         popup = Popup
         name, desc = Plugins.custom(popup)
-
+        if not name and not desc:
+            return False
         if name == "":
             self.logger.error("Form name cannot be empty")
             return False
@@ -45,10 +46,11 @@ class Add_Form(PluginInterface):
 
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, name=""):
         super(Popup, self).__init__(parent)
         self.initUI()
         self._done = False
+        print(name)
 
 
     def initUI(self):
@@ -83,7 +85,7 @@ class Popup(QDialog):
     #if exited
     def closeEvent(self, event):
         if not self._done:
-            self.signal.emit((self.fname.text(), self.desc.text()))
+            self.signal.emit((False, False))
         event.accept()
 
 

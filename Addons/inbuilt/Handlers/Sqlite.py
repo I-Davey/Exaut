@@ -25,7 +25,8 @@ class Sqlite(HandlerInterface):
 
 
     def initialise(self) -> bool:
-        self.session = sessionmaker(bind=create_engine(f'sqlite:///{self.db_loc}'), future=True)
+        self.engine = create_engine(f"sqlite:///{self.db_loc}")
+        self.session = sessionmaker(bind=self.engine, future=True)
         self.tables = []
 
         for item in tables:
