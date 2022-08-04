@@ -5,12 +5,12 @@ import os
 import json
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QComboBox
 from PyQt6.QtCore import pyqtSignal
-class plhandler(PluginInterface):
+class import_tab(PluginInterface):
     load = True
     types = {"source":3}
-    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Load Tab json"}
+    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab"}
 
-    callname = "load_tjsn"
+    callname = "load_tabjson"
     hooks_handler = ["log"]
     hooks_method = ["writesql"]
 
