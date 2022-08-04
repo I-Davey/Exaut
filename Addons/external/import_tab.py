@@ -124,6 +124,7 @@ class Popup(QDialog):
         form_label.setText("Select Form")
         self.form = QComboBox(self)
         self.form.addItems(list(self.parent_.api.button_map().keys()))
+        self.form.setCurrentIndex(self.form.findText(self.parent_.form_title))
 
         flayout2 = QHBoxLayout()
         flayout2.addWidget(form_label)
