@@ -441,8 +441,16 @@ class UserInterfaceHandlerPyQT():
                     self.writesql(insert(forms).values(formname = self.formname, formdesc = inpt))
                     self.logger.info(f"Form {self.formname} created")
                     return self.load()
-        self.title = str(form_title)
-        self.form_desc = str(form_desc)
+                else:
+                    self.formname = self.title
+                    form_title = self.title
+                    form_desc = self.form_desc
+            else:
+                self.formname = self.title
+                form_title = self.title
+                form_desc = self.form_desc
+        self.title = str(form_title) if form_title else self.formname
+        self.form_desc = str(form_desc) if form_desc else  self.form_desc
 
         self.edit_sequence_load()
         self.load_edit_button()
@@ -619,7 +627,7 @@ class UserInterfaceHandlerPyQT():
         if not x:
             self.alert(f"Button {'open form' + form_name} already exists")
             return False
-        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname = "open form " + form_name, type = "tabto", folderpath=form_name, filename=" "))
+        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname = "open form " + form_name, type = "tabto", runsequence=0, folderpath=form_name, filename=" "))
 
         if not x:
             self.alert("Error adding batchsequence")
