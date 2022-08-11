@@ -7,7 +7,7 @@ class Add_Form(PluginInterface):
     load = True
     type_types = {"__Name":"Add a New Form"}
 
-    callname = "ppub"
+    callname = "Add_Form"
     hooks_handler = ["log"]
     hooks_method = ["writesql", "readsql"]
 

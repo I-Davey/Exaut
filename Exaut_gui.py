@@ -1250,14 +1250,24 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         tab_name = self.SM_Tabs.tabText(tab_index)
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
         menu.addAction("Export Tab", partial(self.export_tab,tab_name))
+        menu.addAction("Add Export Location", partial(self.add_export_location,tab_name))
         #menu.addAction("actions popup", self.handle_actions)
 
         menu.exec(QtGui.QCursor.pos())
 
     def export_tab(self, tab_name):
         #if "pipeline_path" not in self.api.var_dict:
+        plpaths = []
+        plnames = []
+        for item in self.api.var_dict:
+            #if item startswith pipeline_path
+            if item.startswith("pipeline_path"):
+                #get the value of the key
+                plpaths.append(self.api.var_dict[item])
+                plnames.append(item)
         
-        if "pipeline_path" not in  self.api.var_dict:
+        
+        if plpaths == [] or "pipeline_path" not in  self.api.var_dict:
             self.logger.warning("Pipeline path not set")
             dlg = QtWidgets.QFileDialog()
             dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
@@ -1266,8 +1276,44 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             if dlg.exec():
                 path = dlg.selectedFiles()[0]
                 self.api.addvar("pipeline_path", path, global_var=True)
-        self.api.export_tab(tab_name)
 
+        choices = []
+        results = []
+        for plname in plnames:
+            if len(plname)< 13:
+                continue
+            elif len(plname) == 13:
+                choices.append("default")
+                results.append(plname)
+            else:
+                choices.append(plname[14:])
+                results.append(plname)
+        if choices == []:
+            self.logger.warning("No pipeline paths found")
+            return
+
+        choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
+        if choice[1]:
+            #index of the choice within the choices list
+            index = choices.index(choice[0])
+            self.api.export_tab(tab_name, results[index])
+        
+
+    def add_export_location(self, tab_name):
+        #export location name:
+        name = QInputDialog.getText(self, "Add Export Location", "Enter Export Location Name", text="*")
+        if not name[1]:
+            return
+        name = name[0]
+        dlg = QtWidgets.QFileDialog()
+        dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+        dlg.setFileMode(QFileDialog.FileMode.Directory)
+        dlg.setWindowTitle("Select Export Location")
+        if dlg.exec():
+            path = dlg.selectedFiles()[0]
+            self.api.addvar(f"pipeline_path_{name}", path)
+
+        
 
 
 

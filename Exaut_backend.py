@@ -193,8 +193,10 @@ class UserInterfaceHandlerPyQT():
 
     def handle_vars(self):
         #where form is self.formname or form is "*"
-        q = self.readsql(select (variables.key, variables.value).where(variables.form == self.formname or variables.form == "*"))
-        self.var_dict = {v.key : v.value for v in q}
+        q1 = self.readsql(select (variables.key, variables.value).where(variables.form == "*"))
+        q2 = self.readsql(select (variables.key, variables.value).where(variables.form == self.formname))
+        self.var_dict = {v.key : v.value for v in q1+q2}
+
 
     def addvar(self, key, value, overwrite = False, global_var = False):
         self.refresh()
@@ -206,6 +208,11 @@ class UserInterfaceHandlerPyQT():
                 self.alert(f"Variable {key} already exists, not overwriting")
         else:
             self.writesql(insert(variables).values(key = key, value = value, form = form))
+        
+        #refresh the var_dict and refresh the main gui interface
+        self.handle_vars()
+        self.refresh()
+
 
         
 
@@ -271,7 +278,20 @@ class UserInterfaceHandlerPyQT():
                 if not x:
                     self.logger.error(f"Error adding action {name} to db")
                     input("Press enter to continue")
-                self.logger.success(f'Successfully added action "{name}" to db')           
+                self.logger.success(f'Successfully added action "{name}" to db')     
+        pluginmap_items = [item.plugin for item in self.readsql(select([pluginmap.plugin]))]
+        #values in pmgr.plugin_map
+        #combine actions_all with action_arr without duplicates
+        actions_all =[x for x in  self.pmgr.plugin_map]
+        items_2_del = [item for item in pluginmap_items + action_arr if item not in actions_all and item not in (".", "assignseries", "tablast")]
+        
+        #delete from db
+        for item in items_2_del:
+            self.logger.info(f"Removing plugin {item} from db")
+            self.writesql(delete(pluginmap).where(pluginmap.plugin == item))
+            self.writesql(delete(actions).where(actions.plugin == item))
+        if items_2_del != []:
+            self.handle_plugins()
 
     class Popups:
         def __init__(self, gui, logger, parent_):
@@ -518,7 +538,7 @@ class UserInterfaceHandlerPyQT():
 
 ##EXPORT FUNCTIONS############################################################################################################
 
-    def export_tab(self, tabname):
+    def export_tab(self, tabname, export_loc):
         start_time = perf_counter()
         button_arr = []
         batchsequence_arr = []
@@ -527,16 +547,15 @@ class UserInterfaceHandlerPyQT():
         self.refresh()
         self.logger.info(f"Exporting tab {tabname}")
         tab = self.tab_buttons[tabname].copy()
-        if "pipeline_path" not in self.var_dict:
+        if export_loc not in self.var_dict:
             self.alert(f"Pipeline path not set in variables, please set it")
             return
-        path = self.var_dict["pipeline_path"] + "/db_data"
+        path = self.var_dict[export_loc] + "/db_data"
         if not os.path.exists(path):
             self.alert(f"Pipeline path {path} does not exist")
             return
         if not os.path.isdir(path):
             self.alert(f"Pipeline path {path} is not a directory")
-            self.writesql(delete(variables).where(variables.key == "pipeline_path"))
             return
         if not os.access(path, os.W_OK):
             self.alert(f"Pipeline path {path} is not writable")
