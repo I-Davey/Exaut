@@ -1,0 +1,81 @@
+from sqlalchemy import insert, select
+from __important.PluginInterface import PluginInterface
+from backend.db.Exaut_sql import *
+from PyQt6.QtWidgets import*
+from PyQt6.QtCore import pyqtSignal
+class DB_Viewer(PluginInterface):
+    load = True
+    type_types = {"__Name":"DB Viewer"}
+
+    callname = "dbviewer"
+    hooks_handler = ["log"]
+    hooks_method = ["writesql", "readsql"]
+
+
+
+    def load_self(self, hooks):
+        self.logger = hooks["log"]
+        return True
+
+    def load_self_methods(self, hooks):
+        self.writesql = hooks["writesql"].main
+        self.readsql = hooks["readsql"].main
+
+    # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
+
+
+    def main(self, Plugins) -> bool: 
+        self.table_list = tables
+        gui = Plugins.custom(Popup, self, nowait = True)
+        
+        
+class Popup(QDialog):
+    signal = pyqtSignal(bool)
+    def __init__(self, parent=None, backend=""):
+        super(Popup, self).__init__(parent)
+        self._done = False
+        self.be = backend
+        self.forms = self.be.table_list
+        self.initUI()
+
+
+    def initUI(self):
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+
+        self.tables_dd = QComboBox()
+        self.tables_dd.addItems(self.forms)
+        self.tables_dd.currentIndexChanged.connect(self.tables_dd_changed)
+        self.main_layout.addWidget(self.tables_dd)
+
+
+
+
+    def tables_dd_changed(self):
+        None
+        self.cur_table = eval(self.tables_dd.currentText())
+
+
+
+       
+    def closeEvent(self, event):
+        if not self._done:
+            self.signal.emit(False)
+        event.accept()
+
+
+    def save_button_clicked(self):
+        #self.signal.emit((self.fname.text(), self.desc.text()))
+        self._done = True
+        self.close()
+
+
+        
+
+    
+
+
+    
+
+
+

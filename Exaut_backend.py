@@ -1,4 +1,7 @@
+from asyncio.subprocess import PIPE
+from re import sub
 from time import perf_counter
+from psutil import Popen
 
 from psycopg2 import OperationalError
 from loguru import logger as temp_start_logger
@@ -15,11 +18,14 @@ from sqlalchemy import create_engine,select, update, insert, delete
 from sqlalchemy.orm import sessionmaker
 from threading import Thread
 from backend.version import version
+import backend.version
+
 from random import randint
 from backend.actions.actions import Actions_Handler
 import time
 import json
 
+            
 class ConfigHandler:
     def __init__(self, title=None):
         self.logger = temp_start_logger
@@ -290,7 +296,9 @@ class UserInterfaceHandlerPyQT():
         def data_entry(self, message, title=""):
             return self.call(self.gui.signal_popup_data, (message, title))
 
-        def custom(self, component, *args):
+        def custom(self, component, *args, nowait = False):
+            if nowait:
+                return self.call_nowait(self.gui.signal_popup_custom, ([component, args]))
             return self.call(self.gui.signal_popup_custom, ([component, args]))
 
        
@@ -305,6 +313,14 @@ class UserInterfaceHandlerPyQT():
             res = self.gui.popup_msgs[key]
             del self.gui.popup_msgs[key]
             return res
+
+        def call_nowait(self, signal, args):
+            key = str(self.random())
+            if type(args) != tuple:
+                args = (args,)
+            print(*args)
+            signal.emit(key, *args)
+            return True
 
         def tabto(self, tab, form = None):
             return self.call(self.gui.signal_popup_tabto, (tab, form))
@@ -520,7 +536,7 @@ class UserInterfaceHandlerPyQT():
             return
         if not os.path.isdir(path):
             self.alert(f"Pipeline path {path} is not a directory")
-            self.writesql(delete(variables).where(variables.name == "pipeline_path"))
+            self.writesql(delete(variables).where(variables.key == "pipeline_path"))
             return
         if not os.access(path, os.W_OK):
             self.alert(f"Pipeline path {path} is not writable")
@@ -528,8 +544,12 @@ class UserInterfaceHandlerPyQT():
         if not os.access(path, os.R_OK):
             self.alert(f"Pipeline path {path} is not readable")
             return
+
+        #strip special symbols frin tab["formname"] an  tab["tab"] to be able to use as filename
+
+        fnametab = tab["formname"]
         
-        filename = tab["formname"] + "_" + tab["tab"] + ".json"
+        filename = "".join(e for e in fnametab if e.isalnum()) + "_" + tab["tab"] + ".json"
 
 
         for i, button in enumerate(tab["buttons"]):

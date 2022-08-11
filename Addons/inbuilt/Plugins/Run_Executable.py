@@ -24,6 +24,10 @@ class Run_Executable(PluginInterface):
     def getTypeFunc(self, bseq, btn) -> dict:
         new_file = bseq["path_exe"]
         new_file = new_file.replace("/","\\")
+        #replace double slash with single slash
+        
+
+
         #delete path_exe
         btn["buttondesc"] = bseq["path_exe"]
         del bseq["path_exe"]
@@ -116,6 +120,7 @@ class Run_Executable(PluginInterface):
         else:
             actualpath = path+"\\"+file
             self.logger.error(f"Program not found at location {actualpath}")
+            Popups.alert("Program not found at location: "+actualpath,"Failed py: "+bname+"! \\"+str(otherval))
         os.chdir(orig_dir)
         return False
 
