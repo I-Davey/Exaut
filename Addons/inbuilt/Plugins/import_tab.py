@@ -1,5 +1,5 @@
 from sqlalchemy import insert
-from __important.PluginInterface import PluginInterface
+from .__important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
 import os 
 import json
