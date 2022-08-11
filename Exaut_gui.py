@@ -2,27 +2,18 @@
 from argparse import Action
 from time import perf_counter
 start_time = perf_counter()
-
 print("loading..")
 from PyQt6 import QtCore,QtGui,QtWidgets
-
 from PyQt6.QtWidgets import *
 from PyQt6 import QtGui
-
 import traceback
-
 import time
 import os,sys
 import math,math
 from functools import partial
 import re
-
 import pyperclip
-
-
-
 import json
-
 import frontend.EXAUT_gui as EXAUT_gui
 from frontend.Popups.Create_sequence import Create_sequence
 from frontend.Popups.edit_popup_tab import edit_popup_tab
@@ -44,6 +35,20 @@ class CustomTab(QtWidgets.QTabWidget):
     def __init__(self, parent):
         super(CustomTab, self).__init__(parent)
         self.parent_ = parent
+        style_data = f"""{{
+                            border-style: solid;
+                            background-color: {QtGui.QColor(229, 241, 251).name()};
+                            border-width: 1px 1px 1px 1px;
+                            border-radius: 2px;
+                            border-color: {QtGui.QColor(0, 120, 215).name()};
+                            padding: 4px;
+                            }}
+                            """
+        stylesheet = f""" 
+        QTabBar::tab:selected {style_data}
+        QTabWidget>QWidget>QWidget{style_data}
+        """
+        self.setStyleSheet(stylesheet)
         #self.add_buttons()
 
     def add_buttons(self):
@@ -934,6 +939,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
         self._button_copy_move_form_dropdown.setCurrentIndex(self._button_copy_move_form_dropdown.findText(self.form_title))
+        self._button_copy_move_tab_dropdown.setCurrentIndex(self._button_copy_move_tab_dropdown.findText(tab_name))
         self.button_copy_form_change(self.form_title)
 
         self._button_copy_move_popup.show()

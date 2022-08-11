@@ -44,11 +44,13 @@ class buttons(Base):
 
 #CREATE TABLE batchsequence(formname char (63),tab char (63),buttonname char (63),runsequence INTEGER,folderpath char (1023),filename char (255),type char (63),source char (1023),target char (1023),databasepath char (1023),databasename char (255),keypath char (1023),keyfile char (255),treepath CHAR (1023),primary key(formname,tab,buttonname,runsequence));
 class batchsequence(Base):
+    #batchseqence runsequence can be null
+
     __tablename__ = 'batchsequence'
     formname = Column(String(63), primary_key=True)
     tab = Column(String(63), primary_key=True)
     buttonname = Column(String(63), primary_key=True)
-    runsequence = Column(Integer, primary_key=True)
+    runsequence = Column(Integer, primary_key=True, nullable=True, autoincrement=True)
     folderpath = Column(String(1023))
     filename = Column(String(255))
     type = Column(String(63))
@@ -59,7 +61,7 @@ class batchsequence(Base):
     keypath = Column(String(1023))
     keyfile = Column(String(255))
     treepath = Column(String(1023))
-
+    
 
 #CREATE TABLE buttonseries(formname char(63),tab char(63),buttonname char(63),assignname char(63),runsequence INTEGER,primary key(formname,tab,buttonname,assignname,runsequence));
 class buttonseries(Base):

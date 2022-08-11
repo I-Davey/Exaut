@@ -455,8 +455,9 @@ class Actions(QMainWindow):
 
         del[newmap["button_name"]]
         del[newmap["button_description"]]
-        batchsequence_value_dict = {}
+        batchsequence_value_dict = {"runsequence":0}
         batchsequence_value_dict.update(both_value_dict)
+
         for item in newmap:
             batchsequence_value_dict[item] = newmap[item]
         if self.mode == "edit":
