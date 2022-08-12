@@ -42,7 +42,8 @@ class WWG_GDrive_to_xlsx(PluginInterface):
         gauth = GoogleAuth()
         gauth.LocalWebserverAuth()
 
-        folders = folders = {'1. wwg': '0AOG66lUCLaTtUk9PVA', '2. client & partner accounts': '0AIYHFwOssZQlUk9PVA', '3. projects': '0AAElCGhMRwuvUk9PVA', '4. business development': '0AJHm2j8iDozAUk9PVA', '5. marketing': '0ABdxz7Lx5bjlUk9PVA', '6. success': '0AM_bLyoeGm83Uk9PVA', '7. sustainability': '0AAnRIXoVay5dUk9PVA', '12. executive committee': '0AMYkgv6Pnp5qUk9PVA', '15. g17eco': '0AHaqiGXyRb4TUk9PVA', '19. wwg academy': '0AG3bMM83nciQUk9PVA', 'ct light': '0ADPFl5O78BFcUk9PVA', 'project tracker app': '0ANnua7IDH2boUk9PVA', 'project ubuntu': '0AKcdgIqiIH15Uk9PVA', 'sustainability reseach': '0AO5QxsK4LVw3Uk9PVA'}        #Parse('SHARED FOLDERS').cfg
+        folders = {'1. wwg': '0AOG66lUCLaTtUk9PVA', '2. client & partner accounts': '0AIYHFwOssZQlUk9PVA', '3. projects': '0AAElCGhMRwuvUk9PVA', '4. business development': '0AJHm2j8iDozAUk9PVA', '5. marketing': '0ABdxz7Lx5bjlUk9PVA', '6. success': '0AM_bLyoeGm83Uk9PVA', '7. sustainability': '0AAnRIXoVay5dUk9PVA', '12. executive committee': '0AMYkgv6Pnp5qUk9PVA', '15. g17eco': '0AHaqiGXyRb4TUk9PVA', '19. wwg academy': '0AG3bMM83nciQUk9PVA', 'ct light': '0ADPFl5O78BFcUk9PVA', 'project tracker app': '0ANnua7IDH2boUk9PVA', 'project ubuntu': '0AKcdgIqiIH15Uk9PVA', 'sustainability reseach': '0AO5QxsK4LVw3Uk9PVA'}        #Parse('SHARED FOLDERS').cfg
+        self.folders_kvswapped = {v: k for k, v in folders.items()}
         #Parse('SHARED FOLDERS').cfg
         self.logger.debug(folders)
 
@@ -101,7 +102,7 @@ class WWG_GDrive_to_xlsx(PluginInterface):
                     'zip':'ZIP file'}
 
 
-        self.data =[['File', 'File Type', 'Folder Location', 'Link', 'Path', 'URL', 'Modified', 'Modified By', 'Created']]
+        self.data =[['File', 'File Type', 'Folder Location', 'Link', 'Path', 'URL', 'Modified', 'Modified By', 'Created', 'Main Folder']]
 
         count = 0
         max = 100
@@ -160,7 +161,7 @@ class WWG_GDrive_to_xlsx(PluginInterface):
             path = full_path + '/' + item['title']
             temp_path = "/" + path
 
-            self.data.append([item['title'], file_type, folder_location, link, temp_path, url, modified, modified_by, created])
+            self.data.append([item['title'], file_type, folder_location, link, temp_path, url, modified, modified_by, created, self.folders_kvswapped[folder_id]])
             self.logger.debug(f'{file_type} {item["title"]} {url} {modified} {modified_by} {created}')
 
             if file_type == 'folder':
