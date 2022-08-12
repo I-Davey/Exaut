@@ -286,7 +286,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_select_file_popup = QtCore.pyqtSignal(str,str,str)
     #pass signal_popup_custom with any data tytpe
     signal_popup_custom = QtCore.pyqtSignal(str, object)
-    signal_popup_data = QtCore.pyqtSignal(str,str,str)
+    signal_popup_data = QtCore.pyqtSignal(str,str,str,str)
     signal_popup_tabto = QtCore.pyqtSignal(str, str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
 
@@ -1126,9 +1126,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.popup_msgs[key] = False
 
 
-    def data_entry_popup(self,key, message, title):
+    def data_entry_popup(self,key, message, title, default = ""):
 
-        text, ok = QInputDialog.getText(self, title, message)
+        text, ok = QInputDialog.getText(self, title, message, QLineEdit.EchoMode.Normal, default)
         if not ok: 
             self.popup_msgs[key] = None
         else:

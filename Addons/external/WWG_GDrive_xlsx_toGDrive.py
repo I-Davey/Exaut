@@ -45,6 +45,9 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
 
         #file is D:/xlsxfiletouploadtogdrive.xlsx
         #upload to gdrive
+        filename = filename.replace(".xlsx", "")
+        filename =  Popups.data_entry("Enter the name of the file to upload", "Upload file", filename)
+        filename = filename + ".xlsx"
 
         file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
         for file1 in file_list:

@@ -313,8 +313,8 @@ class UserInterfaceHandlerPyQT():
             return self.call(self.gui.signal_popup_yesno,(message, title, default))
 
 
-        def data_entry(self, message, title=""):
-            return self.call(self.gui.signal_popup_data, (message, title))
+        def data_entry(self, message, title="", default=""):
+            return self.call(self.gui.signal_popup_data, (message, title, default))
 
         def select_file(self, title, folderloc=""):
             return self.call(self.gui.signal_select_file_popup, (title, folderloc))
