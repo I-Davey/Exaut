@@ -199,7 +199,7 @@ class Dialog(QDialog):
 
     def closeEvent(self, a0) -> None:
         if self._done:
-            self.signal.emit((self.keywords.text(), self.folder_combobox.currentText(), self.filetype_combobox.currentText(), self.start_date.date().toPyDate(), self.end_date.date().toPyDate(), self.is_date_filtered))
+            self.signal.emit((self.keywords.text().lower(), self.folder_combobox.currentText(), self.filetype_combobox.currentText(), self.start_date.date().toPyDate(), self.end_date.date().toPyDate(), self.is_date_filtered))
         else:
             self.signal.emit((None,))
             self.close()
