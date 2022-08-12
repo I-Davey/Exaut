@@ -89,7 +89,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             df["Created"] = df["Created"].dt.tz_localize(None)
         #save to excel file
         try:
-            df.to_excel(save_loc + "\\" + "WWG_GDrive_PyDrive_Filtered" + "_".join(df["file"])+".xlsx")
+            df.to_excel(save_loc + "\\" + "WWG_GDrive_PyDrive_Filtered_" + "_".join(keywords) +".xlsx")
         except Exception as e:
             Popups.alert(str(e), "Error")
             return False
