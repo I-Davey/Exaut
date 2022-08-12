@@ -316,8 +316,8 @@ class UserInterfaceHandlerPyQT():
         def data_entry(self, message, title=""):
             return self.call(self.gui.signal_popup_data, (message, title))
 
-        def select_file(self, title, filetype=""):
-            return self.call(self.gui.signal_select_file_popup, (title, filetype))
+        def select_file(self, title, folderloc=""):
+            return self.call(self.gui.signal_select_file_popup, (title, folderloc))
 
         def custom(self, component, *args, nowait = False):
             if nowait:

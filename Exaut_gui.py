@@ -1134,8 +1134,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         else:
             self.popup_msgs[key] = text
 
-    def select_file_popup(self,key, title, filetype):
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, title, "", "All Files (*)")
+    def select_file_popup(self,key, title, folderloc):
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, title, folderloc, "All Files (*)")
         if file_name:
             self.popup_msgs[key] = file_name
         else:
