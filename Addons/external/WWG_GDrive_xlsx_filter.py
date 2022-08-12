@@ -83,13 +83,16 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             df["Modified"] = df["Modified"].dt.tz_localize(None)
             df["Created"] = df["Created"].dt.tz_localize(None)
         #save to excel file
-        try:
-            df.to_excel(save_loc + "\\" + "WWG_GDrive_Filtered.xlsx")
-        except Exception as e:
-            Popups.alert(str(e), "Error")
-            return False
-        self.logger.success(f"Saved to: {save_loc}")
-        return True
+        while True:
+            try:
+                df.to_excel(save_loc + "\\" + "WWG_GDrive_Filtered.xlsx")
+            except Exception as e:
+                Popups.alert(str(e), "Error")
+                x = Popups.yesno("Error", "Do you want to try again?")
+                if x is False:
+                    return False
+            self.logger.success(f"Saved to: {save_loc}")
+            return True
         
 
 class Dialog(QDialog):
