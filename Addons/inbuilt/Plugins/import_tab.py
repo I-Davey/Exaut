@@ -3,7 +3,7 @@ from .__important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
 import os 
 import json
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QComboBox
+from PyQt6.QtWidgets import QLabel, QPushButton, QDialog, QLineEdit, QVBoxLayout, QHBoxLayout, QComboBox
 from PyQt6.QtCore import pyqtSignal
 class import_tab(PluginInterface):
     load = True

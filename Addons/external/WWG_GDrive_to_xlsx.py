@@ -161,7 +161,7 @@ class WWG_GDrive_to_xlsx(PluginInterface):
             path = full_path + '/' + item['title']
             temp_path = "/" + path
 
-            self.data.append([item['title'], file_type, folder_location, link, temp_path, url, modified, modified_by, created, self.folders_kvswapped[folder_id]])
+            self.data.append([item['title'], file_type, folder_location, link, temp_path, url, modified, modified_by, created, self.folders_kvswapped[teamdriveid]])
             self.logger.debug(f'{file_type} {item["title"]} {url} {modified} {modified_by} {created}')
 
             if file_type == 'folder':
