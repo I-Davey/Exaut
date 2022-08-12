@@ -65,14 +65,10 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
         #delete first column
         df = df.drop(df.columns[0], axis=1)
-        print(df.columns)
     
         df = df[df["File"].str.contains("|".join(keywords), case=False)]
-        print(df.head())
         df = df[df["Main Folder"].str.contains(folder, case=False)] if folder not in ["Any", ""] else df
-        print(df.head())
         df = df[df["File Type"].str.contains(filetype, case=False)] if filetype not in ["Any", ""] else df
-        print(df.head())
 
         #convert modified date to datetime
         if start_date is not None:
@@ -81,7 +77,6 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             start_date = to_datetime(start_date, utc=True)
             end_date = to_datetime(end_date, utc=True)
             df = df[(df["Modified"] >= start_date) & (df["Modified"] <= end_date)] if is_date_filtered else df
-            print(df.head())
             df = df[(df["Created"] >= start_date) & (df["Created"] <= end_date)] if is_date_filtered else df
         
             #set timezones to unaware
@@ -89,10 +84,11 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             df["Created"] = df["Created"].dt.tz_localize(None)
         #save to excel file
         try:
-            df.to_excel(save_loc + "\\" + "WWG_GDrive_PyDrive_Filtered_" + "_".join(keywords) +".xlsx")
+            df.to_excel(save_loc + "\\" + "WWG_GDrive_Filtered.xlsx")
         except Exception as e:
             Popups.alert(str(e), "Error")
             return False
+        self.logger.success(f"Saved to: {save_loc}")
         return True
         
 
@@ -164,7 +160,7 @@ class Dialog(QDialog):
         self.setLayout(main_layout)
         self.setWindowTitle("WWG GDrive XLSX Filter")
         
-        self.setWindowTitle("Form Layout - pythonspot.com")
+        self.setWindowTitle("Filter XLSX")
         
     def filter_date_changed(self, state):
         if state == 2:
