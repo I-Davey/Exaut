@@ -25,7 +25,7 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
 
 
 
-    def main(self,secret_loc, Popups, target_loc):
+    def main(self,secret_loc, target_loc, Popups):
 
         secret_loc = secret_loc.replace("/", "\\")
         curdir = os.getcwd()
@@ -36,8 +36,7 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
 
         #secret_loc = file, get the folder the file is in
         os.chdir('\\'.join(secret_loc.split('\\')[0:-1]))
-        os.chdir(target_loc)
-        file = Popups.select_file("Select the xlsx file to upload", "Select the xlsx file to upload")
+        file = Popups.select_file("Select the xlsx file to upload", target_loc)
         if file == None:
             return
         file = file.replace("/", "\\")
