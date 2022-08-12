@@ -11,7 +11,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
     types = {"keyfile":8}
     type_types = {"keyfile":{"type":"drag_drop_file", "description":"please select the excel document"}}
 
-    callname = "wwgdrive"
+    callname = "wwgdrive_filter"
     hooks_handler = ["log"]
 
 
@@ -33,7 +33,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         try:
             df = read_excel(xlsx_loc)
         except Exception as e:
-            Popups.alert("Error", "Error", str(e))
+            Popups.alert("Error", str(e))
             return False
         
 
