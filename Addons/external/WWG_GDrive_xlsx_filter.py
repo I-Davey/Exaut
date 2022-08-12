@@ -3,13 +3,14 @@ from __important.PluginInterface import PluginInterface
 
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
-from pandas import DataFrame, read_excel
+from pandas import read_excel, to_datetime
+
 
 
 class WWG_GDrive_xlsx_filter(PluginInterface):
     load = True
-    types = {"keyfile":8}
-    type_types = {"keyfile":{"type":"drag_drop_file", "description":"please select the excel document"}}
+    types = {"keyfile":8, "target":4}
+    type_types = {"keyfile":{"type":"drag_drop_file", "description":"please select the excel document"}, "target":{"type":"drag_drop_folder", "description":"please select the save location folder"}}
 
     callname = "wwgdrive_filter"
     hooks_handler = ["log"]
@@ -27,7 +28,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
 
 
-    def main(self,xlsx_loc, Popups):
+    def main(self,xlsx_loc, save_loc, Popups):
         self.logger.success(f"xlsx_loc: {xlsx_loc}")
         #load the excel file and get the dataframe
         try:
@@ -47,6 +48,8 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         if not is_date_filtered:
             start_date = None
             end_date = None
+
+
         if keywords is None:
             Popups.alert("Please enter keywords")
             return
@@ -64,15 +67,34 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         df = df.drop(df.columns[0], axis=1)
         print(df.columns)
     
-        df = df[df["File"].str.contains("|".join(keywords))]
-        df = df[df["Folder Location"].str.contains(folder)]
-        df = df[df["File Type"].str.contains(filetype)]
-        df = df[df["Modified"].str.contains(start_date)] if start_date else df
-        df = df[df["Modified"].str.contains(end_date)] if end_date else df
+        df = df[df["File"].str.contains("|".join(keywords), case=False)]
         print(df.head())
+        df = df[df["Main Folder"].str.contains(folder, case=False)] if folder not in ["Any", ""] else df
+        print(df.head())
+        df = df[df["File Type"].str.contains(filetype, case=False)] if filetype not in ["Any", ""] else df
+        print(df.head())
+
+        #convert modified date to datetime
+        if start_date is not None:
+            df["Modified"] = to_datetime(df["Modified"], utc=False)
+            df["Created"] = to_datetime(df["Created"], utc=False)
+            start_date = to_datetime(start_date, utc=True)
+            end_date = to_datetime(end_date, utc=True)
+            df = df[(df["Modified"] >= start_date) & (df["Modified"] <= end_date)] if is_date_filtered else df
+            print(df.head())
+            df = df[(df["Created"] >= start_date) & (df["Created"] <= end_date)] if is_date_filtered else df
         
-        self.logger.debug(x)
-        Popups.alert(x)
+            #set timezones to unaware
+            df["Modified"] = df["Modified"].dt.tz_localize(None)
+            df["Created"] = df["Created"].dt.tz_localize(None)
+        #save to excel file
+        try:
+            df.to_excel(save_loc + "\\" + "WWG_GDrive_PyDrive_Filtered" + "_".join(df["file"])+".xlsx")
+        except Exception as e:
+            Popups.alert(str(e), "Error")
+            return False
+        return True
+        
 
 class Dialog(QDialog):
     NumGridRows = 3
@@ -137,6 +159,7 @@ class Dialog(QDialog):
         main_layout = QVBoxLayout()
         main_layout.addLayout(object_layout)
         main_layout.addWidget(self.filter_button)
+        self.add_dropdown_data()
         
         self.setLayout(main_layout)
         self.setWindowTitle("WWG GDrive XLSX Filter")
@@ -152,6 +175,27 @@ class Dialog(QDialog):
             self.start_date.setEnabled(False)
             self.end_date.setEnabled(False)
             self.is_date_filtered = False
+
+    def add_dropdown_data(self):
+        folders = ["1. WWG",
+                    "2. Client & Partner Accounts",
+                    "3. Projects",
+                    "4. Business Development",
+                    "5. Marketing",
+                    "6. Success",
+                    "7. Sustainability",
+                    "12. Executive Committee",
+                    "15. G17Eco",
+                    "19. WWG Academy",
+                    "CT Light",
+                    "Project Tracker App",
+                    "Project Ubuntu",
+                    "Sustainability Reseach",]
+        folders = [x.lower() for x in folders]
+        self.folder_combobox.addItems(folders)
+        filetypes = ['csv','db','doc','docx','GIF','html''ico','jpg','JPEG','json','lnk','msg','pdf','pkl','png','ppt','pptx','pst','py','pyc','rtf','svg','txt','url','vsd','xls','xlsb','xlsm','xlsx','yml','zip']
+        self.filetype_combobox.addItems(filetypes)
+
             
 
     def closeEvent(self, a0) -> None:

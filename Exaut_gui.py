@@ -1267,7 +1267,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 plnames.append(item)
         
         
-        if plpaths == [] or "pipeline_path" not in  self.api.var_dict:
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
             self.logger.warning("Pipeline path not set")
             dlg = QtWidgets.QFileDialog()
             dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
