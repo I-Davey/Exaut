@@ -108,7 +108,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
                 df.to_excel(save_loc + "\\" + file_name, index=False)
             except Exception as e:
                 Popups.alert(str(e), "Error")
-                x = Popups.yesno( "Do you want to try again?" "Error")
+                x = Popups.yesno( f"ERROR:{str(e)}, Do you want to try again?")
                 if x is False:
                     return False
             self.logger.success(f"Saved to: {save_loc} as {file_name}")
@@ -118,6 +118,18 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 ###NEW ACTION FOR THIS######
         #load file in with openpyxl
         wb = openpyxl.load_workbook(save_loc + "\\" + file_name)
+        #column 1 is hyperlink, style as link
+        ws = wb.active
+        #column a width = 3.8, b = 63, c = 8, d = 45, e = 12, f = 14, g = 15, h = 9.7, i = 13
+        ws.column_dimensions['A'].width = 3.8
+        ws.column_dimensions['B'].width = 63
+        ws.column_dimensions['C'].width = 8
+        ws.column_dimensions['D'].width = 45
+        ws.column_dimensions['E'].width = 12
+        ws.column_dimensions['F'].width = 14
+        ws.column_dimensions['G'].width = 15
+        ws.column_dimensions['H'].width = 9.7
+        ws.column_dimensions['I'].width = 13
         wb.save(save_loc + "\\" + file_name)
         
 
