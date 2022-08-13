@@ -63,13 +63,17 @@ class Edit_Layout(QMainWindow):
         self.cur_layout = QFormLayout(centralwdgt)
         self.setCentralWidget(centralwdgt)
 
+        #add a menu bar
+        self.menubar = self.menuBar()
+        self.filemenu = self.menubar.addAction("Refresh")
+        self.filemenu.triggered.connect(self.refresh_data)
         #add widget
         self.SM_Tabs.setObjectName("SM_Tabs")
         self.SM_Tabs.setMovable(True)
         self.SM_Tabs.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
         self.SM_Tabs.setDocumentMode(True)
 
-
+        self.parent_ = parent_
         self.curtabtext = parent_.SM_Tabs.tabText(parent_.SM_Tabs.currentIndex())
         self.curtab = None
         self.curtabindex = 0
@@ -174,6 +178,17 @@ class Edit_Layout(QMainWindow):
             self.pointer = None
             self.deleteLater()
             self.close()
+
+    def refresh_data(self):
+        self.handle_save(exit_=False)
+        self.title = self.parent_.title
+        self.tablist = self.parent_.tablist
+        self.tab_buttons = self.parent_.tab_buttons
+        self.refresh = self.parent_.refresh
+        self.pointer = self.parent_.edit_layout
+        self.handle_refresh(self.curtab)
+
+
 
     def handle_refresh(self, curtab = None):
         
