@@ -85,11 +85,15 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             df["Created"] = df["Created"].dt.tz_localize(None)
         #replace LINK with =HYPERLINK("URL", "URL")
         #df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
-        df["Link"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
+        df["Link"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"link\")")
+
         #change order to this:Link,File,File Type,Folder Location,Main Folder,Modified By,Modified,Created,URL and remove path
+
         df = df.drop(df.columns[4], axis=1)
+        #drop URL
         df = df[["Link", "File", "File Type", "Folder Location", "Main Folder", "Modified By", "Modified", "Created", "URL"]]
-        
+        df = df.drop(df.columns[8], axis=1)
+
 
 
         #add column filter to df
@@ -114,10 +118,6 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 ###NEW ACTION FOR THIS######
         #load file in with openpyxl
         wb = openpyxl.load_workbook(save_loc + "\\" + file_name)
-        ws = wb.active
-        #delete first row
-        ws.delete_rows(1)
-        #save file
         wb.save(save_loc + "\\" + file_name)
         
 
