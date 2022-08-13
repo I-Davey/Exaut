@@ -44,7 +44,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         x = Popups.custom(dialog)
         if x is None:
             return
-        keywords, folder, filetype, start_date, end_date, is_date_filtered = x
+        keywords, folder, filetype, start_date, end_date, is_date_filtered, file_name = x
         if not is_date_filtered:
             start_date = None
             end_date = None
@@ -82,18 +82,26 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             #set timezones to unaware
             df["Modified"] = df["Modified"].dt.tz_localize(None)
             df["Created"] = df["Created"].dt.tz_localize(None)
-        #replace URL with =HYPERLINK("URL", "URL")
-        df["URL"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
+        #replace LINK with =HYPERLINK("URL", "URL")
+        #df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
+        df["Link"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
+        #move link to front of df
+        df = df.reindex(columns=["Link"] + list(df.columns)[:-1])
+
+
+        #add column filter to df
+        df["Filter"] = ",".join(keywords)
         #save to excel file
         while True:
             try:
-                df.to_excel(save_loc + "\\" + "WWG_GDrive_Filtered.xlsx")
+                file_name =  file_name + ".xlsx" if file_name not in (None, False, "") else "WWG_GDrive_Filtered.xlsx"
+                df.to_excel(save_loc + "\\" + file_name)
             except Exception as e:
                 Popups.alert(str(e), "Error")
                 x = Popups.yesno("Error", "Do you want to try again?")
                 if x is False:
                     return False
-            self.logger.success(f"Saved to: {save_loc}")
+            self.logger.success(f"Saved to: {save_loc} as {file_name}")
             return True
         
 
@@ -141,6 +149,9 @@ class Dialog(QDialog):
         self.filter_button = QPushButton("Filter")
         self.filter_button.clicked.connect(self.accept)
 
+        self.file_name_label = QLabel("File Name:")
+        self.file_name = QLineEdit()
+
 
         
         object_layout = QGridLayout()
@@ -156,6 +167,9 @@ class Dialog(QDialog):
         object_layout.addWidget(self.start_date, 4, 1)
         object_layout.addWidget(end_date_label, 5, 0)
         object_layout.addWidget(self.end_date, 5, 1)
+        object_layout.addWidget(self.filter_button, 6, 1)
+        object_layout.addWidget(self.file_name_label, 7, 0)
+        object_layout.addWidget(self.file_name, 7, 1)
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(object_layout)
@@ -201,7 +215,7 @@ class Dialog(QDialog):
 
     def closeEvent(self, a0) -> None:
         if self._done:
-            self.signal.emit((self.keywords.text().lower(), self.folder_combobox.currentText(), self.filetype_combobox.currentText(), self.start_date.date().toPyDate(), self.end_date.date().toPyDate(), self.is_date_filtered))
+            self.signal.emit((self.keywords.text().lower(), self.folder_combobox.currentText(), self.filetype_combobox.currentText(), self.start_date.date().toPyDate(), self.end_date.date().toPyDate(), self.is_date_filtered, self.file_name.text()))
         else:
             self.signal.emit((None,))
             self.close()
