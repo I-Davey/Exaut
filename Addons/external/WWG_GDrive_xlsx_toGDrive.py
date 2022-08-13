@@ -3,7 +3,7 @@ from __important.PluginInterface import PluginInterface
 from pydrive2.auth import GoogleAuth
 import os
 from pydrive2.drive import GoogleDrive
-
+import webbrowser
 
 class WWG_GDrive_xlsx_toGDrive(PluginInterface):
     load = True
@@ -52,8 +52,11 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
         file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
         for file1 in file_list:
             if file1['title'] == filename:
-                Popups.alert(f"File '{filename}' already exists", "File already exists")
-                return False
+                if Popups.yesno(f"File '{filename}' already exists", "File already exists, overwrite?"):
+                    file1.Delete()
+                else: 
+
+                    return False
         file1 = drive.CreateFile({'title': filename})
         file1.SetContentFile(file)
         file1.Upload()
@@ -61,6 +64,8 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
         link = file1['alternateLink']
         Popups.alert("File uploaded, check console for link", "File uploaded")
         self.logger.success(f"File uploaded: {link}")
+        if Popups.yesno("Open link in browser?", "Open link in browser?"):
+            webbrowser.open(link)
         os.chdir(curdir)
 
 
