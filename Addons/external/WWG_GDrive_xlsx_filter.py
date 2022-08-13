@@ -125,7 +125,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         wb = openpyxl.load_workbook(save_loc + "\\" + file_name)
         ws = wb.active
         #column a width = 3.8, b = 63, c = 8, d = 45, e = 12, f = 14, g = 15, h = 9.7, i = 13
-        ws.column_dimensions['A'].width = 3.86
+        ws.column_dimensions['A'].width = 4.86
         ws.column_dimensions['B'].width = 68
         ws.column_dimensions['C'].width = 8
         ws.column_dimensions['D'].width = 49
@@ -140,8 +140,10 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         ws.title = "WWG_GD"
 
         #table_setter:
-        table = Table(displayName="tbl_fltr", ref="A1:"  + get_column_letter(ws.max_column) + str(ws.max_row))
-        ws.add_table(table)
+        #create a filter for each column
+
+        ws.auto_filter.ref = f"A1:I{ws.max_row}"
+
 
 
 
