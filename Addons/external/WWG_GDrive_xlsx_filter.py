@@ -82,6 +82,8 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
             #set timezones to unaware
             df["Modified"] = df["Modified"].dt.tz_localize(None)
             df["Created"] = df["Created"].dt.tz_localize(None)
+        #replace URL with =HYPERLINK("URL", "URL")
+        df["URL"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
         #save to excel file
         while True:
             try:
