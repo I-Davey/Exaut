@@ -4,6 +4,7 @@ from __important.PluginInterface import PluginInterface
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from pandas import read_excel, to_datetime
+import openpyxl
 
 
 
@@ -42,7 +43,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
         dialog = Dialog
         x = Popups.custom(dialog)
-        if x is None:
+        if x == (None,):
             return
         keywords, folder, filetype, start_date, end_date, is_date_filtered, file_name = x
         if not is_date_filtered:
@@ -87,26 +88,37 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         df["Link"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
         #change order to this:Link,File,File Type,Folder Location,Main Folder,Modified By,Modified,Created,URL and remove path
         df = df.drop(df.columns[4], axis=1)
-
         df = df[["Link", "File", "File Type", "Folder Location", "Main Folder", "Modified By", "Modified", "Created", "URL"]]
         
 
 
         #add column filter to df
         df["Filter"] = ",".join(keywords)
-        #save to excel file
+        #save to excel file with auto
+
+        
         while True:
             try:
                 file_name =  file_name + ".xlsx" if file_name not in (None, False, "") else "WWG_GDrive_Filtered.xlsx"
 
-                df.to_excel(save_loc + "\\" + file_name)
+                df.to_excel(save_loc + "\\" + file_name, index=False)
             except Exception as e:
                 Popups.alert(str(e), "Error")
                 x = Popups.yesno( "Do you want to try again?" "Error")
                 if x is False:
                     return False
             self.logger.success(f"Saved to: {save_loc} as {file_name}")
-            return True
+            break
+
+
+###NEW ACTION FOR THIS######
+        #load file in with openpyxl
+        wb = openpyxl.load_workbook(save_loc + "\\" + file_name)
+        ws = wb.active
+        #delete first row
+        ws.delete_rows(1)
+        #save file
+        wb.save(save_loc + "\\" + file_name)
         
 
 class Dialog(QDialog):
