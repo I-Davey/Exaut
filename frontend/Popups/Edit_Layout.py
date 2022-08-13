@@ -54,10 +54,10 @@ class Edit_Layout(QMainWindow):
 
     def __init__(self, parent_):
         super(Edit_Layout, self).__init__(parent_)
+        self.refreshing = False
         self.tablist = []
         self.tab_buttons = {}
         self.start = True
-
         self.SM_Tabs = QtWidgets.QTabWidget()
         centralwdgt = QtWidgets.QWidget(self)
         self.cur_layout = QFormLayout(centralwdgt)
@@ -180,15 +180,19 @@ class Edit_Layout(QMainWindow):
             self.close()
 
     def refresh_data(self):
+        self.refreshing = True
+        curtab = self.SM_Tabs.currentIndex()
+
         self.handle_save(exit_=False)
         self.title = self.parent_.title
         self.tablist = self.parent_.tablist
         self.tab_buttons = self.parent_.tab_buttons
         self.refresh = self.parent_.refresh
         self.pointer = self.parent_.edit_layout
-        curtab = self.SM_Tabs.currentIndex()
         self.handle_refresh(self.curtab)
         self.SM_Tabs.setCurrentIndex(curtab)
+        self.SM_Tabs.currentChanged.connect(self.ontabchange)
+        self.refreshing = False
 
 
 
@@ -298,15 +302,26 @@ class Edit_Layout(QMainWindow):
         else:
             #find the index of the tabtext
             self.SM_Tabs.setCurrentIndex(curtab)
-        #set size to self.layout.sizeHint
+            self.curtabindex = curtab
+        
+
 
 
     def ontabchange(self, index):
-        combo = self.sizeHint() + self.cur_layout.sizeHint() + self.items_grid_centre.sizeHint()
-        if combo.width() > self.width() and combo.height() > self.height():
-            self.resize(combo.width(), combo.height())
         if not self.start:
             self.curtabtext = self.SM_Tabs.tabText(index)
+        if self.refreshing:
+            return
+
+                #get curtabdata for current tab using curtabindex
+        curtabdata = self.tab_buttons[self.tablist[index]]
+        curtabsize = curtabdata["tabsize"]
+        if curtabsize:
+            curtabsize = curtabsize.split(",")
+            self.resize(int(int(curtabsize[0])*1.2), int(int(curtabsize[1])*1.2))
+        else:
+            self.resize(650,300)
+        
 
     def add_grid_x(self):
         curtab = self.SM_Tabs.currentIndex()
