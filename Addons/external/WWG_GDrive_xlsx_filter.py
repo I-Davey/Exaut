@@ -85,8 +85,11 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         #replace LINK with =HYPERLINK("URL", "URL")
         #df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
         df["Link"] = df["URL"].apply(lambda x: f"=HYPERLINK(\"{x}\", \"{x}\")")
-        #move link to front of df
-        df = df.reindex(columns=["Link"] + list(df.columns)[:-1])
+        #change order to this:Link,File,File Type,Folder Location,Main Folder,Modified By,Modified,Created,URL and remove path
+        df = df.drop(df.columns[4], axis=1)
+
+        df = df[["Link", "File", "File Type", "Folder Location", "Main Folder", "Modified By", "Modified", "Created", "URL"]]
+        
 
 
         #add column filter to df
@@ -95,10 +98,11 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         while True:
             try:
                 file_name =  file_name + ".xlsx" if file_name not in (None, False, "") else "WWG_GDrive_Filtered.xlsx"
+
                 df.to_excel(save_loc + "\\" + file_name)
             except Exception as e:
                 Popups.alert(str(e), "Error")
-                x = Popups.yesno("Error", "Do you want to try again?")
+                x = Popups.yesno( "Do you want to try again?" "Error")
                 if x is False:
                     return False
             self.logger.success(f"Saved to: {save_loc} as {file_name}")
