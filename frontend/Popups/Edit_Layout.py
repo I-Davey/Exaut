@@ -186,7 +186,9 @@ class Edit_Layout(QMainWindow):
         self.tab_buttons = self.parent_.tab_buttons
         self.refresh = self.parent_.refresh
         self.pointer = self.parent_.edit_layout
+        curtab = self.SM_Tabs.currentIndex()
         self.handle_refresh(self.curtab)
+        self.SM_Tabs.setCurrentIndex(curtab)
 
 
 
