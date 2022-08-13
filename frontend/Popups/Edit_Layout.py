@@ -158,6 +158,7 @@ class Edit_Layout(QMainWindow):
         
     #on close handler
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.parent_.edit_layout = None
         self.pointer = None
         return super().closeEvent(a0)
 
