@@ -8,3 +8,4 @@ pydrive
 PyQt6
 dirtyjson
 sqlalchemy
+openpyxl
