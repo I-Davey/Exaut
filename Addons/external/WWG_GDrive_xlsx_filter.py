@@ -5,6 +5,11 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from pandas import read_excel, to_datetime
 import openpyxl
+#import get_column_letter
+from openpyxl.utils import get_column_letter
+#import Table
+from openpyxl.worksheet.table import Table
+
 
 
 
@@ -118,18 +123,29 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 ###NEW ACTION FOR THIS######
         #load file in with openpyxl
         wb = openpyxl.load_workbook(save_loc + "\\" + file_name)
-        #column 1 is hyperlink, style as link
         ws = wb.active
         #column a width = 3.8, b = 63, c = 8, d = 45, e = 12, f = 14, g = 15, h = 9.7, i = 13
-        ws.column_dimensions['A'].width = 3.8
-        ws.column_dimensions['B'].width = 63
+        ws.column_dimensions['A'].width = 3.86
+        ws.column_dimensions['B'].width = 68
         ws.column_dimensions['C'].width = 8
-        ws.column_dimensions['D'].width = 45
+        ws.column_dimensions['D'].width = 49
         ws.column_dimensions['E'].width = 12
         ws.column_dimensions['F'].width = 14
-        ws.column_dimensions['G'].width = 15
+        ws.column_dimensions['G'].width = 15.7
         ws.column_dimensions['H'].width = 9.7
         ws.column_dimensions['I'].width = 13
+        #convert to table
+        #a -> i
+        #rename sheet to WWG_GD
+        ws.title = "WWG_GD"
+
+        #table_setter:
+        table = Table(displayName="tbl_fltr", ref="A1:"  + get_column_letter(ws.max_column) + str(ws.max_row))
+        ws.add_table(table)
+
+
+
+
         wb.save(save_loc + "\\" + file_name)
         
 
