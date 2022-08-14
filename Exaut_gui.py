@@ -633,7 +633,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                     Grid.addWidget(button, x, y, 1, 1)
                     button.clicked.connect(partial(self.button_click,buttonname,curtabtext,button,mode=1))
             if self.edit_layout:
-                self.edit_layout.SM_Tabs.setCurrentIndex(n)
+                self.edit_layout.change_tab(curtabtext)
                     #print(f"{buttonname} {t2-t1} {t4-t2} {final_time-t4}")
 
         #curtabtext

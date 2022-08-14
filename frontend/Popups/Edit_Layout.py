@@ -359,6 +359,13 @@ class Edit_Layout(QMainWindow):
                     curtab_items[i][1] = 0
                 if curtab_items[i][1] > item[1]:
                     curtab_items[i][0] += 1
+            
+    def change_tab(self, tab_name:str):
+        for i in range(self.SM_Tabs.count()):
+            if self.SM_Tabs.tabText(i) == tab_name:
+                self.SM_Tabs.setCurrentIndex(i)
+                self.curtabindex = i
+                break
     
     def update_column(self, tab_name, column_num, pos, from_column, text, button_array):
         current_tab_text = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
