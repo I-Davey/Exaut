@@ -311,6 +311,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.lasttab = None
         self.size_static = False
         self.show_hidden_tabs = False
+        self.lastform = None
 
         self.SM_Tabs = CustomTab(self)
 
