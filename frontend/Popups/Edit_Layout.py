@@ -319,7 +319,7 @@ class Edit_Layout(QMainWindow):
         curtabsize = curtabdata["tabsize"]
         if curtabsize:
             curtabsize = curtabsize.split(",")
-            self.resize(int(int(curtabsize[0])*1.2), int(int(curtabsize[1])*1.2))
+            self.resize(int(int(curtabsize[0])*1.3), int(int(curtabsize[1])*1.2))
         else:
             self.resize(650,300)
         
