@@ -54,6 +54,7 @@ class Edit_Layout(QMainWindow):
 
     def __init__(self, parent_):
         super(Edit_Layout, self).__init__(parent_)
+        self.updating = False
         self.refreshing = False
         self.tablist = []
         self.tab_buttons = {}
@@ -317,6 +318,8 @@ class Edit_Layout(QMainWindow):
                 #get curtabdata for current tab using curtabindex
         curtabdata = self.tab_buttons[self.tablist[index]]
         curtabsize = curtabdata["tabsize"]
+        if self.updating:
+            return
         if curtabsize:
             curtabsize = curtabsize.split(",")
             self.resize(int(int(curtabsize[0])*1.3), int(int(curtabsize[1])*1.2))
@@ -325,12 +328,15 @@ class Edit_Layout(QMainWindow):
         
 
     def add_grid_x(self):
+        self.updating = True
         curtab = self.SM_Tabs.currentIndex()
         curtabtext = self.SM_Tabs.tabText(curtab)
         self.tab_buttons[curtabtext]["grid"] += 1
         self.handle_refresh(curtab)
+        self.updating = False
 
     def remove_grid_x(self):
+        self.updating = True
         curtab = self.SM_Tabs.currentIndex()
         curtabtext = self.SM_Tabs.tabText(curtab)
         if not self.tab_buttons[curtabtext]["grid"]:
@@ -338,6 +344,7 @@ class Edit_Layout(QMainWindow):
         if self.tab_buttons[curtabtext]["grid"] > 1:
             self.tab_buttons[curtabtext]["grid"] -= 1
             self.handle_refresh(curtab)
+        self.updating = False
 
     def update_layout(self):
         curtab_items = []
