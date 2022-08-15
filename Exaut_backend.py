@@ -679,16 +679,23 @@ class UserInterfaceHandlerPyQT():
             self.alert(f"Form {form_name} already exists")
             return False
         #add button called open {form} 
-        x = self.writesql(insert(buttons).values(formname = curform, tab = curtab, buttonname = "open form " + form_name))
+
+
+
+        x = self.writesql(insert(tabs).values(formname = form_name, tab = form_name))
+        if not x:
+            self.alert("Error adding tab")
+            return False
+
+        x = self.writesql(insert(buttons).values(formname = curform, tab = curtab, buttonname = form_name+"|"+form_name))
         if not x:
             self.alert(f"Button {'open form' + form_name} already exists")
             return False
-        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname = "open form " + form_name, type = "tabto", runsequence=0, folderpath=form_name, filename=" "))
+        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname =form_name+"|"+form_name, type = "tabto", runsequence=0, folderpath=form_name, filename=form_name))
 
         if not x:
             self.alert("Error adding batchsequence")
             return False
-
 
         self.gui_refresh()
 
