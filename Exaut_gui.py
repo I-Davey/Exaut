@@ -378,15 +378,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         form_list = [x.formname for x in all_forms]
 
         #find self.form_title position in form_list
-        
-        pos_form_title = form_list.index(self.form_title)
+        if self.form_title in form_list:
+            pos_form_title = form_list.index(self.form_title)
         response = QtWidgets.QInputDialog.getItem(self, "Form Change", "Select Form", form_list, pos_form_title, False)
         new_title = response[0]
         if new_title:
             self.api.formname = new_title
             self.curTab = 0
 
-            self.load()
             self.refresh()
             self.logger.info("Form changed to: " + new_title)
             if self.title in self.form_tab_kv:
@@ -422,6 +421,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             button.reset_clicked_style()
 
     def refresh(self, start = False, layout_mode = False):
+        self.load()
+
         if not start:
             self.refreshing = True
         self.button_cache = {}
