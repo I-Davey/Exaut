@@ -1040,6 +1040,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tabto_create_popup = QtWidgets.QDialog()
         self.tabto_create_popup.setWindowTitle("Create Tabto")
 
+
         self.tabto_create_popup.setFixedSize(300,200)
         self.tabto_create_popup.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
         self.tabto_create_popup.setModal(True)
@@ -1070,11 +1071,18 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #save button:
 
         self.tabto_create_save_button = QtWidgets.QPushButton("Create")
+
         #button expand to fill row, columnspan 2
         self.tabto_create_save_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.tabto_create_save_button.setFixedHeight(30)
+
+        self.tabto_use_last_button = QtWidgets.QPushButton("Use Tablast")
+        self.tabto_use_last_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.tabto_use_last_button.setFixedHeight(30)
+        self.tabto_use_last_button.clicked.connect(self.tabto_use_last)
         
         gridlayout.addWidget(self.tabto_create_save_button, 3, 1)
+        gridlayout.addWidget(self.tabto_use_last_button, 3, 0)
         self.tabto_create_save_button.clicked.connect(self.tabto_create_save)
 
 
@@ -1083,6 +1091,19 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tabto_form_change(self.form_title)
 
         self.tabto_create_popup.show()
+
+    def tabto_use_last(self):
+        form_text = self.lastform if self.lastform else self.title
+        tab_text = self.lasttab 
+        curtab_text = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+        if form_text == self.title and tab_text == curtab_text:
+            self.alert("tablast is current tab")
+            return
+        self.api.add_tabto(tab_text, form_text, curtab_text, self.form_title)
+        self.tabto_create_popup.close
+
+        
+
 
     def tabto_create_save(self):
         #get form and button
