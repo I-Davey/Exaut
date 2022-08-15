@@ -554,21 +554,31 @@ class UserInterfaceHandlerPyQT():
 
 
     def edit_form_update(self,  old_formname, new_formname, new_formdesc):
-        x = self.writesql(update(forms).where(forms.formname == old_formname).values(formname=new_formname, formdesc=new_formdesc))
-        if not x:
-            self.alert("Error updating form: form may already exist")
-        self.gui_refresh()
+        x = self.readsql(select('*').where(forms.formname == old_formname))
+        if len(x) == 0:
+            self.alert(f"No form found with name: {old_formname}")
+            return
+        
         if new_formname != old_formname:
+            x = self.readsql(select('*').where(forms.formname == new_formname))
+            if len(x) > 0:
+                self.alert(f"Form {new_formname} already exists")
+                return
+            x = self.writesql(update(forms).where(forms.formname == old_formname).values(formname=new_formname, formdesc=new_formdesc))
+
             #tabs, buttons, batchsequence, buttonseries
             x = self.writesql(update(buttonseries).where(buttonseries.formname == old_formname).values(formname=new_formname))
             x = self.writesql(update(batchsequence).where(batchsequence.formname == old_formname).values(formname=new_formname))
             x = self.writesql(update(buttons).where(buttons.formname == old_formname).values(formname=new_formname))
             x = self.writesql(update(tabs).where(tabs.formname == old_formname).values(formname=new_formname))
+            
+            self.title = new_formname
+            self.formname = new_formname
+        else:
+            x = self.writesql(update(forms).where(forms.formname == old_formname).values( formdesc=new_formdesc))
 
 
-        self.title = new_formname
-        self.formname = new_formname
-        
+
 
 
 
