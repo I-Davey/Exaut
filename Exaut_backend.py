@@ -1,5 +1,6 @@
 from asyncio.subprocess import PIPE
 from re import sub
+from textwrap import indent
 from time import perf_counter
 from psutil import Popen
 
@@ -722,6 +723,7 @@ class UserInterfaceHandlerPyQT():
             return
         self.gui_refresh()
 
+    
     def add_tab_url(self, tab_name, url, form):
         if url == None:
             return

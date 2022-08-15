@@ -206,10 +206,9 @@ class Ui_EXAUT_GUI():
         self.menuTools.addAction(self.actionOpenTabUrl)
 
         
-
+        self.menuAction.addAction(self.actionAdd_action)
         self.menuAction.addAction(self.actionAdd_Seq)
         self.menuAction.addAction(self.actionAdd_Proc)
-        self.menuAction.addAction(self.actionAdd_action)
         self.menuAction.addAction(self.actionAdd_Desc)
 
         self.menuAction_tab.addAction(self.actionEdit_layout)
