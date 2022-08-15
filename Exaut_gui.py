@@ -1053,16 +1053,16 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tabto_create_form_dropdown_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.tabto_create_form_dropdown_label.setFixedWidth(50)
         self.tabto_create_form_dropdown_label.setFixedHeight(20)
-        gridlayout.addWidget(self.tabto_create_form_dropdown_label, 0, 0)
-        gridlayout.addWidget(self.tabto_create_form_dropdown, 0, 1)
+        gridlayout.addWidget(self.tabto_create_form_dropdown_label, 1, 0)
+        gridlayout.addWidget(self.tabto_create_form_dropdown, 1, 1)
 
         #add button dropdown
         self.tabto_create_tab_dropdown_label = QtWidgets.QLabel("Tab:")
         self.tabto_create_tab_dropdown_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.tabto_create_tab_dropdown_label.setFixedWidth(50)
         self.tabto_create_tab_dropdown_label.setFixedHeight(20)
-        gridlayout.addWidget(self.tabto_create_tab_dropdown_label, 1, 0)
-        gridlayout.layout().addWidget(self.tabto_create_tab_dropdown, 1, 1)
+        gridlayout.addWidget(self.tabto_create_tab_dropdown_label, 2, 0)
+        gridlayout.layout().addWidget(self.tabto_create_tab_dropdown, 2, 1)
 
 
 
@@ -1078,11 +1078,11 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
         self.tabto_use_last_button = QtWidgets.QPushButton("Use Tablast")
         self.tabto_use_last_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.tabto_use_last_button.setFixedHeight(30)
+        self.tabto_use_last_button.setFixedHeight(20)
         self.tabto_use_last_button.clicked.connect(self.tabto_use_last)
         
         gridlayout.addWidget(self.tabto_create_save_button, 3, 1)
-        gridlayout.addWidget(self.tabto_use_last_button, 3, 0)
+        gridlayout.addWidget(self.tabto_use_last_button, 0, 1)
         self.tabto_create_save_button.clicked.connect(self.tabto_create_save)
 
 
@@ -1099,8 +1099,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if form_text == self.title and tab_text == curtab_text:
             self.alert("tablast is current tab")
             return
-        self.api.add_tabto(tab_text, form_text, curtab_text, self.form_title)
-        self.tabto_create_popup.close
+        self.tabto_create_form_dropdown.setCurrentIndex(self.tabto_create_form_dropdown.findText(form_text))
+        self.tabto_form_change(form_text)
+        self.tabto_create_tab_dropdown.setCurrentIndex(self.tabto_create_tab_dropdown.findText(tab_text))
 
         
 
