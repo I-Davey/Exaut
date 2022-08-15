@@ -290,6 +290,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_popup_data = QtCore.pyqtSignal(str,str,str,str)
     signal_popup_tabto = QtCore.pyqtSignal(str, str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
+    form_tab_kv = {}
 
 
     def __init__(self,parent=None):
@@ -376,15 +377,21 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
         #find self.form_title position in form_list
         
-        pos_form_title = form_list.index(self.form_title) if self.form_title in form_list else 0
+        pos_form_title = form_list.index(self.form_title)
         response = QtWidgets.QInputDialog.getItem(self, "Form Change", "Select Form", form_list, pos_form_title, False)
         new_title = response[0]
         if new_title:
             self.api.formname = new_title
             self.curTab = 0
 
+            self.load()
             self.refresh()
             self.logger.info("Form changed to: " + new_title)
+            if self.title in self.form_tab_kv:
+                self.SM_Tabs.setCurrentIndex(self.form_tab_kv[self.title])
+            else:
+                self.SM_Tabs.setCurrentIndex(0)
+    
 
         else:
             self.logger.debug("No form selected")
@@ -409,7 +416,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             button.reset_clicked_style()
 
     def refresh(self, start = False, layout_mode = False):
-        self.load()
         if not start:
             self.refreshing = True
         self.button_cache = {}
@@ -549,6 +555,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if self.refreshing:
             return
         if "start" not in kwargs:
+            self.form_tab_kv[self.form_title] = n
+
             for item in self.button_dict:
                 self.button_dict[item].deleteLater()
             self.button_dict = {}

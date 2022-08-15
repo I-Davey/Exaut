@@ -73,7 +73,7 @@ class edit_popup_form(QMainWindow):
             ret = qm.exec()
             if ret == QMessageBox.StandardButton.Yes:
                 #enter "Confirm Delete" textbox
-                confirm_delete = QInputDialog.getText(self, "Confirm Delete", "IF YOU DO NOT KNOW THE RAMIFICATIONS OF THIS ACTION THEN CLOSE THIS WINDOW IMMEDIATELY. \nPlease enter 'Delete' to confirm:")
+                confirm_delete = QInputDialog.getText(self, "Confirm Delete", "IF YOU DO NOT KNOW THE RAMIFICATIONS OF THIS ACTION \nTHEN CLOSE THIS WINDOW IMMEDIATELY. \nPlease enter 'Delete' to confirm:")
                 if confirm_delete[0] == "Delete":
                     self.signal_delete.emit()
                     self.complete = True

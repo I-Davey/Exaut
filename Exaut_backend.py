@@ -554,13 +554,17 @@ class UserInterfaceHandlerPyQT():
 
 
     def edit_form_update(self,  old_formname, new_formname, new_formdesc):
-        self.writesql(update(forms).where(forms.formname == old_formname).values(formname=new_formname, formdesc=new_formdesc))
-        if new_formname != new_formdesc:
+        x = self.writesql(update(forms).where(forms.formname == old_formname).values(formname=new_formname, formdesc=new_formdesc))
+        if not x:
+            self.alert("Error updating form: form may already exist")
+        self.gui_refresh()
+        if new_formname != old_formname:
             #tabs, buttons, batchsequence, buttonseries
-            self.writesql(update(tabs).where(tabs.formname == old_formname).values(formname=new_formname))
-            self.writesql(update(buttons).where(buttons.formname == old_formname).values(formname=new_formname))
-            self.writesql(update(batchsequence).where(batchsequence.formname == old_formname).values(formname=new_formname))
-            self.writesql(update(buttonseries).where(buttonseries.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(buttonseries).where(buttonseries.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(batchsequence).where(batchsequence.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(buttons).where(buttons.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(tabs).where(tabs.formname == old_formname).values(formname=new_formname))
+
 
         self.title = new_formname
         self.formname = new_formname
@@ -571,6 +575,7 @@ class UserInterfaceHandlerPyQT():
         self.gui_refresh()
 
     def edit_form_delete(self, formname):
+        
         self.writesql(delete(buttonseries).where(buttonseries.formname == formname))
         self.writesql(delete(batchsequence).where(batchsequence.formname == formname))
         self.writesql(delete(buttons).where(buttons.formname == formname))
