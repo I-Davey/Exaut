@@ -21,6 +21,7 @@ from frontend.Popups.Edit_Popup import Edit_Popup
 from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
 from frontend.Popups.actions.Actions import Actions
+from frontend.Popups.edit_popup_form import edit_popup_form
 
 from time import perf_counter
 from Exaut_backend import Loader
@@ -355,6 +356,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionOpenTabUrl.triggered.connect(self.open_tab_url)
         self.actionHidden_mode.triggered.connect(self.show_hidden_tabs_handler)
         self.actionAdd_Form.triggered.connect(self.add_new_form)
+        self.actionForm_Edit.triggered.connect(self.edit_form)
 
 
         #lambda self.size_static = not self.size_static
@@ -373,14 +375,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         form_list = [x.formname for x in all_forms]
 
         #find self.form_title position in form_list
-        pos_form_title = form_list.index(self.form_title)
+        
+        pos_form_title = form_list.index(self.form_title) if self.form_title in form_list else 0
         response = QtWidgets.QInputDialog.getItem(self, "Form Change", "Select Form", form_list, pos_form_title, False)
         new_title = response[0]
         if new_title:
             self.api.formname = new_title
             self.curTab = 0
 
-            self.load()
             self.refresh()
             self.logger.info("Form changed to: " + new_title)
 
@@ -407,6 +409,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             button.reset_clicked_style()
 
     def refresh(self, start = False, layout_mode = False):
+        self.load()
         if not start:
             self.refreshing = True
         self.button_cache = {}
@@ -794,6 +797,20 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         edit_tab.signal_delete.connect(partial(self.api.edit_tab_delete, tab_name, self.form_title))
         edit_tab.signal_update.connect(partial(self.api.edit_tab_update, tab_name, self.form_title))
         edit_tab.show()
+
+
+    def edit_form(self, tab_name):
+        #two text / label boxes: formname, button description
+        #two buttons, save or delete
+        self.db_refresh()
+        cur_form = self.form_title
+        edit_form = edit_popup_form(self,cur_form)
+        edit_form.signal_delete.connect(partial(self.api.edit_form_delete, cur_form))
+        edit_form.signal_update.connect(partial(self.api.edit_form_update, cur_form))
+
+
+
+
 
     def layout_editor(self):
         self.db_refresh()

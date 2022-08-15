@@ -176,7 +176,7 @@ class UserInterfaceHandlerPyQT():
         self.initial = True
         self.formname = formname
         self.gui = gui
-
+        self.very_original_formname = formname
         self.tab_buttons = {}
         self.tablist = []
         self.title = ""
@@ -548,6 +548,42 @@ class UserInterfaceHandlerPyQT():
 
 ##Popup Functions#############################################################################################################
 
+##Add Form or styuff##########################################################################################################
+    def get_form_details(self, formname):
+        return self.readsql(select('*').where(forms.formname == formname))
+
+
+    def edit_form_update(self,  old_formname, new_formname, new_formdesc):
+        self.writesql(update(forms).where(forms.formname == old_formname).values(formname=new_formname, formdesc=new_formdesc))
+        if new_formname != new_formdesc:
+            #tabs, buttons, batchsequence, buttonseries
+            self.writesql(update(tabs).where(tabs.formname == old_formname).values(formname=new_formname))
+            self.writesql(update(buttons).where(buttons.formname == old_formname).values(formname=new_formname))
+            self.writesql(update(batchsequence).where(batchsequence.formname == old_formname).values(formname=new_formname))
+            self.writesql(update(buttonseries).where(buttonseries.formname == old_formname).values(formname=new_formname))
+
+        self.title = new_formname
+        self.formname = new_formname
+        
+
+
+
+        self.gui_refresh()
+
+    def edit_form_delete(self, formname):
+        self.writesql(delete(buttonseries).where(buttonseries.formname == formname))
+        self.writesql(delete(batchsequence).where(batchsequence.formname == formname))
+        self.writesql(delete(buttons).where(buttons.formname == formname))
+        self.writesql(delete(tabs).where(tabs.formname == formname))
+        self.writesql(delete(forms).where(forms.formname == formname))
+        if self.very_original_formname == formname or self.very_original_formname == None:
+            self.very_original_formname = None
+            first_item_in_forms = self.readsql(select(forms.formname).order_by(forms.formname.asc()).limit(1))
+            if len(first_item_in_forms) > 0:
+                self.very_original_formname = first_item_in_forms[0].formname
+        self.formname = self.very_original_formname
+        self.title = self.very_original_formname
+        self.gui_refresh()
 
 ##EXPORT FUNCTIONS############################################################################################################
 
