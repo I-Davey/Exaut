@@ -185,7 +185,6 @@ class Edit_Layout(QMainWindow):
         self.refreshing = True
         curtab = self.SM_Tabs.currentIndex()
 
-        self.handle_save(exit_=False)
         self.title = self.parent_.title
         self.tablist = self.parent_.tablist
         self.tab_buttons = self.parent_.tab_buttons

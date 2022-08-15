@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class Filter_xlsx(PluginInterface):
-    load = True
+    load = False
     types = {"target":4,"keyfile":8}
     type_types = {"target":{"type":"drag_drop_folder", "description":"please select the Target Folder"},"keyfile":{"type":"drag_drop_file", "description":"Please select the excel file to filter"}}
 
