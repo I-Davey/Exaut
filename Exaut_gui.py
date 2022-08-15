@@ -314,6 +314,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.size_static = False
         self.show_hidden_tabs = False
         self.lastform = None
+        self.form_changing = False
 
         self.SM_Tabs = CustomTab(self)
 
@@ -372,6 +373,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
     def form_change(self):
+        self.form_changing = True
         all_forms = self.api.get_forms()
         form_list = [x.formname for x in all_forms]
 
@@ -388,13 +390,17 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.refresh()
             self.logger.info("Form changed to: " + new_title)
             if self.title in self.form_tab_kv:
+                self.curTab = self.form_tab_kv[self.title]
                 self.SM_Tabs.setCurrentIndex(self.form_tab_kv[self.title])
             else:
+                self.curTab = 0
                 self.SM_Tabs.setCurrentIndex(0)
+                
     
 
         else:
             self.logger.debug("No form selected")
+        self.form_changing = False
 
     def load(self):
         form_title, form_desc = self.api.load()
@@ -555,7 +561,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if self.refreshing:
             return
         if "start" not in kwargs:
-            self.form_tab_kv[self.form_title] = n
+            if not self.form_changing:
+                self.form_tab_kv[self.form_title] = n
 
             for item in self.button_dict:
                 self.button_dict[item].deleteLater()
