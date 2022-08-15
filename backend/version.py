@@ -1,5 +1,5 @@
-version = '14 August 2022 19:28'
-auth = True
+version = '14 August 2022 20:16'
+auth = False
 
 
 from subprocess import PIPE, Popen
