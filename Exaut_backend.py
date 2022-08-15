@@ -572,6 +572,9 @@ class UserInterfaceHandlerPyQT():
             x = self.writesql(update(batchsequence).where(batchsequence.formname == old_formname).values(formname=new_formname))
             x = self.writesql(update(buttons).where(buttons.formname == old_formname).values(formname=new_formname))
             x = self.writesql(update(tabs).where(tabs.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(batchsequence).where(batchsequence.type == "TabTo").where(batchsequence.folderpath == old_formname).values(folderpath=new_formname))
+
+            
             
             self.title = new_formname
             self.formname = new_formname
@@ -632,8 +635,10 @@ class UserInterfaceHandlerPyQT():
         #strip special symbols frin tab["formname"] an  tab["tab"] to be able to use as filename
 
         fnametab = tab["formname"]
+
+        tab_clean = "".join(c for c in tab["tab"] if c.isalnum() or c in ("_", "-"))
         
-        filename = "".join(e for e in fnametab if e.isalnum()) + "_" + tab["tab"] + ".json"
+        filename = "".join(e for e in fnametab if e.isalnum() or e in ("_","-")) + "_" + tab_clean + ".json"
 
 
         for i, button in enumerate(tab["buttons"]):
