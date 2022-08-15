@@ -687,11 +687,11 @@ class UserInterfaceHandlerPyQT():
             self.alert("Error adding tab")
             return False
 
-        x = self.writesql(insert(buttons).values(formname = curform, tab = curtab, buttonname = form_name+"|"+form_name))
+        x = self.writesql(insert(buttons).values(formname = curform, tab = curtab, buttonname = form_name))
         if not x:
             self.alert(f"Button {'open form' + form_name} already exists")
             return False
-        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname =form_name+"|"+form_name, type = "tabto", runsequence=0, folderpath=form_name, filename=form_name))
+        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname =form_name, type = "tabto", runsequence=0, folderpath=form_name, filename=form_name))
 
         if not x:
             self.alert("Error adding batchsequence")
