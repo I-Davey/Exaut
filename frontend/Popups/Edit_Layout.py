@@ -196,8 +196,6 @@ class Edit_Layout(QMainWindow):
         self.SM_Tabs.currentChanged.connect(self.ontabchange)
         self.refreshing = False
 
-
-
     def handle_refresh(self, curtab = None):
         
         self.clear_all()
@@ -306,9 +304,6 @@ class Edit_Layout(QMainWindow):
             self.SM_Tabs.setCurrentIndex(curtab)
             self.curtabindex = curtab
         
-
-
-
     def ontabchange(self, index):
         if not self.start:
             self.curtabtext = self.SM_Tabs.tabText(index)
@@ -326,7 +321,6 @@ class Edit_Layout(QMainWindow):
         else:
             self.resize(650,300)
         
-
     def add_grid_x(self):
         self.updating = True
         curtab = self.SM_Tabs.currentIndex()
