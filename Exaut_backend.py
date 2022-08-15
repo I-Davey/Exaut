@@ -455,7 +455,7 @@ class UserInterfaceHandlerPyQT():
                 form_title = self.title
                 form_desc = self.form_desc
         self.title = str(form_title) if form_title else self.formname
-        self.form_desc = str(form_desc) if form_desc else  self.form_desc
+        self.form_desc = str(form_desc) if form_desc else  "Exaut"
 
         self.edit_sequence_load()
         self.load_edit_button()

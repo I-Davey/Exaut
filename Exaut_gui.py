@@ -404,7 +404,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def load(self):
         form_title, form_desc = self.api.load()
         self.form_title = form_title
-        self.form_desc = form_desc
+        self.form_desc = form_desc if form_desc else "Exaut"
         self.title = form_title
         self.setWindowTitle(self.form_desc)
         self.setWindowIcon(self.icon)
