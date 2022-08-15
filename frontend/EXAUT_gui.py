@@ -112,7 +112,7 @@ class Ui_EXAUT_GUI():
         self.actionRefresh.setObjectName("actionRefresh")
         self.actionTabsize = QtGui.QAction(EXAUT_GUI)
         self.actionTabsize.setObjectName("actionTabsize")
-        self.actionstaticsize = QtGui.QAction(EXAUT_GUI)
+        self.actionstaticsize = QtGui.QAction(EXAUT_GUI, checkable=True)
         self.actionOpen_Files_Explorer = QtGui.QAction(EXAUT_GUI)
         self.actionOpen_Files_Explorer.setObjectName("actionOpen_Files_Explorer")
 
