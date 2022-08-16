@@ -99,9 +99,11 @@ class actions_categories(Base):
     sequence = Column(Integer, nullable=False)
 
 
-#CREATE TABLE variables (form TEXT,"key" TEXT,value TEXT,CONSTRAINT variables_PK PRIMARY KEY (form,"key"));
+#CREATE TABLE variables (	loc VARCHAR(63) NOT NULL,	form VARCHAR(63) NOT NULL, 	"key" VARCHAR(63) NOT NULL, 	value VARCHAR(255), location TEXT NOT NULL, 	PRIMARY KEY (loc, form, "key"));
 class variables(Base):
     __tablename__ = 'variables'
+    loc = Column(String(63), primary_key=True)
     form = Column(String(63), primary_key=True)
     key = Column(String(63), primary_key=True)
     value = Column(String(255))
+    

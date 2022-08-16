@@ -13,7 +13,7 @@ class Delete_Files(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self,source, bname, Popups) -> bool:
+    def main(self,source, bname, ) -> bool:
         #if the last character is not a slash, add it
         if source[-1] != "\\":
             source += "\\"
@@ -26,10 +26,10 @@ class Delete_Files(PluginInterface):
                         self.logger.success("file deleted: "+source+"\\"+f)
                         return True
                     except:
-                        Popups.alert(f"Problem deleting {source}\\{f}", f"Failed delete: {bname}!")
+                        self.Popups.alert(f"Problem deleting {source}\\{f}", f"Failed delete: {bname}!")
                         return False
 
         else:
             self.logger.error("Source path does not exist: "+source)
-            Popups.alert(f"Problem removing {source}", f"Warning: cleardir: {bname}!")
+            self.Popups.alert(f"Problem removing {source}", f"Warning: cleardir: {bname}!")
             return False

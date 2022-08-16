@@ -26,7 +26,7 @@ class import_tab(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, folder, Plugins) -> bool: 
+    def main(self, folder) -> bool: 
         folder = folder.replace("/", "\\")
         #for file in folder
         filelist = {}
@@ -37,7 +37,7 @@ class import_tab(PluginInterface):
         print("done")
         for file in filelist:
             print(file)
-        tabname, dataset, formname = Plugins.custom(Popup, filelist)
+        tabname, dataset, formname = self.self.Popups.custom(Popup, filelist)
         if not tabname and not dataset and not formname:
             return False
         #select dataset from filelist
@@ -72,7 +72,7 @@ class import_tab(PluginInterface):
                 for i in v:
                     queries.append(insert(eval(item)).values(i))
         x = self.writesql(queries)
-        Plugins.refresh()
+        self.self.Popups.refresh()
         if x:
             return True
         return False

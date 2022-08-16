@@ -25,7 +25,7 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
 
 
 
-    def main(self,secret_loc, target_loc, Popups):
+    def main(self,secret_loc, target_loc, ):
 
         secret_loc = secret_loc.replace("/", "\\")
         curdir = os.getcwd()
@@ -46,13 +46,13 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
         #file is D:/xlsxfiletouploadtogdrive.xlsx
         #upload to gdrive
         filename = filename.replace(".xlsx", "")
-        filename =  Popups.data_entry("Enter the name of the file to upload", "Upload file", filename)
+        filename =  self.Popups.data_entry("Enter the name of the file to upload", "Upload file", filename)
         filename = filename + ".xlsx"
 
         file_list = drive.ListFile({'q': "'root' in parents and trashed=false"}).GetList()
         for file1 in file_list:
             if file1['title'] == filename:
-                if Popups.yesno(f"File '{filename}' already exists", "File already exists, overwrite?"):
+                if self.Popups.yesno(f"File '{filename}' already exists", "File already exists, overwrite?"):
                     file1.Delete()
                 else: 
 
@@ -62,9 +62,9 @@ class WWG_GDrive_xlsx_toGDrive(PluginInterface):
         file1.Upload()
         #get link to file
         link = file1['alternateLink']
-        Popups.alert("File uploaded, check console for link", "File uploaded")
+        self.Popups.alert("File uploaded, check console for link", "File uploaded")
         self.logger.success(f"File uploaded: {link}")
-        if Popups.yesno("Open link in browser?", "Open link in browser?"):
+        if self.Popups.yesno("Open link in browser?", "Open link in browser?"):
             webbrowser.open(link)
         os.chdir(curdir)
 

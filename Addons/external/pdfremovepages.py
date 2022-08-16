@@ -17,7 +17,7 @@ class pdfremovepages(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self, start, end, file, savename, saveloc, Popups) -> bool:
+    def main(self, start, end, file, savename, saveloc, ) -> bool:
         with open(file, 'rb') as f:
             #save all pages between start and end, write to savename in saveloc
             pdf = PdfFileReader(f)

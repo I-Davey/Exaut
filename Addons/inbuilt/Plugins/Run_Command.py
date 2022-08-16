@@ -13,7 +13,7 @@ class Run_Command(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self, dir, command, Popups) -> bool: 
+    def main(self, dir, command, ) -> bool: 
         #check if dir exists
         if not os.path.exists(dir):
             self.logger.error(f"{dir} does not exist")

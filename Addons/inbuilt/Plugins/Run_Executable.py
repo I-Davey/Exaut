@@ -47,7 +47,7 @@ class Run_Executable(PluginInterface):
         else:
             return(True)
 
-    def main(self,ftype,path,file,specfile_1,specfile_2,specfile_3, bname, otherval, Popups) -> bool:
+    def main(self,ftype,path,file,specfile_1,specfile_2,specfile_3, bname, otherval, ) -> bool:
         #set cwd
         orig_dir = os.getcwd()
         try:
@@ -69,26 +69,26 @@ class Run_Executable(PluginInterface):
                         try:
                             win32api.WinExec("\""+path+"\\"+file+"\" \""+param+"\"")
                         except:
-                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?", "Failed exe: "+bname+"! \\"+str(otherval))
+                            self.Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?", "Failed exe: "+bname+"! \\"+str(otherval))
                     else:
                         #check if specfile is a list
                         
                         if not isinstance(specfile, list) and os.path.exists(specfile)==False:
-                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?", "Failed exe: "+bname+"! \\"+str(otherval))
+                            self.Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?", "Failed exe: "+bname+"! \\"+str(otherval))
                         else:
                             try:
                                 win32api.WinExec("\""+path+"\\"+file+"\" \""+specfile[0]+"\"")
                                 os.chdir(orig_dir)
                                 return True
                             except:
-                                Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval))
+                                self.Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed exe: "+bname+"! \\"+str(otherval))
                 else:
                     try:
                         os.startfile("\""+path+"\\"+file+"\"")
                         os.chdir(orig_dir)
                         return True
                     except:
-                        Popups.alert("Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval))
+                        self.Popups.alert("Problem running \""+path+"\\"+file+"\"?","Failed exe: "+bname+"! \\"+str(otherval))
             elif ftype=="py":
                 if specfile!=None and specfile!="" and specfile!="None":
                     param = specfile
@@ -99,28 +99,28 @@ class Run_Executable(PluginInterface):
                             os.chdir(orig_dir)
                             return True
                         except:
-                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
+                            self.Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
                     else:
                         if os.path.exists(specfile[0])==False:
-                            Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
+                            self.Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
                         else:
                             try:
                                 win32api.WinExec("python \""+path+"\\"+file+"\" \""+specfile[0]+"\"")
                                 os.chdir(orig_dir)
                                 return True
                             except:
-                                Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
+                                self.Popups.alert("Problem running \""+path+"\\"+file+"\" \""+specfile[0]+"\"?","Failed py: "+bname+"! \\"+str(otherval))
                 else:
                     try:
                         win32api.WinExec("python \""+path+"\\"+file+"\"")
                         os.chdir(orig_dir)
                         return True
                     except:
-                        Popups.alert("Problem running \""+path+"\\"+file+"\"?","Failed py: "+bname+"! \\"+str(otherval))
+                        self.Popups.alert("Problem running \""+path+"\\"+file+"\"?","Failed py: "+bname+"! \\"+str(otherval))
         else:
             actualpath = path+"\\"+file
             self.logger.error(f"Program not found at location {actualpath}")
-            Popups.alert("Program not found at location: "+actualpath,"Failed py: "+bname+"! \\"+str(otherval))
+            self.Popups.alert("Program not found at location: "+actualpath,"Failed py: "+bname+"! \\"+str(otherval))
         os.chdir(orig_dir)
         return False
 

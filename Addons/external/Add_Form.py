@@ -24,11 +24,11 @@ class Add_Form(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, Plugins) -> bool: 
+    def main(self) -> bool: 
         q = self.readsql(select(forms.formname, forms.formdesc))
         a = [x["formname"] for x in q]
         popup = Popup
-        name, desc = Plugins.custom(popup)
+        name, desc = self.Popups.custom(popup)
         if not name and not desc:
             return False
         if name == "":
@@ -36,7 +36,7 @@ class Add_Form(PluginInterface):
             return False
         
         if name in a:
-            Plugins.alert("Form already exists")
+            self.Popups.alert("Form already exists")
             return False
 
         x = self.writesql(insert(forms).values(formname=name, formdesc=desc))

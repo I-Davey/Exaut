@@ -13,12 +13,12 @@ class git_commit_msg(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self, dir, Popups) -> bool: 
+    def main(self, dir) -> bool: 
         #check if dir exists
         if not os.path.exists(dir):
             self.logger.error(f"{dir} does not exist")
             return False
-        summary = Popups.data_entry("Please enter a summary for your commit", "Git Commit")
+        summary = self.Popups.data_entry("Please enter a summary for your commit", "Git Commit")
         if summary is None:
             self.logger.warning("no summary given, cancelling commit")
             return False

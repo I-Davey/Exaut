@@ -15,7 +15,7 @@ class Open_Folder(PluginInterface):
 
 
 
-    def main(self,folder, Popups) -> bool:
+    def main(self,folder, ) -> bool:
         #check if the given folder exists, and if so, open it, else, logger.error(f"folder {folder} does not exist")
         folder = folder 
         if os.path.exists(folder):

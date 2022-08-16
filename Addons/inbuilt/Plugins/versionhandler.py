@@ -19,7 +19,7 @@ class versionhandler(PluginInterface):
 
 
 
-    def main(self,source, cedric, popups) -> bool:
+    def main(self,source, cedric, ) -> bool:
         if source != None:
             curdir = os.getcwd()
             if not os.path.exists(source):

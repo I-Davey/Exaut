@@ -243,7 +243,7 @@ class Plugins:
         else:
             return False
 
-    def call(self, name, args, plugins = None):
+    def call(self, name, args):
         if name in self.plugin_loc:
             name = self.plugin_loc[name]
             logger.trace(f"Calling {name} with args {args}")
@@ -259,7 +259,6 @@ class Plugins:
             else:
                 for key, value in arguments.items():
                     newargs.append(args[value])
-            newargs.append(plugins)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
 
@@ -276,5 +275,8 @@ class Plugins:
             logger.error(f"{name} is not a valid plugin")
             return False
 
-
+    def handle_popups(self, Popups):
+        logger.debug("loading Popups for internal  plugins")
+        for item in self.plugins.values():
+            item["object"].Popups = Popups
 

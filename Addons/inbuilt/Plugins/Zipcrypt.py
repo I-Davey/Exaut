@@ -19,7 +19,7 @@ class Zipcrypt(PluginInterface):
 
 
 
-    def main(self,source, destination, password, extension, Popups) -> bool:
+    def main(self,source, destination, password, extension, ) -> bool:
         curdir = getcwd()
         if not extension:
             extension = "rar"
@@ -55,7 +55,7 @@ class Zipcrypt(PluginInterface):
                 self.logger.error("File is: " + tmpdir + "/" + move_from + extension)
                 self.logger.error(e)
                 chdir(curdir)
-                Popups.alert("Error copying file, please make sure it is closed.", "Error: " + str(e))
+                self.Popups.alert("Error copying file, please make sure it is closed.", "Error: " + str(e))
                 return False
         chdir(curdir)
         return True

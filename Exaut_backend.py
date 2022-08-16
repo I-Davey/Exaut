@@ -15,7 +15,7 @@ from backend.edit_sequence_data import Edit_Sequence
 from backend.edit_tab import Edit_Tab
 from backend.iniconfig import Parse
 from backend.db.Exaut_sql import  *
-from sqlalchemy import create_engine,select, update, insert, delete
+from sqlalchemy import create_engine,select, update, insert, delete, or_, and_
 from sqlalchemy.orm import sessionmaker
 from threading import Thread
 from backend.version import version
@@ -62,6 +62,7 @@ class ConfigHandler:
         connection = db_config["connection"]
         self.db_location = f"{connectionpath}\\{connection}"
         self.plugin_folder = db_config["plugin_folder"]
+        self.variable_loc = db_config["variable_loc"]
         
 class PluginHandler:
     def __init__(self, plugin_folder):
@@ -78,6 +79,8 @@ class PluginHandler:
             print(f"Critical error, plugin manager failed to load")
             print(self.pmgr.error)
             sys.exit()
+
+
 
     def load_external_plugins(self):
         self.pmgr_ext = Plugins_Ext(self.pmgr, self.logger, self.plugin_folder)
@@ -167,7 +170,7 @@ class QueryHandler():
     
 
 class UserInterfaceHandlerPyQT():
-    def __init__(self, logger, db, pmgr, gui, formname):
+    def __init__(self, logger, db, pmgr, gui, formname, variable_loc):
 
         self.logger = logger
         self.readsql = db.readsql
@@ -184,7 +187,9 @@ class UserInterfaceHandlerPyQT():
         self.form_desc = ""
         self.version = version
         self.popups = self.Popups(self.gui, self.logger, self)
+        self.variable_loc = variable_loc
         self.handle_plugins()
+        self.pmgr.handle_popups(self.popups)
         #self.refresh(launch = True)
         self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
         self.edit_tab_handle()
@@ -194,21 +199,29 @@ class UserInterfaceHandlerPyQT():
 
     def handle_vars(self):
         #where form is self.formname or form is "*"
-        q1 = self.readsql(select (variables.key, variables.value).where(variables.form == "*"))
-        q2 = self.readsql(select (variables.key, variables.value).where(variables.form == self.formname))
-        self.var_dict = {v.key : v.value for v in q1+q2}
+        #q1 = self.readsql(select (variables.key, variables.value).where(variables.form == "*"))
+        #q2 = self.readsql(select (variables.key, variables.value).where(variables.form == self.formname))
+        #and:::
+        #q3 = self.readsql(select (variables.key, variables.value).where(variables.loc == "*"))
+        #q4 = self.readsql(select (variables.key, variables.value).where(variables.loc == self.variable_loc))
+
+        #use or to combine the four queries
+        q = self.readsql(select (variables.key, variables.value).where(or_(variables.form == "*", variables.form == self.formname)).where(or_(variables.loc == "*", variables.loc == self.variable_loc)))
+        self.var_dict = {v.key : v.value for v in q}
+        print(q)
 
 
-    def addvar(self, key, value, overwrite = False, global_var = False):
+    def addvar(self, key, value, overwrite = False, global_var = False, global_loc = False):
         self.refresh()
         form = "*" if global_var else self.formname
+        loc = "*" if global_loc else self.variable_loc
         if key in self.var_dict:
             if overwrite:
-                self.writesql(variables.update().where(variables.key == key, variables.form == form).values(value = value))
+                self.writesql(variables.update().where(variables.key == key, variables.form == form, variables.loc == loc, ).values(value = value))
             else:
                 self.alert(f"Variable {key} already exists, not overwriting")
         else:
-            self.writesql(insert(variables).values(key = key, value = value, form = form))
+            self.writesql(insert(variables).values(key = key, value = value, form = form, loc = loc))
         
         #refresh the var_dict and refresh the main gui interface
         self.handle_vars()
@@ -293,6 +306,8 @@ class UserInterfaceHandlerPyQT():
             self.writesql(delete(actions).where(actions.plugin == item))
         if items_2_del != []:
             self.handle_plugins()
+
+
 
     class Popups:
         def __init__(self, gui, logger, parent_):
@@ -480,8 +495,8 @@ class UserInterfaceHandlerPyQT():
                     return True, "assignseries"
                 elif self.pmgr.exists(batchsequence_.type):
                     if mode == "sequence":
-                        return self.pmgr.call(batchsequence_.type, batchsequence_._mapping, self.popups), batchsequence_.type
-                    function = self.pmgr.call, (batchsequence_.type, batchsequence_._mapping, self.popups)
+                        return self.pmgr.call(batchsequence_.type, batchsequence_._mapping), batchsequence_.type
+                    function = self.pmgr.call, (batchsequence_.type, batchsequence_._mapping)
                     button_thread = Thread(target = self.single_button_handler, args=(button_name, tab_name, function))
                     button_thread.start()
         
@@ -1048,7 +1063,7 @@ class Loader:
         self.pmgr = PluginHandler(self.config.plugin_folder)
         self.logger = self.pmgr.return_logger()
         self.db = QueryHandler(self.logger, self.config.db_location)
-        self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name)
+        self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name, self.config.variable_loc)
         self.formname = None
 
 
@@ -1069,7 +1084,7 @@ if __name__ == "__main__":
     backend.ui.formname = "test"
     a = backend.ui.load()
     b = backend.ui.refresh()
-    assert a == ("test", "test")
+    assert a == ("test", "Exaut")
     assert b == (['test'], {'test': {'buttons': [[1, 'test', 1, None]], 'grid': 2, 'description': None, 'size': None}})
 
     edit_button_test, state = backend.ui.edit_button_data("test", "test")
