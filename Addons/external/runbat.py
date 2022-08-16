@@ -18,7 +18,7 @@ class runbat(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, exe, Popups) -> bool: 
+    def main(self, exe) -> bool: 
         #check if dir exists
 
 

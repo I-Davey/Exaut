@@ -19,7 +19,7 @@ class on_link_fixer(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, source, Popups) -> bool:
+    def main(self, source, ) -> bool:
         while True:
             summary = Popups.data_entry(f"{source} Url Fixer", f"(output: {source}) Please Enter Onenote Url:")
             if summary == None:

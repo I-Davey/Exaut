@@ -25,7 +25,7 @@ class Filter_xlsx(PluginInterface):
 
 
 
-    def main(self,save_loc, pandas_excel_file , Popups):
+    def main(self,save_loc, pandas_excel_file):
         self.logger.info("Starting Filter_xlsx")
         filter_list = [
             'Growth Activists',

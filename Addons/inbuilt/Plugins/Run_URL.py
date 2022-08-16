@@ -94,7 +94,7 @@ class Run_URL(PluginInterface):
         return(bseq, btn)
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, folderpath, filename, source, buttonname, target , Popups) -> bool:
+    def main(self, folderpath, filename, source, buttonname, target , ) -> bool:
         
         path = str(folderpath)+"\\"+str(filename)
         if os.path.exists(path)==False:
@@ -110,7 +110,7 @@ class Run_URL(PluginInterface):
                 try:
                     webbrowser.open(str(source))  # Go to example.com
                 except Exception as e:
-                    Popups.alert(path+" does not exist?","Failed url: "+buttonname+"!")
+                    self.Popups.alert(path+" does not exist?","Failed url: "+buttonname+"!")
 
                     self.logger.error(e)
         else:

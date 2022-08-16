@@ -18,7 +18,7 @@ class Folder_Copy(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, type_,source, target, Popups) -> bool:
+    def main(self, type_,source, target, ) -> bool:
         #check if dir exists
         if not os.path.exists(target):
             os.makedirs(target)

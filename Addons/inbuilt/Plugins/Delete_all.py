@@ -23,7 +23,7 @@ class Delete_all(PluginInterface):
         del bseq["type_"]
         return bseq, btn
 
-    def main(self,source, bname, type_, Popups) -> bool:
+    def main(self,source, bname, type_, ) -> bool:
         #if the last character is not a slash, add it
         
         if source[-1] != "/":

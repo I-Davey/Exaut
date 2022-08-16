@@ -20,16 +20,16 @@ class pyqt_popup_example(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self,  Popups) -> bool: 
+    def main(self,  ) -> bool: 
         #check if dir exists
 
 
 
         #if exe exists:   
         dialog = Dialog
-        x = Popups.custom(dialog)
+        x = self.Popups.custom(dialog)
         self.logger.debug(x)
-        Popups.alert(x)
+        self.Popups.alert(x)
 
 class Dialog(QDialog):
     NumGridRows = 3

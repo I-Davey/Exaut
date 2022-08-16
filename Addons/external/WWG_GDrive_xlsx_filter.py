@@ -34,20 +34,20 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
 
 
-    def main(self,xlsx_loc, save_loc, Popups):
+    def main(self,xlsx_loc, save_loc, ):
         self.logger.success(f"xlsx_loc: {xlsx_loc}")
         #load the excel file and get the dataframe
         try:
             df = read_excel(xlsx_loc)
         except Exception as e:
-            Popups.alert("Error", str(e))
+            self.Popups.alert("Error", str(e))
             return False
         
 
             
 
         dialog = Dialog
-        x = Popups.custom(dialog)
+        x = self.Popups.custom(dialog)
         if x == (None,):
             return
         keywords, folder, filetype, start_date, end_date, is_date_filtered, file_name = x
@@ -57,7 +57,7 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
 
         if keywords is None:
-            Popups.alert("Please enter keywords")
+            self.Popups.alert("Please enter keywords")
             return
         keywords = keywords.split(",")
 
@@ -112,8 +112,8 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
                 df.to_excel(save_loc + "\\" + file_name, index=False)
             except Exception as e:
-                Popups.alert(str(e), "Error")
-                x = Popups.yesno( f"ERROR:{str(e)}, Do you want to try again?")
+                self.Popups.alert(str(e), "Error")
+                x = self.Popups.yesno( f"ERROR:{str(e)}, Do you want to try again?")
                 if x is False:
                     return False
             self.logger.success(f"Saved to: {save_loc} as {file_name}")

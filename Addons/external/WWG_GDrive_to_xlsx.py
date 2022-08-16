@@ -29,7 +29,7 @@ class WWG_GDrive_to_xlsx(PluginInterface):
 
 
 
-    def main(self,save_loc, secret_loc, Popups):
+    def main(self,save_loc, secret_loc):
         start_time = perf_counter()
         filename = "\\WWG_GDrive.xlsx"
         save_loc = save_loc.replace("/", "\\")

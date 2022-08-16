@@ -157,7 +157,7 @@ class Plugins_Ext:
         else:
             return False
 
-    def call(self, name, args, plugins = None):
+    def call(self, name, args):
         if name in self.plugin_loc:
             name = self.plugin_loc[name]
             self.logger.trace(f"Calling {name} with args {args}")
@@ -173,7 +173,6 @@ class Plugins_Ext:
             else:
                 for key, value in arguments.items():
                     newargs.append(args[value])
-            newargs.append(plugins)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
                 t = Thread(target=self.plugins[name]["run"], args=newargs)
@@ -189,5 +188,9 @@ class Plugins_Ext:
             self.logger.error(f"{name} is not a valid plugin")
             return False
 
+    def handle_popups(self, Popups):
+        self.logger.debug("loading Popups for external  plugins")
 
+        for item in self.plugins.values():
+            item["object"].Popups = Popups
 
