@@ -190,18 +190,28 @@ class CollapsibleDialog(QDialog):
 
 
 class Actions(QMainWindow):
-    def __init__(self, formname, tabname,  get_actions, get_pluginmap, get_typemap , return_categories, action_change_category, action_save, action_update, action_delete, parent=None):
+    def __init__(self, formname, tabname, actions, get_actions, action_save, action_update, action_delete, parent_=None):
+
         
-        super().__init__(parent)
+        super().__init__(parent_)
+
+
+
+        
         self.save = action_save
         self.update_action = action_update
         self.delete_action = action_delete
         self.formname = formname
         self.tabname = tabname
-        self.return_categories = return_categories
-        self.action_change_category = action_change_category
+        self.return_categories = actions.return_categories
+        self.action_change_category = actions.edit_action_category
 
-        self.data = Data(get_pluginmap, get_actions, get_typemap )
+        self.data = Data(actions.return_plugins_type_map, actions.return_actions_categories_dict, actions.get_type_plugin_map)
+
+
+        self.parent_ = parent_
+
+        self.variables = self.parent_.api.var_dict
         # set the title of main window
 
         # set the size of window
@@ -214,7 +224,7 @@ class Actions(QMainWindow):
         self.searchbar.setPlaceholderText('Search')
         self.searchbar.setStyleSheet('''QLineEdit{ border: 1px solid gray; border-radius: 5px; padding: 0px; background: white; }''')
     
-        self.categories  = CollapsibleDialog(get_actions, self.handle_action_types, self.handle_select_category)
+        self.categories  = CollapsibleDialog(actions.return_actions_categories_dict, self.handle_action_types, self.handle_select_category)
         self.searchbar.textChanged.connect(self.categories.handle_filter)
 
 
@@ -247,8 +257,11 @@ class Actions(QMainWindow):
 
         self.initUI()
 
+    def refresh_vars(self):
+        self.variables = self.parent_.api.var_dict
+
     def setmode(self, mode):
-        self.mode = mode
+        self.mode = mode 
 
     def initUI(self):
         left_layout = QVBoxLayout()
@@ -270,6 +283,7 @@ class Actions(QMainWindow):
         self.right_widget = QGridLayout()
         refresh_cats = QPushButton("R")
         refresh_cats.clicked.connect(self.categories.handle_refresh)
+        refresh_cats.clicked.connect(self.refresh_vars)
         refresh_cats.setToolTip("Refresh Categories")
 
         expand_all = QPushButton("+")
@@ -477,7 +491,7 @@ class Actions(QMainWindow):
             self.edit_button.hide()
         
 
-
+ 
 class Data:
     def __init__(self, get_pluginmap, get_actions, get_typemap):
         self.get_pluginmap = get_pluginmap

@@ -212,6 +212,7 @@ class Plugins:
         self.plugin_map = {}
         self.error = None
         self.fail = False
+        self.variables = {}
         self.plugininterface = PluginInterface
         
         
@@ -259,6 +260,16 @@ class Plugins:
             else:
                 for key, value in arguments.items():
                     newargs.append(args[value])
+
+            for item in newargs:
+                if not item:
+                    continue
+                #if items in item split by space start with a $$, check if it exists in self.variables, if it does, replace it with the value
+                for i, item2 in enumerate(item.split(" ")):
+                    if item2.startswith("$$"):
+                        if item2[2:] in self.variables:
+                            newargs[i] = item.replace(item2, self.variables[item2[2:]])
+            print(newargs)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
 
@@ -275,8 +286,16 @@ class Plugins:
             logger.error(f"{name} is not a valid plugin")
             return False
 
+
     def handle_popups(self, Popups):
-        logger.debug("loading Popups for internal  plugins")
+        logger.debug("loading Popups and vars for  plugins")
+
         for item in self.plugins.values():
             item["object"].Popups = Popups
 
+
+    def refresh_vars(self, variables):
+        logger.debug("refreshing vars for plugins")
+
+        for item in self.plugins.values():
+            self.variables = variables

@@ -188,9 +188,19 @@ class Plugins_Ext:
             self.logger.error(f"{name} is not a valid plugin")
             return False
 
-    def handle_popups(self, Popups):
-        self.logger.debug("loading Popups for external  plugins")
+    def handle_popups(self, Popups, vars):
+        self.logger.debug("loading Popups and vars for  plugins")
 
         for item in self.plugins.values():
             item["object"].Popups = Popups
+
+        for item in self.plugins.values():
+            item["object"].vars = vars
+
+    def refresh_vars(self, vars):
+        self.logger.debug("refreshing vars for plugins")
+
+        for item in self.plugins.values():
+            item["object"].vars = vars
+
 

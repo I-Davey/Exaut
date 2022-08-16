@@ -21,7 +21,7 @@ class on_link_fixer(PluginInterface):
 
     def main(self, source, ) -> bool:
         while True:
-            summary = Popups.data_entry(f"{source} Url Fixer", f"(output: {source}) Please Enter Onenote Url:")
+            summary = self.Popups.data_entry(f"{source} Url Fixer", f"(output: {source}) Please Enter Onenote Url:")
             if summary == None:
                 break
             if source == "OneNote App":

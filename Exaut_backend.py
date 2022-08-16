@@ -189,10 +189,11 @@ class UserInterfaceHandlerPyQT():
         self.popups = self.Popups(self.gui, self.logger, self)
         self.variable_loc = variable_loc
         self.handle_plugins()
-        self.pmgr.handle_popups(self.popups)
         #self.refresh(launch = True)
         self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
         self.edit_tab_handle()
+        self.pmgr.handle_popups(self.popups)
+
     def edit_tab_handle(self):
         self.edit_tab = Edit_Tab(self.writesql, self.logger, self.alert)
 
@@ -208,6 +209,7 @@ class UserInterfaceHandlerPyQT():
         #use or to combine the four queries
         q = self.readsql(select (variables.key, variables.value).where(or_(variables.form == "*", variables.form == self.formname)).where(or_(variables.loc == "*", variables.loc == self.variable_loc)))
         self.var_dict = {v.key : v.value for v in q}
+        self.pmgr.refresh_vars(self.var_dict)
         print(q)
 
 
@@ -530,21 +532,6 @@ class UserInterfaceHandlerPyQT():
 
 
 
-    def get_actions(self):
-        return self.actions.return_actions_categories_dict()
-    def actions_get_pluginmap(self):
-        return self.actions.return_pluginmap_data()
-    def actions_refresh(self):
-        self.actions.refresh()
-        return self.actions.initial_data()
-    def action_get_typemap(self):
-        return self.actions.return_plugins_type_map()
-    def return_plugins_type_map(self):
-        return self.actions.get_type_plugin_map()
-    def action_return_categories(self):
-        return self.actions.return_categories()
-    def action_change_category(self, action, category):
-        self.actions.edit_action_category(action, category)
     def actions_save(self,button_dict:dict, batchsequence_dict:dict,  action:str):
         self.actions.create_button(batchsequence_dict, button_dict, action)
         self.gui_refresh()
@@ -554,6 +541,9 @@ class UserInterfaceHandlerPyQT():
     def actions_delete(self,form:str, tab:str, button_name:str):
         self.actions.delete_button(tab, button_name, form)
         self.gui_refresh()
+    def get_actions(self):
+        return self.actions
+    
 
     def get_init_data(self):
         return self.actions.initial_data()

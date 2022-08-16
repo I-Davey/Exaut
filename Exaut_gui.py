@@ -1,6 +1,7 @@
 
 from argparse import Action
 from time import perf_counter
+
 start_time = perf_counter()
 print("loading..")
 from PyQt6 import QtCore,QtGui,QtWidgets
@@ -699,7 +700,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def handle_actions(self):
         curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
-        self.actions_popup = Actions(self.form_title,curtab, self.api.get_actions, self.api.action_get_typemap, self.api.return_plugins_type_map, self.api.action_return_categories, self.api.action_change_category, self.api.actions_save, self.api.actions_update, self.api.actions_delete, self)
+        self.actions_popup = Actions(self.form_title,curtab, self.api.actions, self.api.get_actions, self.api.actions_save, self.api.actions_update, self.api.actions_delete, self)
         self.actions_popup.show()
         None
 
