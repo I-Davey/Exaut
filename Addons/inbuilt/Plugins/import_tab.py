@@ -37,7 +37,7 @@ class import_tab(PluginInterface):
         print("done")
         for file in filelist:
             print(file)
-        tabname, dataset, formname = self.self.Popups.custom(Popup, filelist)
+        tabname, dataset, formname = self.Popups.custom(Popup, filelist)
         if not tabname and not dataset and not formname:
             return False
         #select dataset from filelist
@@ -72,7 +72,7 @@ class import_tab(PluginInterface):
                 for i in v:
                     queries.append(insert(eval(item)).values(i))
         x = self.writesql(queries)
-        self.self.Popups.refresh()
+        self.Popups.refresh()
         if x:
             return True
         return False
