@@ -17,11 +17,11 @@ class tabto(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, form, tab, type_, Popup) -> bool:
+    def main(self, form, tab, type_) -> bool:
         if type_ == "tablast":
-            Popup.tabto("")
+            self.Popups.tabto("")
         if not form:
-            Popup.tabto(tab)
+            self.Popups.tabto(tab)
         else:
-            Popup.tabto(tab, form)
+            self.Popups.tabto(tab, form)
         return True
