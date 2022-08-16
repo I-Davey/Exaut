@@ -261,14 +261,17 @@ class Plugins:
                 for key, value in arguments.items():
                     newargs.append(args[value])
 
-            for item in newargs:
-                if not item:
+            for loc, item, in enumerate(newargs):
+                if not item or type(item) != str:
                     continue
+                if "$$" not in item:
+                    continue
+            
                 #if items in item split by space start with a $$, check if it exists in self.variables, if it does, replace it with the value
                 for i, item2 in enumerate(item.split(" ")):
                     if item2.startswith("$$"):
                         if item2[2:] in self.variables:
-                            newargs[i] = item.replace(item2, self.variables[item2[2:]])
+                            newargs[loc] = item.replace(item2, self.variables[item2[2:]])
             print(newargs)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
