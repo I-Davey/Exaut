@@ -17,9 +17,9 @@ class Delete_all(PluginInterface):
     def getTypeFunc(self, bseq, btn) -> dict:
         if "type_" in bseq:
             if bseq["type_"] == "all items":
-                bseq["type"] == "delall"
+                bseq["type"] = "delall"
             elif bseq["type_"] == "non (.) items":
-                bseq["type"] == "delalldot"
+                bseq["type"] = "delalldot"
         del bseq["type_"]
         return bseq, btn
 
