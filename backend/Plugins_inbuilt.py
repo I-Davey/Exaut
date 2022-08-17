@@ -267,11 +267,13 @@ class Plugins:
                 if "$$" not in item:
                     continue
             
-                #if items in item split by space start with a $$, check if it exists in self.variables, if it does, replace it with the value
-                for i, item2 in enumerate(item.split(" ")):
-                    if item2.startswith("$$"):
-                        if item2[2:] in self.variables:
-                            newargs[loc] = item.replace(item2, self.variables[item2[2:]])
+                #Variables are encapsulated in $$
+                for i, item2 in enumerate(item.split("$$")):
+                    if i == 0:
+                        continue
+                    if item2 in self.variables:
+                        newargs[loc] = newargs[loc].replace("$$" + item2 + "$$", self.variables[item2])
+                    
             print(newargs)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
