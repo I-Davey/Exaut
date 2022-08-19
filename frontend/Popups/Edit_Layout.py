@@ -2,7 +2,7 @@ from PyQt6 import QtGui, QtCore
 #import QVBoxLayout
 from functools import partial
 from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QPushButton, QWidget,  QFormLayout, QVBoxLayout, QMainWindow
-from PyQt6.QtGui import QDrag, QPixmap
+from PyQt6.QtGui import QDrag, QPixmap, QAction
 from PyQt6.QtCore import QMimeData, Qt
 
 from PyQt6 import QtWidgets
@@ -58,6 +58,7 @@ class Edit_Layout(QMainWindow):
         self.refreshing = False
         self.tablist = []
         self.tab_buttons = {}
+        self.static = False
         self.start = True
         self.SM_Tabs = QtWidgets.QTabWidget()
         centralwdgt = QtWidgets.QWidget(self)
@@ -68,6 +69,11 @@ class Edit_Layout(QMainWindow):
         self.menubar = self.menuBar()
         self.filemenu = self.menubar.addAction("Refresh")
         self.filemenu.triggered.connect(self.refresh_data)
+        self.static_action = QAction(self, checkable=True)
+        self.static_action.setText("Static (off)")
+        self.menubar.addAction(self.static_action)
+        self.static_action.triggered.connect(self.handle_static)
+
         #add widget
         self.SM_Tabs.setObjectName("SM_Tabs")
         self.SM_Tabs.setMovable(True)
@@ -151,6 +157,14 @@ class Edit_Layout(QMainWindow):
             #self.edit_layout.resetlayout(initial=True)
         self.handle_refresh(self.curtab)
         self.start = False
+
+    def handle_static(self):
+        self.static = not self.static
+        if self.static:
+            self.static_action.setText("Static (on)")
+        else:
+            self.static_action.setText("Static (off)")
+
 
 
     def clear_all(self):
@@ -312,7 +326,7 @@ class Edit_Layout(QMainWindow):
                 #get curtabdata for current tab using curtabindex
         curtabdata = self.tab_buttons[self.tablist[index]]
         curtabsize = curtabdata["tabsize"]
-        if self.updating:
+        if self.updating or self.static:
             return
         if curtabsize:
             curtabsize = curtabsize.split(",")
