@@ -482,7 +482,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.SM_Tabs.setCurrentIndex(0)
         else:
             self.SM_Tabs.setCurrentIndex(self.curTab)
+        #clear self.SM_Tabs connections
+        
+        if not start:
+            self.SM_Tabs.currentChanged.disconnect()
+
         self.SM_Tabs.currentChanged.connect(self.get_tab_change)
+        
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
         if not start:
@@ -1396,6 +1402,7 @@ class GUI_Handler:
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = UI_Window()
         self.window.show()
+
         x = self.app.exec()
 
         sys.exit()
@@ -1404,6 +1411,13 @@ class GUI_Handler:
         return self.window
 
 if __name__ == "__main__":
+    sys._excepthook = sys.excepthook 
+    def exception_hook(exctype, value, traceback):
+        print(exctype, value, traceback)
+        sys._excepthook(exctype, value, traceback) 
+        input("Press any key to close -- SHOW IAN D THIS ERROR")
+        sys.exit(1) 
+    sys.excepthook = exception_hook
     gui = GUI_Handler(title="ExAuT")
     gui.start()
 

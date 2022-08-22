@@ -101,6 +101,7 @@ class PluginManager:
             except Exception as e:
                 logger.error("There was an error when loading types. Make sure you follow the naming convention when writing your own types.")
                 logger.error(f"Error: {e} on type {plugin}")
+                exit()
                 return self.plugins, self.plugin_loc, self.plugin_type_types
             
         logger.success(f"[Initializer]: Successfully loaded {len(self.plugins)} external {'Plugins.' if len(self.plugins) > 1 else 'Plugin'}: {[*self.plugins]}")
