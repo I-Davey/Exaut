@@ -3,7 +3,7 @@ from __important.PluginInterface import PluginInterface
 
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
-from pandas import read_excel, to_datetime
+from pandas import read_excel, to_datetime, concat
 import openpyxl
 #import get_column_letter
 from openpyxl.utils import get_column_letter
@@ -72,7 +72,33 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
         #delete first column
         df = df.drop(df.columns[0], axis=1)
     
-        df = df[df["File"].str.contains("|".join(keywords), case=False)]
+        #if there is an & in file name, search where x and y are in file name
+        dflist = []
+        found_and = False
+        keyworldold = [keyword.replace("&&", " and ") for keyword in keywords]
+        for keyword in keywords.copy():
+            if "&&" in keyword:
+                x, y = keyword.split("&&")
+                dflist.append(df[df["File"].str.contains(x, case=False) & df["File"].str.contains(y, case=False)])
+                keywords.remove(keyword)
+                found_and = True
+
+        
+        if found_and and keywords == []:
+            #delete rows in df
+            df = concat(dflist)
+            df = df.drop_duplicates()
+            
+        else:
+            df = df[df["File"].str.contains("|".join(keywords), case=False)]
+            #add dflist to df
+            dflist.append(df)
+            df = concat(dflist)
+        
+
+            df = df.drop_duplicates()
+        #print df
+
         df = df[df["Main Folder"].str.contains(folder, case=False)] if folder not in ["Any", ""] else df
         df = df[df["File Type"].str.contains(filetype, case=False)] if filetype not in ["Any", ""] else df
 
@@ -96,13 +122,13 @@ class WWG_GDrive_xlsx_filter(PluginInterface):
 
         df = df.drop(df.columns[4], axis=1)
         #drop URL
-        df = df[["Link", "File", "File Type", "Folder Location", "Main Folder", "Modified By", "Modified", "Created", "URL"]]
+        df = df[["Link", "File", "File Type", "Folder Location", "Main Folder", "Modified By", "Modified", "Created", "URL"]] 
         df = df.drop(df.columns[8], axis=1)
 
 
 
         #add column filter to df
-        df["Filter"] = ",".join(keywords)
+        df["Filter"] = ",".join(keyworldold)
         #save to excel file with auto
 
         
