@@ -1,4 +1,4 @@
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, or_
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout
@@ -7,7 +7,7 @@ import pandas as pd
 class export_form(PluginInterface):
     load = True
     types = {"target":4}
-    type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"export a Form"}
+    type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"Export Form -> xlsx"}
 
 
     callname = "export_Form"
@@ -39,35 +39,47 @@ class export_form(PluginInterface):
 
         data = self.readsql(select('*').where(forms.formname == name))
         df = pd.DataFrame(data)
-        df.to_excel(excel_writer, sheet_name='forms')
+        df.to_excel(excel_writer, sheet_name='forms', index=False)
 
         data = self.readsql(select('*').where(tabs.formname == name))
         df = pd.DataFrame(data)
-        df.to_excel(excel_writer, sheet_name='tabs')
+        df.to_excel(excel_writer, sheet_name='tabs', index=False)
         
 
 
         data = self.readsql(select('*').where(buttons.formname == name))
         df = pd.DataFrame(data)
-        df.to_excel(excel_writer, sheet_name='buttons')
+        df.to_excel(excel_writer, sheet_name='buttons', index=False)
 
         data = self.readsql(select('*').where(batchsequence.formname == name))
         df = pd.DataFrame(data)
-        df.to_excel(excel_writer, sheet_name='batchsequence')
+        df.to_excel(excel_writer, sheet_name='batchsequence', index=False)
 
         data = self.readsql(select('*').where(buttonseries.formname == name))
         df = pd.DataFrame(data)
-        df.to_excel(excel_writer, sheet_name='buttonseries')
+        df.to_excel(excel_writer, sheet_name='buttonseries', index=False)
 
-        data = self.readsql(select('*').where(variables.form == name))
+        data = self.readsql(select('*').where(or_(variables.form == name, variables.form == "*")).where(or_(variables.loc == self.loc_, variables.loc == "*")))
         df = pd.DataFrame(data)
-        df.to_excel(excel_writer, sheet_name='variables')
+        df.to_excel(excel_writer, sheet_name='variables', index=False)
+
+        data = self.readsql(select("*").where(pluginmap.plugin != None))
+        df = pd.DataFrame(data)
+        df.to_excel(excel_writer, sheet_name='pluginmap', index=False)
+
+        data = self.readsql(select("*").where(actions.plugin != None))
+        df = pd.DataFrame(data)
+        df.to_excel(excel_writer, sheet_name='actions', index=False)
+        data = self.readsql(select("*").where(actions_categories.category != None))
+
+        df = pd.DataFrame(data)
+        df.to_excel(excel_writer, sheet_name='actions_categories', index=False)
 
         excel_writer.save()
 
 
         self.logger.success(f"Form {name} exported")
-        self.logger.success(f"location "+ full_loc)
+        self.logger.success(f"location "+ full_loc) 
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
     def __init__(self, parent=None, forms=[]):
