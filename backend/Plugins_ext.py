@@ -198,6 +198,8 @@ class Plugins_Ext:
         for item in self.plugins.values():
             item["object"].vars = vars
 
+
+
     def refresh_vars(self, vars):
         self.logger.debug("refreshing vars for plugins")
 

@@ -193,6 +193,7 @@ class UserInterfaceHandlerPyQT():
         self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
         self.edit_tab_handle()
         self.pmgr.handle_popups(self.popups)
+        self.pmgr.handle_form(self.formname, self.variable_loc)
 
     def edit_tab_handle(self):
         self.edit_tab = Edit_Tab(self.writesql, self.logger, self.alert)
@@ -210,6 +211,8 @@ class UserInterfaceHandlerPyQT():
         q = self.readsql(select (variables.key, variables.value).where(or_(variables.form == "*", variables.form == self.formname)).where(or_(variables.loc == "*", variables.loc == self.variable_loc)))
         self.var_dict = {v.key : v.value for v in q}
         self.pmgr.refresh_vars(self.var_dict)
+        self.pmgr.handle_form(self.formname, self.variable_loc)
+
         print(q)
 
 

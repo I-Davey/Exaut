@@ -298,6 +298,11 @@ class Plugins:
         for item in self.plugins.values():
             item["object"].Popups = Popups
 
+    def handle_form(self, form, loc):
+        for item in self.plugins.values():
+            item["object"].form_ = form
+            item["object"].loc_ = loc
+
 
     def refresh_vars(self, variables):
         logger.debug("refreshing vars for plugins")
