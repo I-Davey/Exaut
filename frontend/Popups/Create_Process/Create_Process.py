@@ -113,7 +113,7 @@ class Create_Process(QDialog):
                     url = url.split("onenote:")[1]
                     url = url.split(".one#")[0]
                     url = url.split("/")[-1]
-                    self.button_name.setText(url + " Section")
+                    self.button_name.setText(url)
                     self.button_description.setText("section")
 
     def handlemultiselect(self):
