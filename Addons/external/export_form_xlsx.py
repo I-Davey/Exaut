@@ -4,13 +4,13 @@ from backend.db.Exaut_sql import *
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout
 from PyQt6.QtCore import pyqtSignal
 import pandas as pd
-class export_form(PluginInterface):
+class export_form_xlsx(PluginInterface):
     load = True
     types = {"target":4}
     type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"Export Form -> xlsx"}
 
 
-    callname = "export_Form"
+    callname = "export_form_xlsx"
     hooks_handler = ["log"]
     hooks_method = ["writesql", "readsql"]
 
@@ -34,7 +34,7 @@ class export_form(PluginInterface):
         name = self.Popups.custom(popup, a)[0]
         print(name)
 
-        full_loc = save_loc + "/" + name + '_export.xlsx'
+        full_loc = save_loc + "/" + name + '.xlsx'
         excel_writer = pd.ExcelWriter(full_loc)
 
         data = self.readsql(select('*').where(forms.formname == name))
