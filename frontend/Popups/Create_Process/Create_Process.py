@@ -101,14 +101,21 @@ class Create_Process(QDialog):
                     item.q_widget.setText(kwargs["file"])
             url = kwargs["file"]
             if "onenote:" in url:
-                 url = url.split("onenote:")[1]
-                 if ".one#" in url:
-                    url = url.split(".one#")[1]
-                    if "&" in url:
-                        url = url.split("&")[0]
-                        url = url.replace("%20", " ")
-                        self.button_name.setText(url)
-        
+                if "page-id" in url:
+                    url = url.split("onenote:")[1]
+                    if ".one#" in url:
+                        url = url.split(".one#")[1]
+                        if "&" in url:
+                            url = url.split("&")[0]
+                            url = url.replace("%20", " ")
+                            self.button_name.setText(url)
+                elif "section-id" in url:
+                    url = url.split("onenote:")[1]
+                    url = url.split(".one#")[0]
+                    url = url.split("/")[-1]
+                    self.button_name.setText(url + " Section")
+                    self.button_description.setText("section")
+
     def handlemultiselect(self):
         self.multiselect.addItems(self.type_list)
 

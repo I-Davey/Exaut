@@ -18,17 +18,24 @@ class Run_URL(PluginInterface):
         if bseq["url_type"] == "URL OneNote Win10":
             if bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
+                    if btn["buttondesc"] == "section":
+                        btn["buttondesc"] = "URL OneNote Win10 -> Section"
 
         
         elif bseq["url_type"] == "URL OneNote Desktop":
             if bseq["source"].find("onenotedesktop:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenotedesktop:"):]
 
+
                     
             elif bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
                     #repplace onenote: with onenotedesktop:
                     bseq["source"] = f"onenotedesktop:{bseq['source'][8:]}"
+
+            if btn["buttondesc"] == "section":
+                btn["buttondesc"] = "URL OneNote Desktop -> Section"
+
 
         elif bseq["url_type"] == "URL TradingView":
                     bseq["source"] =  "tradingview: "+bseq["source"]
