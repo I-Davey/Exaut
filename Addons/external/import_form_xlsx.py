@@ -73,6 +73,12 @@ class import_form_xlsx(PluginInterface):
             self.writesql(delete(batchsequence).where(batchsequence.formname == form["formname"]))
             self.writesql(delete(buttonseries).where(buttonseries.formname == form["formname"]))
 
+        df_form.to_sql("forms", self.engine, if_exists="append", index=False)
+        df_tabs.to_sql("tabs", self.engine, if_exists="append", index=False)
+        df_buttons.to_sql("buttons", self.engine, if_exists="append", index=False)
+        df_batchsequence.to_sql("batchsequence", self.engine, if_exists="append", index=False)
+        df_buttonseries.to_sql("buttonseries", self.engine, if_exists="append", index=False)
+
         print(df_form)
 
       
