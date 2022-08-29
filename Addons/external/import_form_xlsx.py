@@ -8,10 +8,10 @@ import os
 class import_form_xlsx(PluginInterface):
     load = True
     types = {"target":4}
-    type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"import Form -> xlsx"}
+    type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"Import Form -> xlsx"}
 
 
-    callname = "export_form_xlsx"
+    callname = "import_form_xlsx"
     hooks_handler = ["log"]
     hooks_method = ["writesql", "readsql"]
 
@@ -72,12 +72,6 @@ class import_form_xlsx(PluginInterface):
             self.writesql(delete(buttons).where(buttons.formname == form["formname"]))
             self.writesql(delete(batchsequence).where(batchsequence.formname == form["formname"]))
             self.writesql(delete(buttonseries).where(buttonseries.formname == form["formname"]))
-
-        df_form.to_sql("forms", self.engine, if_exists="append", index=False)
-        df_tabs.to_sql("tabs", self.engine, if_exists="append", index=False)
-        df_buttons.to_sql("buttons", self.engine, if_exists="append", index=False)
-        df_batchsequence.to_sql("batchsequence", self.engine, if_exists="append", index=False)
-        df_buttonseries.to_sql("buttonseries", self.engine, if_exists="append", index=False)
 
         print(df_form)
 
