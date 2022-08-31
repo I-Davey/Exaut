@@ -213,7 +213,6 @@ class UserInterfaceHandlerPyQT():
         self.pmgr.refresh_vars(self.var_dict)
         self.pmgr.handle_form(self.formname, self.variable_loc)
 
-        print(q)
 
 
     def addvar(self, key, value, overwrite = False, global_var = False, global_loc = False):
