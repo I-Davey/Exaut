@@ -274,7 +274,6 @@ class Plugins:
                     if item2 in self.variables:
                         newargs[loc] = newargs[loc].replace("$$" + item2 + "$$", self.variables[item2])
                     
-            print(newargs)
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
 
