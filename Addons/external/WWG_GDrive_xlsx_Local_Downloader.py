@@ -21,6 +21,7 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
     def load_self(self, hooks):
         self.logger = hooks["log"]
         self.titles = []
+        self.allfiles = []
         return True
 
 
@@ -31,16 +32,16 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
 
 
     def main(self,save_loc, secret_loc):
-        curdir = os.getcwd()
-        os.chdir(save_loc)
         start_time = perf_counter()
         filename = "\\WWG_GDrive.xlsx"
         save_loc = save_loc.replace("/", "\\")
         secret_loc = secret_loc.replace("/", "\\")
-        self.save_loc = save_loc
+        self.save_loc = save_loc + "\\"
         #secret_loc = file, get the folder the file is in
         curdir = os.getcwd()
         os.chdir('\\'.join(secret_loc.split('\\')[0:-1]))
+        os.chdir(self.save_loc)
+
 
         
         gauth = GoogleAuth()
@@ -155,6 +156,7 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
             self.logger.debug(f'{file_type} {item["title"]} {url} {modified} {modified_by} {created}')
 
             if file_type == 'folder':
+
                 if item['title'] not in self.titles:
                     self.titles.append(item['title'])
                     try:
@@ -164,7 +166,11 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
                     except:
                         pass
             else:
-                self.handle_download(item)
+                try:
+                    
+                    self.handle_download(item)
+                except:
+                    pass
         return True
 
 
@@ -172,6 +178,7 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
     def handle_download(self, item):
         #gdrive file type
         #if doc
+        print(item['title'], item['mimeType'])
         if item['mimeType'] == 'application/vnd.google-apps.document':
             self.drive.auth.service.files().export_media(fileId=item['id'], mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document').execute()
         elif item['mimeType'] == 'application/vnd.google-apps.spreadsheet':
@@ -185,8 +192,11 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
         elif item['mimeType'] == 'application/vnd.google-apps.script':
             self.drive.auth.service.files().export_media(fileId=item['id'], mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').execute()
         elif item['mimeType'] == 'application/vnd.google-apps.fusiontable':
-            self.drive.auth.service.files().export_media(fileId=item['id'], mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').execute()
+            x = self.drive.auth.service.files().export_media(fileId=item['id'], mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').execute()
+
         elif item['mimeType'] == 'application/vnd.google-apps.folder':
+            pass
+        elif item['mimeType'] == 'application/vnd.google-apps.shortcut':
             pass
         else:
             item.GetContentFile(item['title'])
@@ -197,17 +207,17 @@ class WWG_GDrive_xlsx_Local_Downloader(PluginInterface):
         return {'q':f"'trashed=false"}
 
 
-if __name__ == "__main__":
-    wwgdrivelocals = WWG_GDrive_to_xlsx_locals()
-    from loguru import logger
-    wwgdrivelocals.load_self({"log":logger})
-    save_loc = "Z:\\Dev\\projects\\OninO\\GDRIVE"
-    secret_loc = "Z:\\Dev\\projects\\OninO\\GDRIVE\\client_secrets.json"
-    wwgdrivelocals.main(save_loc, secret_loc)
-
 
 
             
 
+
+if __name__ == "__main__":
+    wwgdrivelocals = WWG_GDrive_xlsx_Local_Downloader()
+    from loguru import logger
+    wwgdrivelocals.load_self({"log":logger})
+    save_loc = "Z:\\Dev\\projects\\OninO\\GDRIVE\\bckp\\"
+    secret_loc = "Z:\Dev\projects\OninO\GDRIVE\\bckp\\client_secrets.json"
+    wwgdrivelocals.main(save_loc, secret_loc)
 
 
