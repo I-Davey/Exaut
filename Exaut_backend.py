@@ -185,6 +185,7 @@ class UserInterfaceHandlerPyQT():
         self.tablist = []
         self.title = ""
         self.form_desc = ""
+        self.curtabtext = False
         self.version = version
         self.popups = self.Popups(self.gui, self.logger, self)
         self.variable_loc = variable_loc
@@ -194,6 +195,7 @@ class UserInterfaceHandlerPyQT():
         self.edit_tab_handle()
         self.pmgr.handle_popups(self.popups)
         self.pmgr.handle_form(self.formname, self.variable_loc)
+
 
     def edit_tab_handle(self):
         self.edit_tab = Edit_Tab(self.writesql, self.logger, self.alert)
@@ -304,12 +306,16 @@ class UserInterfaceHandlerPyQT():
         items_2_del = [item for item in pluginmap_items + action_arr if item not in actions_all and item not in (".", "assignseries", "tablast")]
         
         #delete from db
+        """
         for item in items_2_del:
             self.logger.info(f"Removing plugin {item} from db")
             self.writesql(delete(pluginmap).where(pluginmap.plugin == item))
             self.writesql(delete(actions).where(actions.plugin == item))
-        if items_2_del != []:
-            self.handle_plugins()
+        """
+
+    
+        #if items_2_del != []:
+            #self.handle_plugins()
 
 
 
@@ -385,18 +391,30 @@ class UserInterfaceHandlerPyQT():
     def gui_refresh(self):
         self.gui.signal_refresh.emit()
 
-    def refresh(self, launch = False):
+    def button_arr(self, curtabtext):
+        return self.tab_buttons[curtabtext]
+
+
+
+
+
+    def refresh(self, launch = False, curtab = False):
         self.handle_vars()
         tab_info, self.buttondata, types_, colors = self.read_mult([select('*').where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()), 
                                                                     select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()), 
                                                                     select(batchsequence.type, batchsequence.tab, batchsequence.buttonname).where(batchsequence.formname == self.formname), 
                                                                     select(pluginmap.types, pluginmap.color)])
 
-        
+
+        self.cur_buttondata = self.buttondata
+
+
+
 
         newbuttondata = []
 
         types_ = [dict(item._mapping) for item in types_]
+        self.btn_types = types_
         colors = [list(dict(item._mapping).values()) for item in colors]
         colors_dict = {}
         for item in colors:
@@ -405,22 +423,25 @@ class UserInterfaceHandlerPyQT():
                     colors_dict[item2] = item[1]
             else:
                 colors_dict[item[0]] = item[1]
+        self.btn_colors = colors_dict
 
-        for button in self.buttondata:
-
+        newbuttondata = []
+        for button in self.cur_buttondata:
             newbutton = button._asdict()
             found = False
-            for type_ in types_:
+            for type_ in self.btn_types:
                 if newbutton["buttonname"] == type_["buttonname"] and newbutton["tab"] == type_["tab"]:
                     newbutton["type"] = type_["type"]
-                    if type_["type"] in colors_dict:
-                        newbutton["color"] = colors_dict[type_["type"]]
+                    if type_["type"] in self.btn_colors:
+                        newbutton["color"] = self.btn_colors[type_["type"]]
                     else:
-                        self.logger.warning(f"Type: {type_['type']} not found in pluginmap.. adding placeholder as red")
-
-                        self.writesql(insert(pluginmap).values(plugin=type_["type"], types=type_["type"], color="255,0,0,1", generated = 1))
-                        colors_dict[type_["type"]] = "."
-                        newbutton["color"] = "256,0,0,1"
+                        if type_["type"] in ("None", None, ""):
+                            newbutton["color"] = "0,0,0,1"
+                        else:
+                            self.logger.warning(f"Type: {type_['type']} not found in pluginmap.. adding placeholder as red")
+                            self.writesql(insert(pluginmap).values(plugin=type_["type"], types=type_["type"], color="255,0,0,1", generated = 1))
+                            self.btn_colors[type_["type"]] = "."
+                            newbutton["color"] = "256,0,0,1"
                     found = True
             if not found:
                 if launch:
@@ -428,7 +449,6 @@ class UserInterfaceHandlerPyQT():
                 newbutton["type"] = None
                 newbutton["color"] = None
             newbuttondata.append(newbutton)
-
 
         buttons_data_ordered = newbuttondata.copy()
 
@@ -450,7 +470,8 @@ class UserInterfaceHandlerPyQT():
             buttons_tabs[button["tab"]]["buttons"].append([button["buttonsequence"], button["buttonname"], button["columnnum"], button["buttondesc"], button["type"], button["color"]])
         self.tab_buttons = buttons_tabs
         self.tablist = [tab.tab for tab in tab_info]
-        return(self.tablist, self.tab_buttons)
+        return self.tablist, self.tab_buttons
+
 
     def load(self):
 
