@@ -1,5 +1,3 @@
-from asyncore import write
-from select import select
 from sqlalchemy import Column, Integer, String, func, and_, null, update
 
 from sqlalchemy.orm import declarative_base
