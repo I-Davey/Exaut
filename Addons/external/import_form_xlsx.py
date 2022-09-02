@@ -1,7 +1,7 @@
 from sqlalchemy import insert, select, or_, delete
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout, QLineEdit
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout, QLineEdit, QCheckBox
 from PyQt6.QtCore import pyqtSignal
 import pandas as pd
 import os
@@ -36,7 +36,7 @@ class import_form_xlsx(PluginInterface):
         for file in os.listdir(folder):
             if file.endswith(".xlsx"):
                 filelist[file[:-5]] = folder + "\\" + file
-        formname, dataset = self.Popups.custom(Popup, filelist)
+        formname, dataset, vars = self.Popups.custom(Popup, filelist)
         if not dataset and not formname:
             return False
         #select dataset from filelist
@@ -51,6 +51,7 @@ class import_form_xlsx(PluginInterface):
         df_buttons = pd.read_excel(data, sheet_name="buttons")
         df_batchsequence = pd.read_excel(data, sheet_name="batchsequence")
         df_buttonseries = pd.read_excel(data, sheet_name="buttonseries")
+        df_vars = pd.read_excel(data, sheet_name="variables")
         #for each dataset, replace formname with formname
         if formname:
             df_form["formname"] = formname
@@ -79,8 +80,12 @@ class import_form_xlsx(PluginInterface):
         df_batchsequence.to_sql("batchsequence", self.engine, if_exists="append", index=False)
         df_buttonseries.to_sql("buttonseries", self.engine, if_exists="append", index=False)
 
-        print(df_form)
+        if vars:
+            self.writesql(delete(variables))
+            df_vars.to_sql("variables", self.engine, if_exists="append", index=False)
 
+        self.logger.success(f"Form {form['formname']} imported")
+        return True
       
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
@@ -162,6 +167,11 @@ class Popup(QDialog):
         self.save_button.setText("Done")
         self.save_button.clicked.connect(self.save_button_clicked)
 
+        self.import_vars_check = QCheckBox(self)
+        self.import_vars_check.setText("Import Variables?")
+        self.import_vars_check.setChecked(False)
+
+
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -176,6 +186,8 @@ class Popup(QDialog):
 
 
 
+
+
        
 
         flayout2 = QHBoxLayout()
@@ -184,16 +196,17 @@ class Popup(QDialog):
         layout.addLayout(tlayout)
         layout.addLayout(flayout)
         layout.addLayout(flayout2)
+        layout.addWidget(self.import_vars_check)
         layout.addWidget(self.save_button)
 
     #if exited
     def closeEvent(self, event):
         if not self._done:
-            self.signal.emit((False, False))
+            self.signal.emit((False, False, False))
         event.accept()
 
 
     def save_button_clicked(self):
-        self.signal.emit((self.fname.text(), self.select_tab.currentText()))
+        self.signal.emit((self.fname.text(), self.select_tab.currentText(), self.import_vars_check.isChecked()))
         self._done = True
         self.close()
