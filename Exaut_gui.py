@@ -1,4 +1,3 @@
-
 from argparse import Action
 from time import perf_counter
 
@@ -427,10 +426,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if not start:
             self.refreshing = True
         self.button_cache = {}
-        if start:
-            self.tablist, self.tab_buttons = self.backend.ui.refresh()
-        else:
-            self.tablist, self.tab_buttons = self.api.dynamic_refresh(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
+        self.tablist, self.tab_buttons = self.backend.ui.refresh()
         self.curTab = self.SM_Tabs.currentIndex()
         self.curtabsize =  f"{self.width()},{self.height()}"
         self.button_dict = {}
@@ -513,8 +509,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     def handle_color(self, color):
         default_color = QtGui.QColor(225, 225, 225)
         color_base = color
-        if "," not in color:
-            color_base = "255,0,0,1"
         color_base_tuple = color_base.split(",")
         color_base_rgb = QtGui.QColor(int(color_base_tuple[0]), int(color_base_tuple[1]), int(color_base_tuple[2]))
         if len(color_base_tuple) == 4:
@@ -570,27 +564,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
         return(default_color, color_hover, color_hover_border, color_border,  color_clicked_border, color_clicked)
 
-    def update_bcash(self, curtabtext):
-        if curtabtext in self.button_cache:
-            timer0 = time.time()
-            tab_buttons = self.api.tabchange(curtabtext)
-            timer1 = time.time()
-            #self.logger.debug("API call took: " + str(timer1 - timer0))
-            self.button_cache[curtabtext]["buttons"] = tab_buttons
-            self.cur_button_cache = self.button_cache[curtabtext]
-
-        else:
-            self.cur_button_cache = self.button_cache
     def get_tab_change(self,n, **kwargs):
         if self.refreshing:
             return
-
-        curtabtext = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
-        self.api.curtabtext = curtabtext
-
-        self.update_bcash(curtabtext)
-        
-
         if "start" not in kwargs:
             if not self.form_changing:
                 self.form_tab_kv[self.form_title] = n
@@ -599,90 +575,89 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 self.button_dict[item].deleteLater()
             self.button_dict = {}
 
+            curtabtext = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
 
-            all_items = self.cur_button_cache["allitems"]
-            ScrollAreaContents = all_items[3]
-            Grid = all_items[5]
-            ScrollAreaContents.setHidden(True)
-            
-            button_arr = []
-            tab_buttons = self.cur_button_cache["buttons"]
-            tab_grid = self.cur_button_cache['grid']
-            tabgroup = self.cur_button_cache['tabgroup']
+            if curtabtext in self.button_cache:
+                all_items = self.button_cache[curtabtext]["allitems"]
+                ScrollAreaContents = all_items[3]
+                Grid = all_items[5]
+                button_arr = []
+                tab_buttons = self.button_cache[curtabtext]["buttons"]
+                tab_grid = self.button_cache[curtabtext]['grid']
+                tabgroup = self.button_cache[curtabtext]['tabgroup']
 
-            for num, (buttonsequence, buttonname, columnnum, buttondesc, type_, color) in enumerate(tab_buttons):
+                for num, (buttonsequence, buttonname, columnnum, buttondesc, type_, color) in enumerate(tab_buttons):
 
+                    Grid.setRowStretch(9999,3)
 
-                Grid.setRowStretch(9999,3)
+                    if type_ == "assignseries":
+                        button = CustomButton(
+                            ScrollAreaContents,
+                            color_border=QtGui.QColor(255, 107, 38),
+                            color_hover=QtGui.QColor(252, 209, 189),
+                            color_hover_border=QtGui.QColor(247, 92, 20),
+                            clicked_color=QtGui.QColor(255, 170, 127),
+                            clicked_border=QtGui.QColor(255, 170, 0))
+                    elif color != None:
+                        button = CustomButton(ScrollAreaContents, *self.handle_color(color))
+                    elif type_ == None:
+                        #color red
+                        button = CustomButton(
+                            ScrollAreaContents,
+                            color_border=QtGui.QColor(255, 0, 0),
+                            color_hover=QtGui.QColor(252, 22, 33),
+                            color_hover_border=QtGui.QColor(247, 0, 0),
+                            clicked_color=QtGui.QColor(255, 170, 127),
+                            clicked_border=QtGui.QColor(255, 170, 0))
+                    else:
+                        button = CustomButton(ScrollAreaContents)
 
-                if type_ == "assignseries":
-                    button = CustomButton(
-                        ScrollAreaContents,
-                        color_border=QtGui.QColor(255, 107, 38),
-                        color_hover=QtGui.QColor(252, 209, 189),
-                        color_hover_border=QtGui.QColor(247, 92, 20),
-                        clicked_color=QtGui.QColor(255, 170, 127),
-                        clicked_border=QtGui.QColor(255, 170, 0))
-                elif color != None:
-                    button = CustomButton(ScrollAreaContents, *self.handle_color(color))
-                elif type_ == None:
-                    #color red
-                    button = CustomButton(
-                        ScrollAreaContents,
-                        color_border=QtGui.QColor(255, 0, 0),
-                        color_hover=QtGui.QColor(252, 22, 33),
-                        color_hover_border=QtGui.QColor(247, 0, 0),
-                        clicked_color=QtGui.QColor(255, 170, 127),
-                        clicked_border=QtGui.QColor(255, 170, 0))
-                else:
-                    button = CustomButton(ScrollAreaContents)
+                    self.button_dict[f"{curtabtext}|{buttonname}"] = button
+                    button.setToolTip(str(buttondesc))
+                    button.setText(str(buttonname))
+                    button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
 
-                self.button_dict[f"{curtabtext}|{buttonname}"] = button
-                button.setToolTip(str(buttondesc))
-                button.setText(str(buttonname))
-                button.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
-
-                ###add buttoncontextmenu
-                button.customContextMenuRequested.connect(partial(self.button_context_menu,button, type_))
-                x = 0
-                y = 0
-                if tab_grid in (None, "") or tab_grid < 1:
-                        tab_grid = 1
-                if columnnum in (None, ""):
+                    ###add buttoncontextmenu
+                    button.customContextMenuRequested.connect(partial(self.button_context_menu,button, type_))
                     x = 0
                     y = 0
-                    
-                    if tab_grid < 2:
-                        x = num // tab_grid
-                        y = num % tab_grid
-                        if len(button_arr) == 0:
-                            button_arr.append(0)
-                        button_arr[0] += 1
-                    else:
-                        x = num % math.ceil(len(tab_buttons)/tab_grid)
-                        y = num // math.ceil(len(tab_buttons)/tab_grid)
-                        while len(button_arr) < y+1:
-                            button_arr.append(0)
-                        button_arr[y] += 1
-
-                else:
-                    
-                    if len(button_arr) < tab_grid:
-                        for i in range(tab_grid):
-                            if i >= len(button_arr):
-                                button_arr.append(0)
-                    
-                    y = columnnum - 1
                     if tab_grid in (None, "") or tab_grid < 1:
-                        tab_grid = 1
-                    if y > tab_grid - 1:
-                        y = tab_grid - 1
-                    elif y < 0:
+                            tab_grid = 1
+                    if columnnum in (None, ""):
+                        x = 0
                         y = 0
-                    x = button_arr[y]
-                    button_arr[y] += 1
-                Grid.addWidget(button, x, y, 1, 1)
-                button.clicked.connect(partial(self.button_click,buttonname,curtabtext,button,mode=1))
+                        
+                        if tab_grid < 2:
+                            x = num // tab_grid
+                            y = num % tab_grid
+                            if len(button_arr) == 0:
+                                button_arr.append(0)
+                            button_arr[0] += 1
+                        else:
+                            x = num % math.ceil(len(tab_buttons)/tab_grid)
+                            y = num // math.ceil(len(tab_buttons)/tab_grid)
+                            while len(button_arr) < y+1:
+                                button_arr.append(0)
+                            button_arr[y] += 1
+
+                    else:
+                        
+                        if len(button_arr) < tab_grid:
+                            for i in range(tab_grid):
+                                if i >= len(button_arr):
+                                    button_arr.append(0)
+                        
+                        y = columnnum - 1
+                        if tab_grid in (None, "") or tab_grid < 1:
+                            tab_grid = 1
+                        if y > tab_grid - 1:
+                            y = tab_grid - 1
+                        elif y < 0:
+                            y = 0
+                        x = button_arr[y]
+                        button_arr[y] += 1
+                    Grid.addWidget(button, x, y, 1, 1)
+                    button.clicked.connect(partial(self.button_click,buttonname,curtabtext,button,mode=1))
             if self.edit_layout:
                 self.edit_layout.change_tab(curtabtext)
                     #print(f"{buttonname} {t2-t1} {t4-t2} {final_time-t4}")
@@ -700,19 +675,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 else:
                     self.resize(650,300)
                     None
-            elif "tabsize" in self.tab_buttons:
-                curtabsize = self.tab_buttons["tabsize"]
-                if curtabsize not in (None, ""):                
-                    self.curtabsize = int(curtabsize.split(",")[0]), int(curtabsize.split(",")[1])
-                    self.resize(self.curtabsize[0], self.curtabsize[1])
-                    None
-                else:
-                    self.resize(650,300)
-                    None
             else:
                 self.resize(650,300)
                 None
-        ScrollAreaContents.setHidden(False)
 
     def Alert(self, message, title="Alert", icon=QtWidgets.QMessageBox.Icon.Warning):
         msg = QtWidgets.QMessageBox(self)
@@ -748,7 +713,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 ##Other GUI Handlers###############################################################################################################
 
     def db_refresh(self):
-        self.tablist, self.tab_buttons = self.backend.ui.dynamic_refresh()
+        self.tablist, self.tab_buttons = self.backend.ui.refresh()
         #write self.tab_buttons to a file
 
 
@@ -1454,5 +1419,3 @@ if __name__ == "__main__":
     sys.excepthook = exception_hook
     gui = GUI_Handler(title="ExAuT")
     gui.start()
-
-        
