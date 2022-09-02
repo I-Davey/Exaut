@@ -427,7 +427,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if not start:
             self.refreshing = True
         self.button_cache = {}
-        self.tablist, self.tab_buttons = self.backend.ui.refresh()
+        if start:
+            self.tablist, self.tab_buttons = self.backend.ui.refresh()
+        else:
+            self.tablist, self.tab_buttons = self.api.dynamic_refresh(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
         self.curTab = self.SM_Tabs.currentIndex()
         self.curtabsize =  f"{self.width()},{self.height()}"
         self.button_dict = {}
@@ -569,7 +572,15 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def update_bcash(self, curtabtext):
         if curtabtext in self.button_cache:
+            timer0 = time.time()
+            tab_buttons = self.api.tabchange(curtabtext)
+            timer1 = time.time()
+            #self.logger.debug("API call took: " + str(timer1 - timer0))
+            self.button_cache[curtabtext]["buttons"] = tab_buttons
             self.cur_button_cache = self.button_cache[curtabtext]
+
+        else:
+            self.cur_button_cache = self.button_cache
     def get_tab_change(self,n, **kwargs):
         if self.refreshing:
             return
@@ -578,6 +589,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.api.curtabtext = curtabtext
 
         self.update_bcash(curtabtext)
+        
 
         if "start" not in kwargs:
             if not self.form_changing:
@@ -591,12 +603,15 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             all_items = self.cur_button_cache["allitems"]
             ScrollAreaContents = all_items[3]
             Grid = all_items[5]
+            ScrollAreaContents.setHidden(True)
+            
             button_arr = []
             tab_buttons = self.cur_button_cache["buttons"]
             tab_grid = self.cur_button_cache['grid']
             tabgroup = self.cur_button_cache['tabgroup']
 
             for num, (buttonsequence, buttonname, columnnum, buttondesc, type_, color) in enumerate(tab_buttons):
+
 
                 Grid.setRowStretch(9999,3)
 
@@ -697,6 +712,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             else:
                 self.resize(650,300)
                 None
+        ScrollAreaContents.setHidden(False)
 
     def Alert(self, message, title="Alert", icon=QtWidgets.QMessageBox.Icon.Warning):
         msg = QtWidgets.QMessageBox(self)
@@ -732,7 +748,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 ##Other GUI Handlers###############################################################################################################
 
     def db_refresh(self):
-        self.tablist, self.tab_buttons = self.backend.ui.refresh()
+        self.tablist, self.tab_buttons = self.backend.ui.dynamic_refresh()
         #write self.tab_buttons to a file
 
 

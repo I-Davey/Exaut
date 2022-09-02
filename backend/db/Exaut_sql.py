@@ -1,4 +1,5 @@
 from asyncore import write
+from select import select
 from sqlalchemy import Column, Integer, String, func, and_, null, update
 
 from sqlalchemy.orm import declarative_base
@@ -107,3 +108,6 @@ class variables(Base):
     key = Column(String(63), primary_key=True)
     value = Column(String(255))
     
+
+#query
+#elect from buttons where formname = 'test', concat that with select batchsequence.type where formname, tab, buttonname are the same as buttons
