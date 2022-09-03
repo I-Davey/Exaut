@@ -63,7 +63,8 @@ class export_form_xlsx(PluginInterface):
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='buttonseries', index=False)
 
-        data = self.readsql(select('*').where(or_(variables.form == name, variables.form == "*")).where(or_(variables.loc == self.loc_, variables.loc == "*")))
+        #data = self.readsql(select('*').where(or_(variables.form == name, variables.form == "*")).where(or_(variables.loc == self.loc_, variables.loc == "*")))
+        data = self.readsql(select('*').where(variables.form != None))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='variables', index=False)
 
