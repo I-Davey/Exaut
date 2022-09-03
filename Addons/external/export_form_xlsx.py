@@ -3,6 +3,7 @@ from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout
 from PyQt6.QtCore import pyqtSignal
+import openpyxl
 import pandas as pd
 class export_form_xlsx(PluginInterface):
     load = True
@@ -18,6 +19,7 @@ class export_form_xlsx(PluginInterface):
 
     def load_self(self, hooks):
         self.logger = hooks["log"]
+        self.widths = {'forms': {}, 'tabs': {'A': 9.6328125, 'B': 14.26953125, 'C': 5.26953125, 'D': 4.0, 'E': 22.453125, 'F': 18.6328125, 'G': 8.54296875, 'H': 8.7265625}, 'buttons': {'A': 9.6328125, 'B': 14.26953125, 'C': 30.453125, 'D': 8.08984375, 'E': 10.81640625, 'F': 47.54296875}, 'batchsequence': {'A': 6.26953125, 'B': 11.90625, 'C': 34.453125, 'D': 5.1796875, 'E': 49.0, 'F': 27.36328125, 'G': 15.7265625, 'H': 48.6328125, 'I': 34.90625, 'J': 12.453125, 'K': 22.08984375, 'L': 7.6328125, 'M': 6.26953125, 'N': 8.1796875}, 'buttonseries': {'B': 13.90625, 'C': 33.26953125, 'D': 25.90625, 'E': 6.0}, 'variables': {'C': 18.08984375, 'D': 36.08984375}, 'pluginmap': {'A': 33.453125, 'B': 18.81640625}, 'actions': {'A': 33.453125, 'C': 11.0}, 'actions_categories': {}}
         return True
 
     def load_self_methods(self, hooks):
@@ -28,6 +30,8 @@ class export_form_xlsx(PluginInterface):
 
 
     def main(self, save_loc) -> bool: 
+        
+
         q = self.readsql(select(forms.formname, forms.formdesc))
         a = [x["formname"] for x in q]
         popup = Popup
@@ -77,9 +81,17 @@ class export_form_xlsx(PluginInterface):
 
         excel_writer.save()
 
+        #open with openpyxl, set all column widths in all sheets to self.widths, save
+        wb = openpyxl.load_workbook(full_loc)
+        for sheet in wb.sheetnames:
+            if sheet in self.widths:
+                for col in self.widths[sheet]:
+                    wb[sheet].column_dimensions[col].width = self.widths[sheet][col]
+        wb.save(full_loc)
 
         self.logger.success(f"Form {name} exported")
         self.logger.success(f"location "+ full_loc) 
+
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
     def __init__(self, parent=None, forms=[]):
