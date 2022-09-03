@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QV
 from PyQt6.QtCore import pyqtSignal
 import pandas as pd
 import os
+import time
 class import_form_xlsx(PluginInterface):
     load = True
     types = {"target":4}
@@ -81,12 +82,41 @@ class import_form_xlsx(PluginInterface):
         df_buttonseries.to_sql("buttonseries", self.engine, if_exists="append", index=False)
 
         if vars:
+            time_start = time.time()
+
+            ###
+            all_vars = pd.DataFrame(self.readsql(select('*').where(variables.form != None)))
+            #overwrite all_vars with df_vars, no duplicates
+            all_vars = all_vars.append(df_vars, ignore_index=True)
+            all_vars = all_vars.drop_duplicates(subset=["form", "loc", "key"], keep="last")
             self.writesql(delete(variables))
-            df_vars.to_sql("variables", self.engine, if_exists="append", index=False)
+            all_vars.to_sql("variables", self.engine, if_exists="append", index=False)
+            ###
+
+            time_end = time.time()
+            self.logger.info(" DF::: Imported variables in {} seconds".format(time_end - time_start))
+        if vars:
+            time_start= time.time()
+
+            """
+            for index, row in df_vars.iterrows():
+                stmt = insert(variables).values(row.to_dict())
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=[variables.form, variables.varname],
+                    set_=row.to_dict()
+                )
+            self.writesql(stmt)
+            
+
+            time_end = time.time()
+            self.logger.info("SQL::: Imported variables in {} seconds".format(time_end - time_start))
+"""
+
 
         self.logger.success(f"Form {form['formname']} imported")
         return True
-      
+    
+
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
     def __init__(self, parent=None, forms=[]):
