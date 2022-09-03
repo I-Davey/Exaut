@@ -109,3 +109,10 @@ class variables(Base):
 
 #query
 #elect from buttons where formname = 'test', concat that with select batchsequence.type where formname, tab, buttonname are the same as buttons
+
+#insert into variables (loc, form, key, value) values ('test', 'test', 'test', 'test') on conflict (loc, form, key) do update set value = excluded.value
+
+
+
+#create upsert statement for variables
+#ins
