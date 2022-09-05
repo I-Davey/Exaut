@@ -34,8 +34,8 @@ class sqlinput(PluginInterface):
 
 
     def main(self, folderpath,filename,type_,variables,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,buttonname) -> bool:    
-        if os.path.exists(databasepath+"\\"+str(databasepath))==False:
-            self.Popups.alert(databasepath+"\\"+str(databasepath)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
+        if os.path.exists(databasepath+"\\"+str(databasename))==False:
+            self.Popups.alert(databasepath+"\\"+str(databasename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
             return
         if os.path.exists(str(folderpath)+"\\"+str(filename))==False:
             self.Popups.alert(str(folderpath)+"\\"+str(filename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
