@@ -49,41 +49,46 @@ class PluginManager:
 
 
 
-    def loadcode(self,logger, handlers, methods, plugin, category = "<Uncategorised>"):
-                    plugin = plugin[:-3]
-                    exec(f"import {plugin}")
-                    
-                    current_item = eval(f"{plugin}.{plugin}()")
-                    if current_item.load != True:
-                        logger.warning(f"{plugin} is not active")
-                        return
-                    self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item, "category" : category}})
-                    self.plugin_map.update({plugin : current_item.callname})
+    def loadcode(self,logger, handlers, methods, plugin, category = "<Uncategorised>", fullplg = False):
 
-                        #check if current_item.callname is a tuple, if it is add twice
-                    if type(current_item.callname) == tuple:
-                        for item in current_item.callname:
-                            self.plugin_loc.update({item : plugin})
-                    else:
-                        self.plugin_loc.update({current_item.callname : plugin})
+        
+        plugin = plugin[:-3]
+        if fullplg:
+            fullplg = fullplg[:-3]
+            exec(f"import {fullplg} as {plugin}")
+        else:
+            exec(f"import {plugin}")
+        current_item = eval(f"{plugin}.{plugin}()")
+        if current_item.load != True:
+            logger.warning(f"{plugin} is not active")
+            return
+        self.plugins.update({plugin : {"run" :current_item.main, "args" : current_item.types, "callname" : current_item.callname, "object" : current_item, "category" : category}})
+        self.plugin_map.update({plugin : current_item.callname})
 
-                    if current_item.hooks_handler != []:
-                            hooks_dict = self.hook_handler(current_item.hooks_handler, handlers)
-                            current_item.load_self(hooks_dict)
-                    if current_item.hooks_method != []:
-                            hooks_dict = self.hook_method(current_item.hooks_method, methods)
-                            current_item.load_self_methods(hooks_dict) 
-                    if current_item.type_types != {}:
-                        #if is string
-                        if isinstance(current_item.type_types, str):
-                            self.plugin_type_types.update({plugin :[True, current_item.load_types,current_item.type_types]})        
-                        elif isinstance(current_item.type_types, bool):  
-                                self.plugin_type_types.update({plugin : [True, current_item.load_types]})
-                        #if key "__Name exists in current_item.type_types"
-                        elif "__Name" in current_item.type_types.keys():
-                            self.plugin_type_types.update({plugin :[ current_item.type_types,current_item.type_types["__Name"]]})
-                        else:
-                            self.plugin_type_types.update({plugin : current_item.type_types})
+            #check if current_item.callname is a tuple, if it is add twice
+        if type(current_item.callname) == tuple:
+            for item in current_item.callname:
+                self.plugin_loc.update({item : plugin})
+        else:
+            self.plugin_loc.update({current_item.callname : plugin})
+
+        if current_item.hooks_handler != []:
+                hooks_dict = self.hook_handler(current_item.hooks_handler, handlers)
+                current_item.load_self(hooks_dict)
+        if current_item.hooks_method != []:
+                hooks_dict = self.hook_method(current_item.hooks_method, methods)
+                current_item.load_self_methods(hooks_dict) 
+        if current_item.type_types != {}:
+            #if is string
+            if isinstance(current_item.type_types, str):
+                self.plugin_type_types.update({plugin :[True, current_item.load_types,current_item.type_types]})        
+            elif isinstance(current_item.type_types, bool):  
+                    self.plugin_type_types.update({plugin : [True, current_item.load_types]})
+            #if key "__Name exists in current_item.type_types"
+            elif "__Name" in current_item.type_types.keys():
+                self.plugin_type_types.update({plugin :[ current_item.type_types,current_item.type_types["__Name"]]})
+            else:
+                self.plugin_type_types.update({plugin : current_item.type_types})
                         
             
     def initialisePlugins(self,logger, handlers, methods, plugin_folder):
@@ -94,10 +99,11 @@ class PluginManager:
                 if plugin.endswith(".py"):
                   self.loadcode(logger, handlers, methods, plugin)
             
-                elif isdir(plugin) and not plugin.startswith("__"):
-                    for subplugin in os.listdir(plugin):
+                elif isdir(plugin_folder+"\\"+plugin) and not plugin.startswith("__"):
+                    pluginpath = plugin_folder+"\\"+plugin
+                    for subplugin in os.listdir(pluginpath):
                         if subplugin.endswith(".py"):
-                            self.loadcode(logger, handlers, methods, subplugin, category = plugin)
+                            self.loadcode(logger, handlers, methods, subplugin, category = plugin, fullplg = plugin+"."+subplugin)
             except Exception as e:
                 logger.error("There was an error when loading types. Make sure you follow the naming convention when writing your own types.")
                 logger.error(f"Error: {e} on type {plugin}")

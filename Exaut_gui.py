@@ -598,7 +598,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                             color_hover_border=QtGui.QColor(247, 92, 20),
                             clicked_color=QtGui.QColor(255, 170, 127),
                             clicked_border=QtGui.QColor(255, 170, 0))
-                    elif color != None:
+                    elif color not in (None, "."):
                         button = CustomButton(ScrollAreaContents, *self.handle_color(color))
                     elif type_ == None:
                         #color red

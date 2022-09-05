@@ -411,6 +411,8 @@ class UserInterfaceHandlerPyQT():
             newbutton = button._asdict()
             found = False
             for type_ in types_:
+                if type_ == None:
+                    continue
                 if newbutton["buttonname"] == type_["buttonname"] and newbutton["tab"] == type_["tab"]:
                     newbutton["type"] = type_["type"]
                     if type_["type"] in colors_dict:
