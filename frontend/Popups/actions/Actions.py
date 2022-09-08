@@ -182,10 +182,13 @@ class CollapsibleDialog(QDialog):
         #popup context menu with open: select category
         menu = QMenu()
         select_cat = menu.addAction("Select Category")
+
         #get category from key
         
         select_cat.triggered.connect(partial(self.handle_type_cat, key, value))
         menu.exec(QCursor.pos())
+
+
 
 
 

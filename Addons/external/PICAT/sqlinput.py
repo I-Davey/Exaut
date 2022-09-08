@@ -10,7 +10,7 @@ class sqlinput(PluginInterface):
     #type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
 
     callname = "sqlinput"
-    hooks_handler = ["log"]
+    hooks_handler = ["log", "Sqlite"]
     hooks_method = ["writesql", "readsql"]
     Popups = object
 
@@ -18,6 +18,8 @@ class sqlinput(PluginInterface):
 
     def load_self(self, hooks):
         self.logger = hooks["log"]
+        self.engine = hooks["Sqlite"].engine
+
         return True
 
     def load_self_methods(self, hooks):
@@ -34,16 +36,22 @@ class sqlinput(PluginInterface):
 
 
     def main(self, folderpath,filename,type_,variables,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,buttonname) -> bool:    
-        if os.path.exists(databasepath+"\\"+str(databasename))==False:
-            self.Popups.alert(databasepath+"\\"+str(databasename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
-            return
+        if databasepath and databasename:
+            if os.path.exists(databasepath+"\\"+str(databasename))==False:
+                self.Popups.alert(databasepath+"\\"+str(databasename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
+                return
+            
+            dbpdbn = databasepath+"\\"+databasename
+            # D:\\PICAT\PICAT_SQL.DB 
+            eng = engine.create_engine("sqlite:///{}".format(dbpdbn))
+        else:
+            eng = self.engine
         if os.path.exists(str(folderpath)+"\\"+str(filename))==False:
             self.Popups.alert(str(folderpath)+"\\"+str(filename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
             return
         if variables==None or variables=="":
             self.Popups.alert("No variables specified in source?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
             return
-        eng = engine.create_engine("sqlite:///"+self.addSlash(databasepath)+"\\"+databasename)
         variables = variables.split('|')
         txt = open(f"{folderpath}\\{filename}","r").read()
         for i, var in enumerate(variables):
@@ -54,7 +62,10 @@ class sqlinput(PluginInterface):
             f.write(txt)
         try:
             with eng.connect() as con:
-                con.execute(txt)
+                #script is a long txt file with multiple sql statements
+                for line in txt.split(';'):
+                    if line.strip() != '':
+                        con.execute(line)
                 os.remove(tempfilepath)
         except Exception as e:
             self.logger.error(e)

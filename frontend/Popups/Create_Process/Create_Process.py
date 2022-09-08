@@ -1,8 +1,9 @@
 
 from PyQt6.QtCore import QThread
 #import QVBoxLayout
-from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu
+from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu, QColorDialog
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPalette, QColor
 import pyperclip
 from .TypeManager.Types_handler import Types
 from functools import partial
@@ -387,3 +388,19 @@ class QFileDrop(QWidget):
             self.browse_.setText(links[0])
 
 
+
+class ColorPicker(QPushButton):
+    def __init__(self, color, parent=None):
+        super(ColorPicker, self).__init__(parent)
+        self.color = color
+        self.setStyleSheet("background-color: " + self.color)
+        self.clicked.connect(self.pick_color)
+
+    def pick_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.color = color.name()
+            self.setStyleSheet("background-color: " + self.color)
+
+    def getColor(self):
+        return self.color

@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, func, and_, null, update
 from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
-tables = ["forms", "tabs", "buttons", "batchsequence", "buttonseries", "pluginmap", "actions", "actions_categories", "variables"]
+tables = ["forms", "tabs", "buttons", "batchsequence", "buttonseries", "pluginmap", "actions", "actions_categories", "variables", "pgtables"]
 
 
 #forms ddl: CREATE TABLE forms(formname char (63),formdesc TEXT,primary key(formname));
@@ -106,13 +106,18 @@ class variables(Base):
     key = Column(String(63), primary_key=True)
     value = Column(String(255))
     
+#CREATE TABLE pgtables(hostip CHAR (63),port INTEGER,username CHAR (63),password CHAR (63),dbname CHAR (63),tbl_name CHAR (63),sql CHAR (1000000),fields CHAR (1000000),reqpopulate CHAR (1000000),primary key(hostip,port,username,password,dbname,tbl_name));
+class pgtables(Base):
+    __tablename__ = 'pgtables'
+    hostip = Column(String(63), primary_key=True)
+    port = Column(Integer, primary_key=True)
+    username = Column(String(63), primary_key=True)
+    password = Column(String(63), primary_key=True)
+    dbname = Column(String(63), primary_key=True)
 
-#query
-#elect from buttons where formname = 'test', concat that with select batchsequence.type where formname, tab, buttonname are the same as buttons
-
-#insert into variables (loc, form, key, value) values ('test', 'test', 'test', 'test') on conflict (loc, form, key) do update set value = excluded.value
-
-
-
-#create upsert statement for variables
-#ins
+#CREATE TABLE pgtablebak(pgschemaname CHAR (63),pgtablename CHAR (63),primary key(pgschemaname,pgtablename));
+class pgtablebak(Base):
+    __tablename__ = 'pgtablebak'
+    pgschemaname = Column(String(63), primary_key=True)
+    pgtablename = Column(String(63), primary_key=True)
+    

@@ -34,7 +34,6 @@ class sql(PluginInterface):
 
 
     def main(self, folderpath,filename,type_,variables,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,buttonname) -> bool:    
-        folderpath = self.addSlash(str(folderpath))
         #path = str(eng[0][0])+" "+str(databasepath)+"\\"+str(bseq[pf][6])+" \".read '"+str(folderpath)+"\\\\"+str(bseq[pf][1])+"'\""
         if os.path.exists(databasepath+"\\"+str(databasename))==False:
             self.Popups.alert(databasepath+"\\"+str(databasename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
@@ -42,10 +41,12 @@ class sql(PluginInterface):
         if os.path.exists(str(folderpath)+"\\"+str(filename))==False:
             self.Popups.alert(str(folderpath)+"\\"+str(filename)+" does not exist?","Failed sql: "+buttonname+"! runseq: \\"+str(runsequence))
             return
-        eng = engine.create_engine("sqlite:///"+self.addSlash(databasepath)+"\\"+databasename)
+        eng = engine.create_engine("sqlite:///"+databasepath+"\\"+databasename)
         txt = open(f"{folderpath}\\{filename}","r").read()
         with eng.connect() as con:
-            con.execute(txt)
+            for line in txt.split(";"):
+                if line.strip() != "":
+                    con.execute(text(line))
         return True
  
         

@@ -304,7 +304,8 @@ class Plugins:
 
 
     def refresh_vars(self, variables):
+        self.variables = variables
         logger.debug("refreshing vars for plugins")
 
         for item in self.plugins.values():
-            self.variables = variables
+            item["object"].variables = variables
