@@ -565,7 +565,11 @@ class UserInterfaceHandlerPyQT():
         self.writesql(update(pluginmap).where(pluginmap.types == type_).values(color = color))
         self.load()
         self.gui_refresh()
-        
+    
+    def remove_color(self, type_):
+        self.writesql(update(pluginmap).where(pluginmap.types == type_).values(color = None))
+        self.load()
+        self.gui_refresh()
 
 ##Add Form or styuff##########################################################################################################
     def get_form_details(self, formname):

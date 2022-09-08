@@ -1318,6 +1318,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
         color_menu.addAction("Set Type Color", partial(self.color_picker,type_))
         color_menu.addAction("Set Type Color -> Fill", partial(self.color_picker,type_,True))
+        color_menu.addAction("Remove Type Color", partial(self.api.remove_color,type_))
         #add dropdown menu for colors   
 
 
