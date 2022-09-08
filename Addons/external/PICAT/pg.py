@@ -8,6 +8,13 @@ class pg(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
     #type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
+    #type_types : folderpaht, filename, source, target
+    type_types = {"folderpath":{"type":"drag_drop_folder", "description":"please select the folder path", "optional":False},
+                  "filename":{"type":"drag_drop_file", "description":"please select the file name", "optional":False},
+                  "source":{"type":"drag_drop_folder", "description":"please select the source", "optional":False},
+                  "target":{"type":"drag_drop_folder", "description":"please select the target", "optional":False},
+                  "type_":["selection", "Select Type", ["pg","pginput"]]}
+
 
     callname = "pg","pginput"
     hooks_handler = ["log"]

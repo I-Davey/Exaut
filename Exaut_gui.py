@@ -1335,13 +1335,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #get text from tab
         tab_name = self.SM_Tabs.tabText(tab_index)
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
-        menu.addAction("Export Tab", partial(self.export_tab,tab_name))
+        menu.addAction("Export Tab json", partial(self.export_tab_json,tab_name))
         menu.addAction("Add Export Location", partial(self.add_export_location,tab_name))
         #menu.addAction("actions popup", self.handle_actions)
 
         menu.exec(QtGui.QCursor.pos())
 
-    def export_tab(self, tab_name):
+    def export_tab_json(self, tab_name):
         #if "pipeline_path" not in self.api.var_dict:
         plpaths = []
         plnames = []
@@ -1383,6 +1383,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             #index of the choice within the choices list
             index = choices.index(choice[0])
             self.api.export_tab(tab_name, results[index])
+        
+   
         
 
     def add_export_location(self, tab_name):
