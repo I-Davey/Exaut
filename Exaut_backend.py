@@ -374,6 +374,8 @@ class UserInterfaceHandlerPyQT():
             self.parent_.gui_refresh()
             return True
 
+
+
     def user_input(self, input_):
         return input(input_)
 
@@ -557,6 +559,13 @@ class UserInterfaceHandlerPyQT():
 
 
 ##Popup Functions#############################################################################################################
+
+    def set_color(self, type_, color, fill):
+        color = f"{color[0]},{color[1]},{color[2]},{color[3]}" if fill else f"{color[0]},{color[1]},{color[2]}"
+        self.writesql(update(pluginmap).where(pluginmap.types == type_).values(color = color))
+        self.load()
+        self.gui_refresh()
+        
 
 ##Add Form or styuff##########################################################################################################
     def get_form_details(self, formname):

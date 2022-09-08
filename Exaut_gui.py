@@ -1311,10 +1311,23 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                                         button,
                                         type_,
                                         5))
-
         menu.addAction("Edit Layout", self.layout_editor)
+
+        color_menu = menu.addMenu("Color")
+
+
+        color_menu.addAction("Set Type Color", partial(self.color_picker,type_))
+        color_menu.addAction("Set Type Color -> Fill", partial(self.color_picker,type_,True))
+        #add dropdown menu for colors   
+
+
         
         menu.exec(QtGui.QCursor.pos())
+
+    def color_picker(self, type_, fill = False):
+        color = QtWidgets.QColorDialog.getColor(parent=self)
+        if color.isValid():
+            self.api.set_color(type_, color.getRgb(), fill)
 
     def tab_context_menu(self, tab_index):
         menu = QtWidgets.QMenu(self)
