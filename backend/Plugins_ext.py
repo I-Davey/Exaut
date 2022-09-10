@@ -27,7 +27,6 @@ for python_start in python_starts:
 
 if not found:
     print("Could not find python install location")
-    sys.exit(1)
 #check for DLLS, lib folders in the python install location
 for path in python_install_location:
     if path not in sys.path:
@@ -92,6 +91,9 @@ class PluginManager:
                         
             
     def initialisePlugins(self,logger, handlers, methods, plugin_folder):
+        #if dir does not exist
+        if not os.path.isdir(plugin_folder):
+            return
         sys.path.append(plugin_folder)
 
         for plugin in os.listdir(plugin_folder):

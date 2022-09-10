@@ -1,9 +1,11 @@
-version = '09 September 2022 18:41'
+version = '10 September 2022 10:41'
 auth = True
 
 
 from subprocess import PIPE, Popen
 import os
+global RequiresUUIDAuth
+RequiresUUIDAuth = False
 
 class Authenticate:
     def __init__(self):
@@ -16,3 +18,4 @@ class Authenticate:
 
 if auth:
     Authenticate()
+    RequiresUUIDAuth = True

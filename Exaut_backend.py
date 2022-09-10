@@ -83,6 +83,20 @@ class PluginHandler:
 
 
     def load_external_plugins(self):
+        #if self.plugin_folder is empty
+        if not self.plugin_folder:
+            return
+        if not os.path.exists(self.plugin_folder):
+            self.logger.error(f"Plugin folder does not exist: {self.plugin_folder}")
+            return
+        if not os.path.isdir(self.plugin_folder):
+            self.logger.error(f"Plugin folder is not a folder: {self.plugin_folder}")
+            return
+        #if self.plugin_folder is empty
+        if not os.listdir(self.plugin_folder):
+            return
+
+
         self.pmgr_ext = Plugins_Ext(self.pmgr, self.logger, self.plugin_folder)
         if self.pmgr_ext.fail == True:
             print(f"Critical error, plugin manager failed to load")
