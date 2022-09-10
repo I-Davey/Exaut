@@ -8,7 +8,7 @@ from PyQt6.QtCore import pyqtSignal
 class import_tab(PluginInterface):
     load = True
     types = {"source":3}
-    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab"}
+    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab -> json"}
 
     callname = "load_tabjson"
     hooks_handler = ["log"]
@@ -27,6 +27,8 @@ class import_tab(PluginInterface):
 
 
     def main(self, folder) -> bool: 
+        if folder == "":
+            return False
         folder = folder.replace("/", "\\")
         #for file in folder
         filelist = {}

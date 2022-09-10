@@ -126,8 +126,6 @@ class Popup(QDialog):
         self.label_export_name = QLabel(self)
         self.label_export_name.setText("Export Name")
         self.export_name = QLineEdit(self)
-        self.export_name.setText("export.xlsx")
-
 
 
         self.button = QPushButton('OK', self)
