@@ -285,6 +285,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_move_start = QtCore.pyqtSignal(bool)
     signal_popup_yesno = QtCore.pyqtSignal(str,str,str,str)
     signal_select_file_popup = QtCore.pyqtSignal(str,str,str)
+    signal_select_folder_popup = QtCore.pyqtSignal(str,str,str)
     #pass signal_popup_custom with any data tytpe
     signal_popup_custom = QtCore.pyqtSignal(str, object)
     signal_popup_data = QtCore.pyqtSignal(str,str,str,str)
@@ -336,6 +337,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.signal_popup_tabto.connect(self.tabto)
         self.signal_alert.connect(self.alert)
         self.signal_select_file_popup.connect(self.select_file_popup)
+        self.signal_select_folder_popup.connect(self.select_folder_popup)
 
         self.actionAbout.triggered.connect(self.about_window)
         self.actionRefresh.triggered.connect(self.refresh)
@@ -1201,6 +1203,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, title, folderloc, "All Files (*)")
         if file_name:
             self.popup_msgs[key] = file_name
+        else:
+            self.popup_msgs[key] = None
+
+    def select_folder_popup(self,key, title, folderloc):
+        folder_name = QtWidgets.QFileDialog.getExistingDirectory(self, title, folderloc)
+        if folder_name:
+            self.popup_msgs[key] = folder_name
         else:
             self.popup_msgs[key] = None
 

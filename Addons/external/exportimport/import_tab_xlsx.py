@@ -10,7 +10,7 @@ import pandas as pd
 class import_tab_xlsx(PluginInterface):
     load = True
     types = {"source":3}
-    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab"}
+    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab <- xlsx"}
 
     callname = "import_tab_xlsx"
     hooks_handler = ["log"]
