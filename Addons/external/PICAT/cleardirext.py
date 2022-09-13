@@ -4,12 +4,13 @@ from sqlalchemy import insert, select, or_, text, engine
 from backend.db.Exaut_sql import *
 import shutil
 import os
+from time import perf_counter
 class cleardirext(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
     #type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
     #filename, soruce
-    type_types = {"filename":{"type":"text", "description":"please enter the file extension / name to delete (*.*)", "optional":True},"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
+    type_types = {"filename":{"type":"text", "description":"please enter the file extension / name to delete (*.*)"},"source":{"type":"drag_drop_folder", "description":"please select the Source Folder"}}
 
     callname = "cleardirext"
     hooks_handler = ["log"]
@@ -25,10 +26,15 @@ class cleardirext(PluginInterface):
     def load_self_methods(self, hooks):
         self.writesql = hooks["writesql"].main
         self.readsql = hooks["readsql"].main
+        self.file_del_count = 0
+        self.fullsize = 0
 
 
 
     def main(self, folderpath,filename,type_,source,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,buttonname) -> bool:    
+        start = perf_counter()
+        if not self.Popups.yesno("Are you sure you want to delete all files with extension "+filename+" in "+source+"?","Are you sure you want to delete all files with extension "+filename+" in "+source+"?"):
+            return(False)
         if os.path.exists(source)==False:
             self.Popups.alert(source+" source does not exist?","Failed cleardirext: "+buttonname+"! \\"+str(runsequence))
         else:
@@ -36,7 +42,13 @@ class cleardirext(PluginInterface):
             if ext==None or ext=="":
                 ext = "*.*"
             self.deleteExt(source,ext,buttonname,runsequence)
-    
+            end = perf_counter()
+            #self.Popups.alert("Deleted "+str(self.file_del_count)+" files with extension "+ext+" in "+source, "cleardirext: "+buttonname+"! \\"+str(runsequence))
+            size_mb = self.fullsize / 1024 / 1024
+            time_2_dec = round(end - start, 2)
+            msg = f"Deleted {self.file_del_count} files with extension {ext} in {source} in {time_2_dec} seconds. Total size {size_mb} MB"
+            self.Popups.alert(msg, f"cleardirext: {buttonname}")
+
     def deleteExt(self, path,ext,buttonname,row):
         if os.path.isdir(path):
             files = os.listdir(path)
@@ -46,11 +58,16 @@ class cleardirext(PluginInterface):
         else:
             if self.getExt(path,ext)==True:
                 try:
+                    #get size of file
+                    size = os.path.getsize(path)
+                    self.fullsize +=  size
+
                     os.remove(path)
+                    self.file_del_count += 1
                 except:
                     self.Popups.alert("Problem deleting "+path+"?","Failed cleardirext: "+buttonname+"! \\"+str(row))
 
-    def getExt(baseN,fileN):
+    def getExt(self, baseN,fileN):
         usebase = os.path.basename(baseN)
         #more than two asterisks
         if fileN.count('*')>2:
