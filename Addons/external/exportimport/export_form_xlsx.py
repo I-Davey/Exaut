@@ -37,7 +37,7 @@ class export_form_xlsx(PluginInterface):
         popup = Popup
         name = self.Popups.custom(popup, a)[0]
         print(name)
-        if not name:
+        if name in ("", None, False):
             return
 
         full_loc = save_loc + "/" + name + '.xlsx'

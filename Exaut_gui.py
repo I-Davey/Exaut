@@ -328,6 +328,11 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.load()
         self.refresh(start = True)
 
+    #def load_global_actions(self):
+        
+        #self.global_actions = self.api.get_global_actions()
+
+
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
         self.signal_popup_custom.connect(self.popup_custom)
