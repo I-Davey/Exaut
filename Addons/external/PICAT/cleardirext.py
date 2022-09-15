@@ -44,17 +44,23 @@ class cleardirext(PluginInterface):
             self.deleteExt(source,ext,buttonname,runsequence)
             end = perf_counter()
             #self.Popups.alert("Deleted "+str(self.file_del_count)+" files with extension "+ext+" in "+source, "cleardirext: "+buttonname+"! \\"+str(runsequence))
-            size_mb = self.fullsize / 1024 / 1024
+            size_kb = self.fullsize / 1024 
+            size_mb = size_kb / 1024
+            size_final = str(int(size_mb))+" MB" if size_mb > 1 else str(int(size_kb))+" KB"
             time_2_dec = round(end - start, 2)
-            msg = f"Deleted {self.file_del_count} files with extension {ext} in {source} in {time_2_dec} seconds. Total size {size_mb} MB"
+            msg = f"Deleted {self.file_del_count} ({size_final}) files with extension {ext} in {source} in {time_2_dec} seconds"
             self.Popups.alert(msg, f"cleardirext: {buttonname}")
 
     def deleteExt(self, path,ext,buttonname,row):
         if os.path.isdir(path):
-            files = os.listdir(path)
-            for f in files:
-                newpath = os.path.join(path,f)
-                self.deleteExt(newpath,ext,buttonname,row)
+            try:
+                files = os.listdir(path)
+                for f in files:
+                    newpath = os.path.join(path,f)
+                    self.deleteExt(newpath,ext,buttonname,row)
+            except:
+                self.logger.error("deleteExt fail: "+str(path))
+                
         else:
             if self.getExt(path,ext)==True:
                 try:

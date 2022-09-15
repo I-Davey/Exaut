@@ -853,9 +853,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.edit_layout.signal_save.connect(self.api.edit_layout_save)
         self.edit_layout.show()
 
-    def tab_copy(self):
+    def tab_copy(self, tab=None):
         self.db_refresh()
-        tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
+        if not tab:
+            tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
         forms, tabs =  self.api.copy_tab_data()
         #selection box for forms
         #get index for current form in forms
@@ -881,9 +882,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 break
         self.api.copy_tab_insert(new_tab_name[0], form_select_value, tab, cur_form)
     
-    def tab_move(self):
+    def tab_move(self, tab=None):
         self.db_refresh()
-        tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
+        if not tab:
+            tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
         forms, tabs =  self.api.copy_tab_data()
         #selection box for forms
         #get index for current form in forms
@@ -908,6 +910,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             if not found:
                 break
         self.api.move_tab_insert(new_tab_name[0], form_select_value, tab, cur_form)
+        #change to that tab and form
+        #######aa
+        self.tabto(None, new_tab_name[0], form_select_value)
 
     def button_copy(self,button_name, tab_name, type_, mode, duplicate=False):
 
@@ -1351,6 +1356,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
         menu.addAction("Export Tab json", partial(self.export_tab_json,tab_name))
         menu.addAction("Add Export Location", partial(self.add_export_location,tab_name))
+        menu.addAction("Copy Tab", partial(self.tab_copy,tab_name))
+        menu.addAction("Move Tab", partial(self.tab_move,tab_name))
         #menu.addAction("actions popup", self.handle_actions)
 
         menu.exec(QtGui.QCursor.pos())
