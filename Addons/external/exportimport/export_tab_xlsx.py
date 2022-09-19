@@ -43,8 +43,10 @@ class export_tab_xlsx(PluginInterface):
         for items in forms_data:
             forms_array.append(items["formname"])   
         formname, tabname, savename = self.Popups.custom(Popup, data, forms_array)
-        if not formname or not tabname or not savename:
+        if not formname or not tabname:
             return False
+        if not savename:
+            savename = tabname
 
         full_loc = save_loc + "/" + tabname + '.xlsx'
         excel_writer = pd.ExcelWriter(full_loc)
