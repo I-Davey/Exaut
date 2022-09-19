@@ -58,7 +58,7 @@ class sqlinput(PluginInterface):
             txt = txt.replace(f"%var{i+1}%",var)
         tempfilepath = f"{folderpath}\\%%%{filename}"
         with open(tempfilepath,"w") as f:
-            self.logger.debug(txt)
+            self.logger.info(txt)
             f.write(txt)
         try:
             with eng.connect() as con:
