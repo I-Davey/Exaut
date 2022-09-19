@@ -42,7 +42,7 @@ class import_tab_xlsx(PluginInterface):
         for file in filelist:
             print(file)
         tabname, dataset, formname, vars = self.Popups.custom(Popup, filelist)
-        if not tabname and not dataset and not formname:
+        if not dataset and not formname:
             return False
         #select dataset from filelist
         if tabname == "":
