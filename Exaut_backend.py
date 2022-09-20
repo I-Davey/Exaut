@@ -246,6 +246,16 @@ class UserInterfaceHandlerPyQT():
         self.refresh()
 
 
+    def call_plugin(self, type_:str, **kwargs):
+        #generate empty dict based on keys in batchsequence
+        bseq = {k:None for k in batchsequence.__table__.columns.keys()}
+        #update with kwargs
+        bseq.update(kwargs)
+
+        function_, data = self.pmgr.call, (type_, bseq)
+        button_thread = Thread(target = function_, args = data)
+        button_thread.start()
+        
         
 
 
@@ -710,6 +720,66 @@ class UserInterfaceHandlerPyQT():
             json.dump(final_dict, f, indent=4)
         end_time = perf_counter()
         self.logger.success(f"Exported tab {tabname} to {path}/{filename} in {round((end_time-start_time),2)} seconds")
+
+    def export_form_json(self, formname, export_loc):
+        start_time = perf_counter()
+        button_arr = []
+        batchsequence_arr = []
+
+
+        self.refresh()
+        self.logger.info(f"Exporting form {formname}")
+        if export_loc not in self.var_dict:
+            self.alert(f"Pipeline path not set in variables, please set it")
+            return
+        path = self.var_dict[export_loc] + "/db_data"
+        if not os.path.exists(path):
+            self.alert(f"Pipeline path {path} does not exist")
+            return
+        if not os.path.isdir(path):
+            self.alert(f"Pipeline path {path} is not a directory")
+            return
+        if not os.access(path, os.W_OK):
+            self.alert(f"Pipeline path {path} is not writable")
+            return
+        if not os.access(path, os.R_OK):
+            self.alert(f"Pipeline path {path} is not readable")
+            return
+
+        #strip special symbols frin tab["formname"] an  tab["tab"] to be able to use as filename
+
+
+        form_clean = "".join(c for c in formname if c.isalnum() or c in ("_", "-"))
+        
+        filename = form_clean + ".json"
+
+
+       
+        
+        forms_q = self.readsql(select("*").where(forms.formname == formname), one=True)
+        forms_dict = dict(forms_q._mapping)
+
+        tabs_q = self.readsql(select("*").where(tabs.formname == formname))
+        tabs_dict = [dict(tab._mapping) for tab in tabs_q]
+
+        buttons_q = self.readsql(select("*").where(buttons.formname == formname))
+        buttons_dict = [dict(button._mapping) for button in buttons_q]
+
+        batchsequence_q = self.readsql(select("*").where(batchsequence.formname == formname))
+        batchsequence_dict = [dict(batchseq._mapping) for batchseq in batchsequence_q]
+
+        buttonseries_q = self.readsql(select("*").where(buttonseries.formname == formname))
+        buttonseries_dict = [dict(buttonseries._mapping) for buttonseries in buttonseries_q]
+        
+        
+
+        final_dict = {"forms":forms_dict, "tabs":tabs_dict, "buttons":buttons_dict, "batchsequence":batchsequence_dict, "buttonseries":buttonseries_dict}
+
+
+        with open(path + "/" + filename, "w") as f:
+            json.dump(final_dict, f, indent=4)
+        end_time = perf_counter()
+        self.logger.success(f"Exported form {formname} to {path}/{filename} in {round((end_time-start_time),2)} seconds")
 
 
 ##other functions#############################################################################################################
