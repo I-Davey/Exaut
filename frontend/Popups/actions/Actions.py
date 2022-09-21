@@ -381,8 +381,6 @@ class Actions(QMainWindow):
                 pyqt_object = item[0]["type"]
                 #if pyqt object is a layout
                 if pyqt_object.isWidgetType():
-                    if item[0]["optional"]:
-                        item[0]["description"] = "(Optional) " + item[0]["description"]
 
                     label = QLabel(item[0]["description"])
                     layout = QHBoxLayout()

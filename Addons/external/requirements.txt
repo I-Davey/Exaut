@@ -9,3 +9,4 @@ PyQt6
 dirtyjson
 sqlalchemy
 openpyxl
+psycopg2

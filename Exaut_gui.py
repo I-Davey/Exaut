@@ -348,6 +348,16 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         actionimport_tab.triggered.connect(self.import_tab_json)
         self.menuAction_tab.addAction(actionimport_tab)
 
+        #add_var
+        actionadd_var = QtGui.QAction("Add Variable", self)
+        actionadd_var.triggered.connect(self.add_variable)
+        self.menuAction.addAction(actionadd_var)
+
+        #Edit_var
+        actionedit_var = QtGui.QAction("Edit Variable", self)
+        actionedit_var.triggered.connect(self.edit_variable)
+        self.menuAction.addAction(actionedit_var)
+
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
         self.signal_popup_custom.connect(self.popup_custom)
@@ -1314,6 +1324,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 ##############################################################################################################################
 
 ##context menus###############################################################################################################
+
+    def add_variable(self):
+        self.api.call_plugin("add_var", type_="add_var", source="", target="", databasepath=False)
+    
+    def edit_variable(self):
+        self.api.call_plugin("add_var", type_="edit_var", source="", target="", databasepath=False)
+
+
     def button_context_menu(self, button, type_, event):
         menu = QtWidgets.QMenu(self)
         #tab name is current active tab
@@ -1384,13 +1402,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         plnames = []
         for item in self.api.var_dict:
             #if item startswith pipeline_path
-            if item.startswith("pipeline_path_tabs"):
+            if item.startswith("pipeline_path"):
                 #get the value of the key
                 plpaths.append(self.api.var_dict[item])
                 plnames.append(item)
         
         
-        if plpaths == [] and "pipeline_path_tabs" not in  self.api.var_dict:
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
             self.logger.warning("Tabs Pipeline path not set")
             dlg = QtWidgets.QFileDialog()
             dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
@@ -1398,7 +1416,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             dlg.setWindowTitle("Select Tabs Pipeline Folder")
             if dlg.exec():
                 path = dlg.selectedFiles()[0]
-                self.api.addvar("pipeline_path_tabs", path, global_var=True)
+                self.api.addvar("pipeline_path", path, global_var=True)
 
         choices = []
         results = []
@@ -1427,13 +1445,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         plnames = []
         for item in self.api.var_dict:
             #if item startswith pipeline_path
-            if item.startswith("pipeline_path_tabs"):
+            if item.startswith("pipeline_path"):
                 #get the value of the key
                 plpaths.append(self.api.var_dict[item])
                 plnames.append(item)
         
         
-        if plpaths == [] and "pipeline_path_tabs" not in  self.api.var_dict:
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
             self.logger.warning("Forms Pipeline path not set")
             dlg = QtWidgets.QFileDialog()
             dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
@@ -1441,8 +1459,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             dlg.setWindowTitle("Select Forms Pipeline Folder")
             if dlg.exec():
                 path = dlg.selectedFiles()[0]
-                self.api.addvar("pipeline_path_tabs", path, global_var=True)
-                plnames.append("pipeline_path_tabs")
+                self.api.addvar("pipeline_path", path, global_var=True)
+                plnames.append("pipeline_path")
 
         choices = []
         results = []
@@ -1463,7 +1481,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if choice[1]:
             #index of the choice within the choices list
             index = choices.index(choice[0])
-            self.api.call_plugin("load_tabjson", source= f"$${results[index]}$$")
+            self.api.call_plugin("load_tabjson", source= f"$${results[index]}$$\\db_tabs\\")
 
 
     def export_form_json(self):
@@ -1473,13 +1491,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         plnames = []
         for item in self.api.var_dict:
             #if item startswith pipeline_path
-            if item.startswith("pipeline_path_forms"):
+            if item.startswith("pipeline_path"):
                 #get the value of the key
                 plpaths.append(self.api.var_dict[item])
                 plnames.append(item)
         
         
-        if plpaths == [] and "pipeline_path_forms" not in  self.api.var_dict:
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
             self.logger.warning("Forms Pipeline path not set")
             dlg = QtWidgets.QFileDialog()
             dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
@@ -1487,7 +1505,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             dlg.setWindowTitle("Select Forms Pipeline Folder")
             if dlg.exec():
                 path = dlg.selectedFiles()[0]
-                self.api.addvar("pipeline_path_forms", path, global_var=True)
+                self.api.addvar("pipeline_path", path, global_var=True)
 
         choices = []
         results = []
@@ -1516,13 +1534,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         plnames = []
         for item in self.api.var_dict:
             #if item startswith pipeline_path
-            if item.startswith("pipeline_path_forms"):
+            if item.startswith("pipeline_path"):
                 #get the value of the key
                 plpaths.append(self.api.var_dict[item])
                 plnames.append(item)
         
         
-        if plpaths == [] and "pipeline_path_forms" not in  self.api.var_dict:
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
             self.logger.warning("Forms Pipeline path not set")
             dlg = QtWidgets.QFileDialog()
             dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
@@ -1530,8 +1548,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             dlg.setWindowTitle("Select Forms Pipeline Folder")
             if dlg.exec():
                 path = dlg.selectedFiles()[0]
-                self.api.addvar("pipeline_path_forms", path, global_var=True)
-                plnames.append("pipeline_path_forms")
+                self.api.addvar("pipeline_path", path, global_var=True)
+                plnames.append("pipeline_path")
 
         choices = []
         results = []
@@ -1552,7 +1570,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if choice[1]:
             #index of the choice within the choices list
             index = choices.index(choice[0])
-            self.api.call_plugin("import_form_json", source= f"$${results[index]}$$")
+            self.api.call_plugin("import_form_json", source= f"$${results[index]}$$\\db_forms\\")
 
 
     def add_export_location(self, tab_name):
@@ -1567,7 +1585,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         dlg.setWindowTitle("Select Tab Export Location")
         if dlg.exec():
             path = dlg.selectedFiles()[0]
-            self.api.addvar(f"pipeline_path_tabs_{name}", path)
+            self.api.addvar(f"pipeline_path_{name}", path)
 
     def add_export_location_forms(self):
         #export location name:
@@ -1581,7 +1599,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         dlg.setWindowTitle("Select Form Export Location")
         if dlg.exec():
             path = dlg.selectedFiles()[0]
-            self.api.addvar(f"pipeline_path_forms_{name}", path)  
+            self.api.addvar(f"pipeline_path_{name}", path)  
 
 
 
