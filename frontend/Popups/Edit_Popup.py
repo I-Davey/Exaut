@@ -20,6 +20,8 @@ class Edit_Popup(QMainWindow):
         self.complete = False
         widget = QWidget()
 
+        self.variables = self.parent_.api.var_dict
+
 
 
         
@@ -132,7 +134,14 @@ class Edit_Popup(QMainWindow):
         if path_text == "":
             return
         #if realpath
+        if "$$" in path_text:
+            for i, item2 in enumerate(path_text.split("$$")):
+                if i == 0:
+                    continue
+                if item2 in self.variables:
+                    path_text = path_text.replace("$$" + item2 + "$$", self.variables[item2])
         if os.path.exists(path_text):
+
             #open file explorer
             try:
                 os.startfile(path_text)

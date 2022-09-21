@@ -7,3 +7,6 @@ pydrive2
 pydrive
 PyQt6
 dirtyjson
+sqlalchemy
+openpyxl
+psycopg2

@@ -7,7 +7,7 @@ class Run_URL(PluginInterface):
     types = {"folderpath":0,"filename":1,"source":3, "buttonname":11, "target":4}
     type_types = {"url_type":["selection", "Select URL Type", ["Classic URL", "URL OneNote Win10", "URL OneNote Desktop", "URL Telegram",  "URL TradingView", "URL Slack", "MS Edge"]], "source":["text", "Enter URL"], "__Name":"URL"}
 
-    callname = "url"
+    callname = "url","url_1ndesktop","url_1nwin10","url_telegram","url_tradingview","url_slack"
     hooks_handler = ["log"]
 
     def load_self(self, hooks):
@@ -18,25 +18,40 @@ class Run_URL(PluginInterface):
         if bseq["url_type"] == "URL OneNote Win10":
             if bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
+                    bseq["type"] = "url_1nwin10"
+                    if btn["buttondesc"] == "section":
+                        btn["buttondesc"] = "URL OneNote Win10 -> Section"
 
         
         elif bseq["url_type"] == "URL OneNote Desktop":
             if bseq["source"].find("onenotedesktop:")>-1:
+                    
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenotedesktop:"):]
+                    bseq["type"] = "url_1ndesktop"
+
 
                     
             elif bseq["source"].find("onenote:")>-1:
                     bseq["source"] =  bseq["source"][bseq["source"].find("onenote:"):]
                     #repplace onenote: with onenotedesktop:
                     bseq["source"] = f"onenotedesktop:{bseq['source'][8:]}"
+                    bseq["type"] = "url_1ndesktop"
+
+            if btn["buttondesc"] == "section":
+                btn["buttondesc"] = "URL OneNote Desktop -> Section"
+                btn["type"] = "url_1ndesktop"
+
 
         elif bseq["url_type"] == "URL TradingView":
                     bseq["source"] =  "tradingview: "+bseq["source"]
+                    bseq["type"] = "url_tradingview"
 
         elif bseq["url_type"] == "URL Slack":
+                    bseq["source"] =  "slack: "+bseq["source"]
                     if "/client/" in bseq["source"]:
                             if "buttondesc" not in btn:
                                 btn["buttondesc"] = "Slack Website URL"
+
 
                         
                     elif "/archives/" in bseq["source"]: 
@@ -46,15 +61,18 @@ class Run_URL(PluginInterface):
         elif bseq["url_type"] == "URL Telegram":
             #spit by / and take the last and second lsat items
             split_url = bseq["source"].split("/")
+
             if len(split_url)>2:
                 if split_url[-1][0] == "+":
                     group = f"{split_url[-1][1:]}"
                     #open to the group as a chat
                     bseq["source"] = f"tg://join?invite={group}"
+
                 else:
                     post = split_url[-1]
                     channel = split_url[-2]
                     bseq["source"] = f"tg://privatepost?channel={channel}&post={post}"
+                bseq["type"] = "url_telegram"
 
         elif bseq["url_type"] == "MS Edge":
             bseq["folderpath"] = "C:\Program Files (x86)\Microsoft\Edge\Application"
@@ -82,6 +100,8 @@ class Run_URL(PluginInterface):
                 btn["buttondesc"] = "GD Document"
             elif "docs.google.com/form" in bseq["source"]:
                 btn["buttondesc"] = "GD Form"
+            elif "github.com" in bseq["source"]:
+                btn["buttondesc"] = "GitHub"
             
             
 
@@ -92,7 +112,7 @@ class Run_URL(PluginInterface):
         return(bseq, btn)
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, folderpath, filename, source, buttonname, target , Popups) -> bool:
+    def main(self, folderpath, filename, source, buttonname, target , ) -> bool:
         
         path = str(folderpath)+"\\"+str(filename)
         if os.path.exists(path)==False:
@@ -108,7 +128,7 @@ class Run_URL(PluginInterface):
                 try:
                     webbrowser.open(str(source))  # Go to example.com
                 except Exception as e:
-                    Popups.alert(path+" does not exist?","Failed url: "+buttonname+"!")
+                    self.Popups.alert(path+" does not exist?","Failed url: "+buttonname+"!")
 
                     self.logger.error(e)
         else:

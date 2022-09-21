@@ -19,7 +19,7 @@ class Tlg_msg(PluginInterface):
 
    
 
-    async def main(self, source, target , Popups) -> bool:
+    async def main(self, source, target) -> bool:
         client = TelegramClient('session_name', self.api_id, self.api_hash)
         msg = source
         target_arr = target.split("||") #NotiBot Testing||574288384||chat

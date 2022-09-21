@@ -22,8 +22,7 @@ class Run_Executable_Loc(PluginInterface):
         else:
             return(True)
     
-    def main(self,path,filename,param, target, Popups) -> bool:
-        self.Popups = Popups
+    def main(self,path,filename,param, target, ) -> bool:
 
         if filename == None:
             filename = ""
@@ -39,7 +38,7 @@ class Run_Executable_Loc(PluginInterface):
         elif param == None and target != None:
             if not os.path.exists(target):
                 self.logger.error(f"path not found at location {target}")
-                Popups.alert(f"path not found at location {target}", f"Failed exe 1!")
+                self.Popups.alert(f"path not found at location {target}", f"Failed exe 1!")
                 return False
             res = self.tryrunpath(path, filename, target)
             return res
@@ -50,7 +49,7 @@ class Run_Executable_Loc(PluginInterface):
         else:
             if not os.path.exists(target):
                 self.logger.error(f"path not found at location {target}")
-                Popups.alert(f"path not found at location {target}", f"Failed exe 2!")
+                self.Popups.alert(f"path not found at location {target}", f"Failed exe 2!")
                 return False
 
             self.tryrunpath(path, filename,target, param)

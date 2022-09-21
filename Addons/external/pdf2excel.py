@@ -19,7 +19,7 @@ class pdf2excel(PluginInterface):
         self.logger = hooks["log"]
         return True
 
-    def main(self,  file, savename, saveloc, start = None, end  = None, Popups = None) -> bool:
+    def main(self,  file, savename, saveloc, start = None, end  = None) -> bool:
         with open(file, 'rb') as f:
             #save all pages between start and end, write to savename in saveloc
             #if start and end are not specified, save all pages

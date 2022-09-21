@@ -1,4 +1,8 @@
+from asyncio.subprocess import PIPE
+from re import sub
+from textwrap import indent
 from time import perf_counter
+from psutil import Popen
 
 from psycopg2 import OperationalError
 from loguru import logger as temp_start_logger
@@ -11,14 +15,18 @@ from backend.edit_sequence_data import Edit_Sequence
 from backend.edit_tab import Edit_Tab
 from backend.iniconfig import Parse
 from backend.db.Exaut_sql import  *
-from sqlalchemy import create_engine,select, update, insert, delete
+from sqlalchemy import create_engine,select, update, insert, delete, or_, and_
 from sqlalchemy.orm import sessionmaker
 from threading import Thread
 from backend.version import version
+import backend.version
+
 from random import randint
 from backend.actions.actions import Actions_Handler
 import time
+import json
 
+            
 class ConfigHandler:
     def __init__(self, title=None):
         self.logger = temp_start_logger
@@ -54,6 +62,7 @@ class ConfigHandler:
         connection = db_config["connection"]
         self.db_location = f"{connectionpath}\\{connection}"
         self.plugin_folder = db_config["plugin_folder"]
+        self.variable_loc = db_config["variable_loc"]
         
 class PluginHandler:
     def __init__(self, plugin_folder):
@@ -71,7 +80,23 @@ class PluginHandler:
             print(self.pmgr.error)
             sys.exit()
 
+
+
     def load_external_plugins(self):
+        #if self.plugin_folder is empty
+        if not self.plugin_folder:
+            return
+        if not os.path.exists(self.plugin_folder):
+            self.logger.error(f"Plugin folder does not exist: {self.plugin_folder}")
+            return
+        if not os.path.isdir(self.plugin_folder):
+            self.logger.error(f"Plugin folder is not a folder: {self.plugin_folder}")
+            return
+        #if self.plugin_folder is empty
+        if not os.listdir(self.plugin_folder):
+            return
+
+
         self.pmgr_ext = Plugins_Ext(self.pmgr, self.logger, self.plugin_folder)
         if self.pmgr_ext.fail == True:
             print(f"Critical error, plugin manager failed to load")
@@ -159,7 +184,7 @@ class QueryHandler():
     
 
 class UserInterfaceHandlerPyQT():
-    def __init__(self, logger, db, pmgr, gui, formname):
+    def __init__(self, logger, db, pmgr, gui, formname, variable_loc):
 
         self.logger = logger
         self.readsql = db.readsql
@@ -169,19 +194,75 @@ class UserInterfaceHandlerPyQT():
         self.initial = True
         self.formname = formname
         self.gui = gui
-
+        self.very_original_formname = formname
         self.tab_buttons = {}
         self.tablist = []
         self.title = ""
         self.form_desc = ""
         self.version = version
         self.popups = self.Popups(self.gui, self.logger, self)
+        self.variable_loc = variable_loc
         self.handle_plugins()
         #self.refresh(launch = True)
         self.actions = Actions_Handler(logger,pmgr, self.readsql, self.writesql, db.read_mult, db.get_table_query)
         self.edit_tab_handle()
+        self.pmgr.handle_popups(self.popups)
+        self.pmgr.handle_form(self.formname, self.variable_loc, self)
+
     def edit_tab_handle(self):
         self.edit_tab = Edit_Tab(self.writesql, self.logger, self.alert)
+
+
+    def handle_vars(self):
+        #where form is self.formname or form is "*"
+        #q1 = self.readsql(select (variables.key, variables.value).where(variables.form == "*"))
+        #q2 = self.readsql(select (variables.key, variables.value).where(variables.form == self.formname))
+        #and:::
+        #q3 = self.readsql(select (variables.key, variables.value).where(variables.loc == "*"))
+        #q4 = self.readsql(select (variables.key, variables.value).where(variables.loc == self.variable_loc))
+
+        #use or to combine the four queries
+        q = self.readsql(select (variables.key, variables.value).where(or_(variables.form == "*", variables.form == self.formname)).where(or_(variables.loc == "*", variables.loc == self.variable_loc)))
+        self.var_dict = {v.key : v.value for v in q}
+        self.pmgr.refresh_vars(self.var_dict)
+        self.pmgr.handle_form(self.formname, self.variable_loc, self)
+
+
+
+    def addvar(self, key, value, overwrite = False, global_var = False, global_loc = False):
+        self.refresh()
+        form = "*" if global_var else self.formname
+        loc = "*" if global_loc else self.variable_loc
+        if key in self.var_dict:
+            if overwrite:
+                self.writesql(variables.update().where(variables.key == key, variables.form == form, variables.loc == loc, ).values(value = value))
+            else:
+                self.alert(f"Variable {key} already exists, not overwriting")
+        else:
+            self.writesql(insert(variables).values(key = key, value = value, form = form, loc = loc))
+        
+        #refresh the var_dict and refresh the main gui interface
+        self.handle_vars()
+        self.refresh()
+
+#{"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
+    def call_plugin(self, type_call:str, **kwargs):
+        #generate empty dict based on keys in batchsequence
+        bseq = {k:None for k in batchsequence.__table__.columns.keys()}
+        #replace type_ with type if in kwargs
+        if "type_" in kwargs:
+            kwargs["type"] = kwargs.pop("type_")
+            
+        
+        #update with kwargs
+        bseq.update(kwargs)
+
+
+        function_, data = self.pmgr.call, (type_call, bseq)
+        button_thread = Thread(target = function_, args = data)
+        button_thread.start()
+        
+        
 
 
     def handle_plugins(self):
@@ -245,7 +326,22 @@ class UserInterfaceHandlerPyQT():
                 if not x:
                     self.logger.error(f"Error adding action {name} to db")
                     input("Press enter to continue")
-                self.logger.success(f'Successfully added action "{name}" to db')           
+                self.logger.success(f'Successfully added action "{name}" to db')     
+        pluginmap_items = [item.plugin for item in self.readsql(select([pluginmap.plugin]))]
+        #values in pmgr.plugin_map
+        #combine actions_all with action_arr without duplicates
+        actions_all =[x for x in  self.pmgr.plugin_map]
+        items_2_del = [item for item in pluginmap_items + action_arr if item not in actions_all and item not in (".", "assignseries", "tablast")]
+        
+        #delete from db
+        for item in items_2_del:
+            self.logger.info(f"Removing plugin {item} from db")
+            self.writesql(delete(pluginmap).where(pluginmap.plugin == item))
+            self.writesql(delete(actions).where(actions.plugin == item))
+        if items_2_del != []:
+            self.handle_plugins()
+
+
 
     class Popups:
         def __init__(self, gui, logger, parent_):
@@ -267,11 +363,21 @@ class UserInterfaceHandlerPyQT():
             return self.call(self.gui.signal_popup_yesno,(message, title, default))
 
 
-        def data_entry(self, message, title=""):
-            return self.call(self.gui.signal_popup_data, (message, title))
+        def data_entry(self, message, title="", default=""):
+            return self.call(self.gui.signal_popup_data, (message, title, default))
 
-        def custom(self, component):
-            return self.call(self.gui.signal_popup_custom, (component))
+        def select_file(self, title, folderloc=""):
+            return self.call(self.gui.signal_select_file_popup, (title, folderloc))
+        
+        def select_folder(self, title, folderloc=""):
+            return self.call(self.gui.signal_select_folder_popup, (title, folderloc))
+
+        def custom(self, component, *args, nowait = False):
+            if nowait:
+                return self.call_nowait(self.gui.signal_popup_custom, ([component, args]))
+            return self.call(self.gui.signal_popup_custom, ([component, args]))
+
+        
 
        
             
@@ -286,8 +392,22 @@ class UserInterfaceHandlerPyQT():
             del self.gui.popup_msgs[key]
             return res
 
+        def call_nowait(self, signal, args):
+            key = str(self.random())
+            if type(args) != tuple:
+                args = (args,)
+            print(*args)
+            signal.emit(key, *args)
+            return True
+
         def tabto(self, tab, form = None):
             return self.call(self.gui.signal_popup_tabto, (tab, form))
+
+        def refresh(self):
+            self.parent_.gui_refresh()
+            return True
+
+
 
     def user_input(self, input_):
         return input(input_)
@@ -301,7 +421,7 @@ class UserInterfaceHandlerPyQT():
         self.gui.signal_refresh.emit()
 
     def refresh(self, launch = False):
-
+        self.handle_vars()
         tab_info, self.buttondata, types_, colors = self.read_mult([select('*').where(tabs.formname == self.formname).order_by(tabs.tabsequence.asc()), 
                                                                     select('*').where(buttons.formname == self.formname).order_by(buttons.buttonsequence.asc()), 
                                                                     select(batchsequence.type, batchsequence.tab, batchsequence.buttonname).where(batchsequence.formname == self.formname), 
@@ -326,6 +446,8 @@ class UserInterfaceHandlerPyQT():
             newbutton = button._asdict()
             found = False
             for type_ in types_:
+                if type_ == None:
+                    continue
                 if newbutton["buttonname"] == type_["buttonname"] and newbutton["tab"] == type_["tab"]:
                     newbutton["type"] = type_["type"]
                     if type_["type"] in colors_dict:
@@ -381,8 +503,16 @@ class UserInterfaceHandlerPyQT():
                     self.writesql(insert(forms).values(formname = self.formname, formdesc = inpt))
                     self.logger.info(f"Form {self.formname} created")
                     return self.load()
-        self.title = str(form_title)
-        self.form_desc = str(form_desc)
+                else:
+                    self.formname = self.title
+                    form_title = self.title
+                    form_desc = self.form_desc
+            else:
+                self.formname = self.title
+                form_title = self.title
+                form_desc = self.form_desc
+        self.title = str(form_title) if form_title else self.formname
+        self.form_desc = str(form_desc) if form_desc else  "Exaut"
 
         self.edit_sequence_load()
         self.load_edit_button()
@@ -406,8 +536,8 @@ class UserInterfaceHandlerPyQT():
                     return True, "assignseries"
                 elif self.pmgr.exists(batchsequence_.type):
                     if mode == "sequence":
-                        return self.pmgr.call(batchsequence_.type, batchsequence_._mapping, self.popups), batchsequence_.type
-                    function = self.pmgr.call, (batchsequence_.type, batchsequence_._mapping, self.popups)
+                        return self.pmgr.call(batchsequence_.type, batchsequence_._mapping), batchsequence_.type
+                    function = self.pmgr.call, (batchsequence_.type, batchsequence_._mapping)
                     button_thread = Thread(target = self.single_button_handler, args=(button_name, tab_name, function))
                     button_thread.start()
         
@@ -441,21 +571,6 @@ class UserInterfaceHandlerPyQT():
 
 
 
-    def get_actions(self):
-        return self.actions.return_actions_categories_dict()
-    def actions_get_pluginmap(self):
-        return self.actions.return_pluginmap_data()
-    def actions_refresh(self):
-        self.actions.refresh()
-        return self.actions.initial_data()
-    def action_get_typemap(self):
-        return self.actions.return_plugins_type_map()
-    def return_plugins_type_map(self):
-        return self.actions.get_type_plugin_map()
-    def action_return_categories(self):
-        return self.actions.return_categories()
-    def action_change_category(self, action, category):
-        self.actions.edit_action_category(action, category)
     def actions_save(self,button_dict:dict, batchsequence_dict:dict,  action:str):
         self.actions.create_button(batchsequence_dict, button_dict, action)
         self.gui_refresh()
@@ -465,6 +580,9 @@ class UserInterfaceHandlerPyQT():
     def actions_delete(self,form:str, tab:str, button_name:str):
         self.actions.delete_button(tab, button_name, form)
         self.gui_refresh()
+    def get_actions(self):
+        return self.actions
+    
 
     def get_init_data(self):
         return self.actions.initial_data()
@@ -475,11 +593,232 @@ class UserInterfaceHandlerPyQT():
 
 ##Popup Functions#############################################################################################################
 
+    def set_color(self, type_, color, fill):
+        color = f"{color[0]},{color[1]},{color[2]},{color[3]}" if fill else f"{color[0]},{color[1]},{color[2]}"
+        self.writesql(update(pluginmap).where(pluginmap.types == type_).values(color = color))
+        self.load()
+        self.gui_refresh()
+    
+    def remove_color(self, type_):
+        self.writesql(update(pluginmap).where(pluginmap.types == type_).values(color = None))
+        self.load()
+        self.gui_refresh()
+
+##Add Form or styuff##########################################################################################################
+    def get_form_details(self, formname):
+        return self.readsql(select('*').where(forms.formname == formname))
+
+
+    def edit_form_update(self,  old_formname, new_formname, new_formdesc):
+        x = self.readsql(select('*').where(forms.formname == old_formname))
+        if len(x) == 0:
+            self.alert(f"No form found with name: {old_formname}")
+            return
+        
+        if new_formname != old_formname:
+            x = self.readsql(select('*').where(forms.formname == new_formname))
+            if len(x) > 0:
+                self.alert(f"Form {new_formname} already exists")
+                return
+            x = self.writesql(update(forms).where(forms.formname == old_formname).values(formname=new_formname, formdesc=new_formdesc))
+
+            #tabs, buttons, batchsequence, buttonseries
+            x = self.writesql(update(buttonseries).where(buttonseries.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(batchsequence).where(batchsequence.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(buttons).where(buttons.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(tabs).where(tabs.formname == old_formname).values(formname=new_formname))
+            x = self.writesql(update(batchsequence).where(batchsequence.type == "TabTo").where(batchsequence.folderpath == old_formname).values(folderpath=new_formname))
+
+            
+            
+            self.title = new_formname
+            self.formname = new_formname
+        else:
+            x = self.writesql(update(forms).where(forms.formname == old_formname).values( formdesc=new_formdesc))
+
+
+
+
+
+
+        self.gui_refresh()
+
+    def edit_form_delete(self, formname):
+        
+        self.writesql(delete(buttonseries).where(buttonseries.formname == formname))
+        self.writesql(delete(batchsequence).where(batchsequence.formname == formname))
+        self.writesql(delete(buttons).where(buttons.formname == formname))
+        self.writesql(delete(tabs).where(tabs.formname == formname))
+        self.writesql(delete(forms).where(forms.formname == formname))
+        if self.very_original_formname == formname or self.very_original_formname == None:
+            self.very_original_formname = None
+            first_item_in_forms = self.readsql(select(forms.formname).order_by(forms.formname.asc()).limit(1))
+            if len(first_item_in_forms) > 0:
+                self.very_original_formname = first_item_in_forms[0].formname
+        self.formname = self.very_original_formname
+        self.title = self.very_original_formname
+        self.gui_refresh()
+
+##EXPORT FUNCTIONS############################################################################################################
+
+    def export_tab(self, tabname, export_loc):
+        start_time = perf_counter()
+        button_arr = []
+        batchsequence_arr = []
+
+
+        self.refresh()
+        self.logger.info(f"Exporting tab {tabname}")
+        tab = self.tab_buttons[tabname].copy()
+        if export_loc not in self.var_dict:
+            self.alert(f"Pipeline path not set in variables, please set it")
+            return
+        path = self.var_dict[export_loc] + "/db_tabs"
+        if not os.path.exists(path):
+            self.alert(f"Pipeline path {path} does not exist")
+            return
+        if not os.path.isdir(path):
+            self.alert(f"Pipeline path {path} is not a directory")
+            return
+        if not os.access(path, os.W_OK):
+            self.alert(f"Pipeline path {path} is not writable")
+            return
+        if not os.access(path, os.R_OK):
+            self.alert(f"Pipeline path {path} is not readable")
+            return
+
+        #strip special symbols frin tab["formname"] an  tab["tab"] to be able to use as filename
+
+        fnametab = tab["formname"]
+
+        tab_clean = "".join(c for c in tab["tab"] if c.isalnum() or c in ("_", "-"))
+        
+        filename = "".join(e for e in fnametab if e.isalnum() or e in ("_","-")) + "_" + tab_clean + ".json"
+
+
+        for i, button in enumerate(tab["buttons"]):
+            if button[4] == "assignseries":
+                self.logger.warning(f"assignseries button {button[1]} on tab {tab['tab']} in form {tab['formname']} not exported")
+                continue
+            formname = tab["formname"]
+            tabname = tab["tab"]
+            buttonname = button[1]
+            button_q = self.readsql(select("*").where(buttons.formname == formname).where(buttons.tab == tabname).where(buttons.buttonname == buttonname), one=True)
+            if len(button_q) == 0: 
+                self.logger.warning(f"button {buttonname} on tab {tabname} in form {formname} not exported")
+                continue
+            batchsequence_q = self.readsql(select("*").where(batchsequence.formname == formname).where(batchsequence.tab == tabname).where(batchsequence.buttonname == buttonname), one=True)
+            if len(batchsequence_q) == 0:
+                self.logger.warning(f"batchsequence {buttonname} on tab {tabname} in form {formname} not exported")
+                continue
+            button_dict = dict(button_q._mapping)
+            batchsequence_dict = dict(batchsequence_q._mapping)
+
+            button_arr.append(button_dict)
+            batchsequence_arr.append(batchsequence_dict)
+        
+        tab.pop("buttons")
+
+        final_dict = {"tabs":tab, "buttons":button_arr, "batchsequence":batchsequence_arr}
+
+
+        with open(path + "/" + filename, "w") as f:
+            json.dump(final_dict, f, indent=4)
+        end_time = perf_counter()
+        self.logger.success(f"Exported tab {tabname} to {path}/{filename} in {round((end_time-start_time),2)} seconds")
+
+    def export_form_json(self, formname, export_loc):
+        start_time = perf_counter()
+        button_arr = []
+        batchsequence_arr = []
+
+
+        self.refresh()
+        self.logger.info(f"Exporting form {formname}")
+        if export_loc not in self.var_dict:
+            self.alert(f"Pipeline path not set in variables, please set it")
+            return
+        path = self.var_dict[export_loc] + "/db_forms"
+        if not os.path.exists(path):
+            self.alert(f"Pipeline path {path} does not exist")
+            return
+        if not os.path.isdir(path):
+            self.alert(f"Pipeline path {path} is not a directory")
+            return
+        if not os.access(path, os.W_OK):
+            self.alert(f"Pipeline path {path} is not writable")
+            return
+        if not os.access(path, os.R_OK):
+            self.alert(f"Pipeline path {path} is not readable")
+            return
+
+        #strip special symbols frin tab["formname"] an  tab["tab"] to be able to use as filename
+
+
+        form_clean = "".join(c for c in formname if c.isalnum() or c in ("_", "-"))
+        
+        filename = form_clean + ".json"
+
+
+       
+        
+        forms_q = self.readsql(select("*").where(forms.formname == formname), one=True)
+        forms_dict = dict(forms_q._mapping)
+
+        tabs_q = self.readsql(select("*").where(tabs.formname == formname))
+        tabs_dict = [dict(tab._mapping) for tab in tabs_q]
+
+        buttons_q = self.readsql(select("*").where(buttons.formname == formname))
+        buttons_dict = [dict(button._mapping) for button in buttons_q]
+
+        batchsequence_q = self.readsql(select("*").where(batchsequence.formname == formname))
+        batchsequence_dict = [dict(batchseq._mapping) for batchseq in batchsequence_q]
+
+        buttonseries_q = self.readsql(select("*").where(buttonseries.formname == formname))
+        buttonseries_dict = [dict(buttonseries._mapping) for buttonseries in buttonseries_q]
+        
+        
+
+        final_dict = {"forms":forms_dict, "tabs":tabs_dict, "buttons":buttons_dict, "batchsequence":batchsequence_dict, "buttonseries":buttonseries_dict}
+
+
+        with open(path + "/" + filename, "w") as f:
+            json.dump(final_dict, f, indent=4)
+        end_time = perf_counter()
+        self.logger.success(f"Exported form {formname} to {path}/{filename} in {round((end_time-start_time),2)} seconds")
+
+
 ##other functions#############################################################################################################
 
     def get_forms(self):
         return self.readsql(select(forms.formname, forms.formdesc).order_by(forms.formname.asc()))
         
+
+    def add_form(self, form_name, curtab, curform):
+        x = self.writesql(insert(forms).values(formname = form_name, formdesc = ""))
+        if not x:
+            self.alert(f"Form {form_name} already exists")
+            return False
+        #add button called open {form} 
+
+
+
+        x = self.writesql(insert(tabs).values(formname = form_name, tab = form_name))
+        if not x:
+            self.alert("Error adding tab")
+            return False
+
+        x = self.writesql(insert(buttons).values(formname = curform, tab = curtab, buttonname = form_name))
+        if not x:
+            self.alert(f"Button {'open form' + form_name} already exists")
+            return False
+        x = self.writesql(insert(batchsequence).values(formname = curform, tab = curtab, buttonname =form_name, type = "tabto", runsequence=0, folderpath=form_name, filename=form_name))
+
+        if not x:
+            self.alert("Error adding batchsequence")
+            return False
+
+        self.gui_refresh()
 
     def add_tabto(self,  tabto, form, tab_name, old_form):
         buttonname = f"{form}|{tabto}"
@@ -504,6 +843,7 @@ class UserInterfaceHandlerPyQT():
             return
         self.gui_refresh()
 
+    
     def add_tab_url(self, tab_name, url, form):
         if url == None:
             return
@@ -823,7 +1163,7 @@ class Loader:
         self.pmgr = PluginHandler(self.config.plugin_folder)
         self.logger = self.pmgr.return_logger()
         self.db = QueryHandler(self.logger, self.config.db_location)
-        self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name)
+        self.ui = UserInterfaceHandlerPyQT(self.logger, self.db, self.pmgr.pmgr, gui, self.config.form_name, self.config.variable_loc)
         self.formname = None
 
 
@@ -844,7 +1184,7 @@ if __name__ == "__main__":
     backend.ui.formname = "test"
     a = backend.ui.load()
     b = backend.ui.refresh()
-    assert a == ("test", "test")
+    assert a == ("test", "Exaut")
     assert b == (['test'], {'test': {'buttons': [[1, 'test', 1, None]], 'grid': 2, 'description': None, 'size': None}})
 
     edit_button_test, state = backend.ui.edit_button_data("test", "test")
@@ -855,9 +1195,3 @@ if __name__ == "__main__":
 
     print("tests passed")
     backend = None
-
-    
-
-
-
-

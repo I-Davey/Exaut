@@ -71,24 +71,29 @@ class Ui_EXAUT_GUI():
         self.Tab1_Grid.setObjectName("Tab1_Grid")
 
 
+
         self.menubar = QtWidgets.QMenuBar(EXAUT_GUI)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 650, 26))
         self.menubar.setObjectName("menubar")
-        self.menuFile = QtWidgets.QMenu(self.menubar)
-        self.menuFile.setObjectName("menuFile")
-        self.menuEdit = QtWidgets.QMenu(self.menubar)
-        self.menuEdit.setObjectName("menuEdit")
-        self.menuEdit_form = QtWidgets.QMenu(self.menubar)
-        self.menuEdit_form.setObjectName("menuEdit")
 
-
-
-        self.menuView = QtWidgets.QMenu(self.menubar)
-        self.menuView.setObjectName("menuView")
+        self.menuAction_form = QtWidgets.QMenu(self.menubar)
+        self.menuAction_form.setObjectName("menuAction_form")
+        self.menuAction_tab = QtWidgets.QMenu(self.menubar)
+        self.menuAction_tab.setObjectName("menuAction")
+        self.menuAction = QtWidgets.QMenu(self.menubar)
+        self.menuAction.setObjectName("menuAction")
         self.menuTools = QtWidgets.QMenu(self.menubar)
         self.menuTools.setObjectName("menuTools")
+        self.menuView = QtWidgets.QMenu(self.menubar)
+        self.menuView.setObjectName("menuView")
+
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
+
+
+
+
+
         ###
         EXAUT_GUI.setMenuBar(self.menubar)
         ###place menubar below the title bar
@@ -107,16 +112,20 @@ class Ui_EXAUT_GUI():
         self.actionRefresh.setObjectName("actionRefresh")
         self.actionTabsize = QtGui.QAction(EXAUT_GUI)
         self.actionTabsize.setObjectName("actionTabsize")
-        self.actionstaticsize = QtGui.QAction(EXAUT_GUI)
-        self.actionOpen_Files_Explorer = QtGui.QAction(EXAUT_GUI)
-        self.actionOpen_Files_Explorer.setObjectName("actionOpen_Files_Explorer")
+        self.actionstaticsize = QtGui.QAction(EXAUT_GUI, checkable=True)
+
 
 
         self.actionAdd_exe = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_exe.setObjectName("actionAdd_exe")
 
+        self.actionAdd_Form = QtGui.QAction(EXAUT_GUI)
+        self.actionAdd_Form.setObjectName("actionAdd_Form")
+
         self.actionAdd_tabto = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_tabto.setObjectName("actionAdd_tabto")
+
+
         self.actionAdd_tablast = QtGui.QAction(EXAUT_GUI)
         self.actionAdd_tablast.setObjectName("actionAdd_tablast")
 
@@ -188,49 +197,53 @@ class Ui_EXAUT_GUI():
         self.actionForm_Change = QtGui.QAction(EXAUT_GUI)
         self.actionForm_Change.setObjectName("actionForm_Change")
 
+        self.actionForm_Edit = QtGui.QAction(EXAUT_GUI)
+        self.actionForm_Edit.setObjectName("actionForm_Edit")
 
-        self.menuFile.addAction(self.actionOpen_Files_Explorer)
-        self.menuFile.addAction(self.actionOpenTabUrl)
+
+        self.menuTools.addAction(self.actionOpenTabUrl)
 
         
+        self.menuAction.addAction(self.actionAdd_action)
+        self.menuAction.addAction(self.actionAdd_Seq)
+        self.menuAction.addAction(self.actionAdd_Proc)
+        self.menuAction.addAction(self.actionAdd_Desc)
 
-        self.menuEdit.addAction(self.actionAdd_Seq)
-        self.menuEdit.addAction(self.actionAdd_Proc)
-        self.menuEdit.addAction(self.actionAdd_action)
-        self.menuEdit.addAction(self.actionAdd_Desc)
+        self.menuAction_tab.addAction(self.actionEdit_layout)
+        self.menuAction_tab.addAction(self.actionTab_Copy)
+        self.menuAction_tab.addAction(self.actionTab_Move)
 
-        self.menuEdit_form.addAction(self.actionEdit_layout)
-        self.menuEdit_form.addAction(self.actionTab_Copy)
-        self.menuEdit_form.addAction(self.actionTab_Move)
-
-        self.menuEdit_form.addAction(self.actionTab)
-        self.menuEdit_form.addAction(self.actionTabUrl)
-        self.menuEdit_form.addAction(self.actionTabFolder)
-        self.menuEdit_form.addAction(self.actionAdd_tabto)
-        self.menuEdit_form.addAction(self.actionAdd_tablast)
-        self.menuEdit_form.addAction(self.actionedit_mode)
-        self.menuEdit_form.addAction(self.actionHidden_mode)
+        self.menuAction_tab.addAction(self.actionTab)
+        self.menuAction_tab.addAction(self.actionTabUrl)
+        self.menuAction_tab.addAction(self.actionTabFolder)
+        self.menuAction_tab.addAction(self.actionAdd_tabto)
+        self.menuAction_tab.addAction(self.actionAdd_tablast)
+        self.menuAction_tab.addAction(self.actionedit_mode)
+        self.menuAction_tab.addAction(self.actionHidden_mode)
 
 
         self.menuView.addAction(self.actionRefresh)
+        self.menuView.addAction(self.actionstaticsize)
 
-        self.menuTools.addAction(self.actionForm_Change)
+
+        self.menuAction_form.addAction(self.actionForm_Change)
+        self.menuAction_form.addAction(self.actionForm_Edit)
+        self.menuAction_form.addAction(self.actionAdd_Form)
+
 
         self.menuTools.addAction(self.actionImport_from_Excel)
         self.menuTools.addAction(self.actionExport_to_Excel)
         self.menuTools.addAction(self.customimportexport)
         self.menuHelp.addAction(self.actionAbout)
-        self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
-        self.menubar.addAction(self.menuEdit_form.menuAction())
-
+        self.menubar.addAction(self.menuAction_form.menuAction())
+        self.menubar.addAction(self.menuAction_tab.menuAction())
+        self.menubar.addAction(self.actionTabsize)
+        self.menubar.addAction(self.menuAction.menuAction())
+        self.menubar.addAction(self.menuTools.menuAction())
 
         self.menubar.addAction(self.menuView.menuAction())
-        self.menubar.addAction(self.menuTools.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
         #add self.actionTabsize to menubar
-        self.menubar.addAction(self.actionTabsize)
-        self.menubar.addAction(self.actionstaticsize)
 
 
         self.retranslateUi(EXAUT_GUI)
@@ -243,9 +256,9 @@ class Ui_EXAUT_GUI():
         
 
 
-        self.menuFile.setTitle(_translate("EXAUT_GUI", "File"))
-        self.menuEdit.setTitle(_translate("EXAUT_GUI", "Edit"))
-        self.menuEdit_form.setTitle(_translate("EXAUT_GUI","Tab"))
+        self.menuAction_form.setTitle(_translate("EXAUT_GUI", "Form"))
+        self.menuAction.setTitle(_translate("EXAUT_GUI", "Action"))
+        self.menuAction_tab.setTitle(_translate("EXAUT_GUI","Tab"))
         self.menuView.setTitle(_translate("EXAUT_GUI", "View"))
         self.menuTools.setTitle(_translate("EXAUT_GUI", "Tools"))
         self.menuHelp.setTitle(_translate("EXAUT_GUI", "Help"))
@@ -266,13 +279,13 @@ class Ui_EXAUT_GUI():
         tf.setPointSize(10)
         self.actionTabsize.setFont(tf)
         #set background very light grey
-        self.actionOpen_Files_Explorer.setText(_translate("EXAUT_GUI", "Open Files Explorer"))
-        self.actionOpen_Files_Explorer.setShortcut(_translate("EXAUT_GUI", "Ctrl+O"))
+
         self.actionOpenTabUrl.setText(_translate("EXAUT_GUI", "Open Tab URL"))
         self.actionOpenTabUrl.setShortcut(_translate("EXAUT_GUI", "Ctrl+U"))
         self.actionAdd_exe.setText(_translate("EXAUT_GUI", "Add .exe"))
         self.actionAdd_exe.setShortcut(_translate("EXAUT_GUI", "Ctrl+A"))
         self.actionAdd_tabto.setText(_translate("EXAUT_GUI", "Add Tabto"))
+        self.actionAdd_Form.setText(_translate("EXAUT_GUI", "Add Form"))
         self.actionAdd_tablast.setText(_translate("EXAUT_GUI", "Add Tablast"))
         self.actionAbout.setText(_translate("EXAUT_GUI", "About"))
         self.actionCopy.setText(_translate("EXAUT_GUI", "Copy File"))
@@ -286,6 +299,7 @@ class Ui_EXAUT_GUI():
         self.actionTab_Move.setText(_translate("EXAUT_GUI", "Move Tab -> Form"))
         self.actionTab_Copy.setText(_translate("EXAUT_GUI", "Copy Tab -> Form"))
         self.actionForm_Change.setText(_translate("EXAUT_GUI", "Change Form"))
+        self.actionForm_Edit.setText(_translate("EXAUT_GUI", "Edit Form"))
 
         self.actionTabUrl.setText(_translate("EXAUT_GUI", "Add Tab URL"))
 

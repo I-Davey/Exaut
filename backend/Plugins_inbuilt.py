@@ -212,6 +212,7 @@ class Plugins:
         self.plugin_map = {}
         self.error = None
         self.fail = False
+        self.variables = {}
         self.plugininterface = PluginInterface
         
         
@@ -243,7 +244,7 @@ class Plugins:
         else:
             return False
 
-    def call(self, name, args, plugins = None):
+    def call(self, name, args):
         if name in self.plugin_loc:
             name = self.plugin_loc[name]
             logger.trace(f"Calling {name} with args {args}")
@@ -259,7 +260,20 @@ class Plugins:
             else:
                 for key, value in arguments.items():
                     newargs.append(args[value])
-            newargs.append(plugins)
+
+            for loc, item, in enumerate(newargs):
+                if not item or type(item) != str:
+                    continue
+                if "$$" not in item:
+                    continue
+            
+                #Variables are encapsulated in $$
+                for i, item2 in enumerate(item.split("$$")):
+                    if i == 0:
+                        continue
+                    if item2 in self.variables:
+                        newargs[loc] = newargs[loc].replace("$$" + item2 + "$$", self.variables[item2])
+                    
             #use newargs to call the function
             if iscoroutinefunction(self.plugins[name]["run"]):
 
@@ -277,4 +291,21 @@ class Plugins:
             return False
 
 
+    def handle_popups(self, Popups):
+        logger.debug("loading Popups and vars for  plugins")
 
+        for item in self.plugins.values():
+            item["object"].Popups = Popups
+
+    def handle_form(self, form, loc, api_):
+        for item in self.plugins.values():
+            item["object"].form_ = form
+            item["object"].loc_ = loc
+
+
+    def refresh_vars(self, variables):
+        self.variables = variables
+        logger.debug("refreshing vars for plugins")
+
+        for item in self.plugins.values():
+            item["object"].variables = variables

@@ -1,8 +1,9 @@
 
 from PyQt6.QtCore import QThread
 #import QVBoxLayout
-from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu
+from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, QMenu, QColorDialog
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPalette, QColor
 import pyperclip
 from .TypeManager.Types_handler import Types
 from functools import partial
@@ -64,7 +65,6 @@ class Create_Process(QDialog):
 
         if existing:
             self.handle_existing(type_, **kwargs)
-            self.multiselect.setEnabled(False)
 
     def handle_existing(self, type_, **kwargs):
         if type_ == "exe":
@@ -102,14 +102,21 @@ class Create_Process(QDialog):
                     item.q_widget.setText(kwargs["file"])
             url = kwargs["file"]
             if "onenote:" in url:
-                 url = url.split("onenote:")[1]
-                 if ".one#" in url:
-                    url = url.split(".one#")[1]
-                    if "&" in url:
-                        url = url.split("&")[0]
-                        url = url.replace("%20", " ")
-                        self.button_name.setText(url)
-        
+                if "page-id" in url:
+                    url = url.split("onenote:")[1]
+                    if ".one#" in url:
+                        url = url.split(".one#")[1]
+                        if "&" in url:
+                            url = url.split("&")[0]
+                            url = url.replace("%20", " ")
+                            self.button_name.setText(url)
+                elif "section-id" in url:
+                    url = url.split("onenote:")[1]
+                    url = url.split(".one#")[0]
+                    url = url.split("/")[-1]
+                    self.button_name.setText(url)
+                    self.button_description.setText("section")
+
     def handlemultiselect(self):
         self.multiselect.addItems(self.type_list)
 
@@ -381,3 +388,19 @@ class QFileDrop(QWidget):
             self.browse_.setText(links[0])
 
 
+
+class ColorPicker(QPushButton):
+    def __init__(self, color, parent=None):
+        super(ColorPicker, self).__init__(parent)
+        self.color = color
+        self.setStyleSheet("background-color: " + self.color)
+        self.clicked.connect(self.pick_color)
+
+    def pick_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.color = color.name()
+            self.setStyleSheet("background-color: " + self.color)
+
+    def getColor(self):
+        return self.color
