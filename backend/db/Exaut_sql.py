@@ -106,7 +106,7 @@ class variables(Base):
     key = Column(String(63), primary_key=True)
     value = Column(String(255))
     
-#CREATE TABLE pgtables(hostip CHAR (63),port INTEGER,username CHAR (63),password CHAR (63),dbname CHAR (63),tbl_name CHAR (63),sql CHAR (1000000),fields CHAR (1000000),reqpopulate CHAR (1000000),primary key(hostip,port,username,password,dbname,tbl_name));
+#CREATE TABLE CREATE TABLE pgtables(hostip CHAR (63),port INTEGER,username CHAR (63),password CHAR (63),dbname CHAR (63),tbl_name CHAR (63),sql CHAR (1000000),fields CHAR (1000000),reqpopulate CHAR (1000000),primary key(hostip,port,username,password,dbname,tbl_name));
 class pgtables(Base):
     __tablename__ = 'pgtables'
     hostip = Column(String(63), primary_key=True)
@@ -114,6 +114,10 @@ class pgtables(Base):
     username = Column(String(63), primary_key=True)
     password = Column(String(63), primary_key=True)
     dbname = Column(String(63), primary_key=True)
+    tbl_name = Column(String(63), primary_key=True)
+    sql = Column(String(1000000))
+    fields = Column(String(1000000))
+    reqpopulate = Column(String(1000000))
 
 #CREATE TABLE pgtablebak(pgschemaname CHAR (63),pgtablename CHAR (63),primary key(pgschemaname,pgtablename));
 class pgtablebak(Base):
