@@ -38,6 +38,7 @@ class Add_Edit_Var(PluginInterface):
         self.variable_name = variable_name
         self.value = value
         self.is_global = is_global
+        self.orig_loc = self.loc_
         if type_ == "add_var":
             return self.add_var()
 
@@ -49,7 +50,7 @@ class Add_Edit_Var(PluginInterface):
             x = self.Popups.custom(Add_Dialog, self.variable_name, self.value, self.is_global)
             if x == (None,):
                 return False
-            self.variable_name, self.value, self.is_global = x
+            self.variable_name, self.value, self.is_global_form, self.is_global_location = x
         formname = "*" if self.is_global else self.form_
         variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == formname))
         variables_list = [dict(item._mapping) for item in variables_list]
@@ -72,7 +73,13 @@ class Add_Edit_Var(PluginInterface):
     def edit_var(self):
         formname = "*" if self.is_global else self.form_
         global_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*"))
-        local_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == self.form_))
+        local_local_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == self.form_))
+        local_global_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*"))
+        global_global_variables_list = self.readsql(select('*').where(variables.loc == '*').where(variables.form == "*"))
+
+        local_variables_list = local_local_variables_list 
+        global_variables_list = local_global_variables_list + global_global_variables_list
+
         variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == formname))
 
         global_keys = [item["key"] for item in global_variables_list]
@@ -90,7 +97,19 @@ class Add_Edit_Var(PluginInterface):
             self.variable_name, self.value, self.is_global = x
             list_of_keys = global_keys if self.is_global else local_keys
         if self.variable_name in list_of_keys:
-            self.writesql(update(variables).where(variables.loc == self.loc_).where(variables.form == formname).where(variables.key == self.variable_name).values(value = self.value))
+            cur_loc = self.loc_
+            if self.is_global:
+
+                in_loc_global = self.readsql(select('*').where(variables.loc == '*').where(variables.form == "*").where(variables.key == self.variable_name))
+                in_loc_local = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*").where(variables.key == self.variable_name))
+                #if both ghave a value
+                if in_loc_global and in_loc_local:
+                    cur_loc = self.orig_loc       
+                else:
+                    cur_loc = '*'     
+                    
+
+            self.writesql(update(variables).where(variables.loc == cur_loc).where(variables.form == formname).where(variables.key == self.variable_name).values(value = self.value))
             self.logger.success(f"Variable {self.variable_name} Updated to {self.value}")
             return True
         else:
