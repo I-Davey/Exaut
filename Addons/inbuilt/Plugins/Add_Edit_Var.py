@@ -125,7 +125,10 @@ class Add_Dialog(QDialog):
         mainLayout.addWidget(self.formGroupBox)
         mainLayout.addWidget(buttonBox)
         self.setLayout(mainLayout)
+        width = 350
+        height = 140
 
+        self.resize(width, height)
         self.setWindowTitle("Add New Variable")
         
     def createFormGroupBox(self):
@@ -175,7 +178,10 @@ class Edit_Dialog(QDialog):
         self.isglobal = is_global
         self.global_keys = global_keys
         self.global_values = global_values
+        width = 350
+        height = 140
 
+        self.resize(width, height)
         self.local_keys = local_keys
         self.local_values = local_values
         if self.isglobal:
@@ -192,7 +198,7 @@ class Edit_Dialog(QDialog):
         self.setWindowTitle("Edit Variable")
         
     def createFormGroupBox(self, list_of_keys):
-        self.formGroupBox = QGroupBox("Form layout")
+        self.formGroupBox = QGroupBox("")
         layout = QFormLayout()
 
         self.value_qt = QLineEdit()
@@ -210,9 +216,11 @@ class Edit_Dialog(QDialog):
         else:
             self.variable_name_qt.setCurrentIndex(0)
             if self.isglobal:
-                self.value_qt.setText(self.global_values[0])
+                if self.global_keys:
+                    self.value_qt.setText(self.global_values[0])
             else:
-                self.value_qt.setText(self.local_values[0])
+                if self.local_values:
+                    self.value_qt.setText(self.local_values[0])
 
 
 
