@@ -245,14 +245,20 @@ class UserInterfaceHandlerPyQT():
         self.handle_vars()
         self.refresh()
 
-
-    def call_plugin(self, type_:str, **kwargs):
+#{"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
+    def call_plugin(self, type_call:str, **kwargs):
         #generate empty dict based on keys in batchsequence
         bseq = {k:None for k in batchsequence.__table__.columns.keys()}
+        #replace type_ with type if in kwargs
+        if "type_" in kwargs:
+            kwargs["type"] = kwargs.pop("type_")
+            
+        
         #update with kwargs
         bseq.update(kwargs)
 
-        function_, data = self.pmgr.call, (type_, bseq)
+
+        function_, data = self.pmgr.call, (type_call, bseq)
         button_thread = Thread(target = function_, args = data)
         button_thread.start()
         
@@ -667,7 +673,7 @@ class UserInterfaceHandlerPyQT():
         if export_loc not in self.var_dict:
             self.alert(f"Pipeline path not set in variables, please set it")
             return
-        path = self.var_dict[export_loc] + "/db_data"
+        path = self.var_dict[export_loc] + "/db_tabs"
         if not os.path.exists(path):
             self.alert(f"Pipeline path {path} does not exist")
             return
@@ -732,7 +738,7 @@ class UserInterfaceHandlerPyQT():
         if export_loc not in self.var_dict:
             self.alert(f"Pipeline path not set in variables, please set it")
             return
-        path = self.var_dict[export_loc] + "/db_data"
+        path = self.var_dict[export_loc] + "/db_forms"
         if not os.path.exists(path):
             self.alert(f"Pipeline path {path} does not exist")
             return

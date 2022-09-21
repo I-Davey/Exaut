@@ -8,7 +8,7 @@ from PyQt6.QtCore import pyqtSignal
 class import_form(PluginInterface):
     load = True
     types = {"source":3}
-    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab -> json"}
+    type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Form <- json"}
 
     callname = "import_form_json"
     hooks_handler = ["log"]
