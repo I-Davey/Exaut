@@ -5,7 +5,8 @@ from backend.db.Exaut_sql import *
 import shutil
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
-
+from PyQt6.QtGui import QAction
+import pyperclip
 class Add_Edit_Var(PluginInterface):
     load = True
     types = {"type_":2,"source":3, "target":4, "databasepath":5}
@@ -50,10 +51,9 @@ class Add_Edit_Var(PluginInterface):
             x = self.Popups.custom(Add_Dialog, self.variable_name, self.value, self.is_global)
             if x == (None,):
                 return False
-            self.variable_name, self.value, self.is_global_form, self.is_global_location = x
+            self.variable_name, self.value, self.is_global_form = x
         formname = "*" if self.is_global else self.form_
         variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == formname))
-        variables_list = [dict(item._mapping) for item in variables_list]
         list_of_keys = [item["key"] for item in variables_list]
         if self.variable_name in list_of_keys:
             self.logger.error("Variable Already Exists")
@@ -179,6 +179,7 @@ class Add_Dialog(QDialog):
     def accept(self):
         self._done = True
         self.signal.emit((self.variable_name_qt.text(), self.value_qt.text(), self.isglobal_qt.isChecked()))
+        pyperclip.copy(f"$${self.variable_name_qt.text()}$$")
         self.close()
 
 
@@ -226,6 +227,9 @@ class Edit_Dialog(QDialog):
         self.variable_name_qt = QComboBox()
         self.variable_name_qt.addItems(list_of_keys)
         self.variable_name_qt.currentTextChanged.connect(self.variable_name_changed)
+        #on right click show menu
+        self.variable_name_qt.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.variable_name_qt.customContextMenuRequested.connect(self.show_menu)
         if self.variable_name and self.variable_name in list_of_keys:
             self.variable_name_qt.setCurrentText(self.variable_name)
             if self.isglobal:
@@ -255,6 +259,18 @@ class Edit_Dialog(QDialog):
         layout.addRow(QLabel("Global Variable:"), self.isglobal_qt)
 
         self.formGroupBox.setLayout(layout)
+
+    def show_menu(self, position):
+        menu = QMenu()
+        copy_var = QAction("Copy Variable")
+        copy_var.triggered.connect(self.copyvar)
+        menu.addAction(copy_var)
+        menu.exec(self.variable_name_qt.mapToGlobal(position))
+    
+    def copyvar(self):
+        pyperclip.copy(f"$${self.variable_name_qt.currentText()}$$")
+        
+
 
     def closeEvent(self, a0) -> None:
         if not self._done:
