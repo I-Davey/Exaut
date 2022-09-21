@@ -20,21 +20,22 @@ class pyqt_popup_example(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self,  Popups) -> bool: 
+    def main(self,  ) -> bool: 
         #check if dir exists
 
 
 
         #if exe exists:   
         dialog = Dialog
-        x = Popups.custom(dialog)
+        x = self.Popups.custom(dialog)
         self.logger.debug(x)
-        Popups.alert(x)
+        self.Popups.alert(x)
 
 class Dialog(QDialog):
     NumGridRows = 3
     NumButtons = 4
     signal = pyqtSignal(tuple)
+    _done = False
 
     def __init__(self, parent=None):
         super(Dialog, self).__init__(parent)
@@ -62,7 +63,15 @@ class Dialog(QDialog):
         layout.addRow(QLabel("Age:"), self.age)
         self.formGroupBox.setLayout(layout)
 
+    def closeEvent(self, a0) -> None:
+        if not self._done:
+            self.signal.emit((self.name.text(), self.country.text(), self.age.value()))
+        self.close()
+        a0.accept()
+
+
     def accept(self):
+        self._done = True
         self.signal.emit((self.name.text(), self.country.text(), self.age.value()))
         self.close()
 

@@ -29,21 +29,24 @@ class Edit_Sequence:
         current_form = current_button["formname"]
         current_name = current_button["buttonname"]
         current_assignname = data["sequence"]["current_batch"]["source"]
+        
 
         if buttons_table_dict["buttonname"] != current_name:
+    
             q = self.writesql(update(buttons).where(buttons.buttonname == current_name).where(buttons.tab == current_tab).where(buttons.formname == current_form).values(buttonname = buttons_table_dict["buttonname"]))
             if not q:
                 self.alert(f"Error updating buttonname on tab {current_tab} in form {current_form}")
-                return
-            q = self.writesql(update(batchsequence).where(batchsequence.buttonname == current_name).where(batchsequence.tab == current_tab).where(batchsequence.formname == current_form).values(buttonname = buttons_table_dict["buttonname"]))
+                return current_tab, current_name
+            q = self.writesql(update(batchsequence).where(batchsequence.buttonname == current_name).where(batchsequence.tab == current_tab).where(batchsequence.formname == current_form).values(buttonname = buttons_table_dict["buttonname"]).values(source = buttons_table_dict["buttonname"]))
             if not q:
                 self.alert(f"Error updating buttonname on tab {current_tab} in form {current_form}")
-                return
+                return current_tab, current_name 
         #delete all buttonseries data for this button
+        
         q = self.writesql(delete(buttonseries).where(buttonseries.assignname == current_assignname))
         if not q:
             self.alert(f"Error deleting buttonseries on tab {current_tab} in form {current_form}")
-            return
+            return current_tab, current_name
         #insert new buttonseries data
 
         for button_series in button_series_table_dict:
@@ -51,7 +54,7 @@ class Edit_Sequence:
             q = self.writesql(insert(buttonseries).values(**button_series))
             if not q:
                 self.alert(f"Error inserting buttonseries on tab {current_tab} in form {current_form}")
-                return
+                return current_tab, current_name
         return current_tab, current_name
         
     def edit_sequence_save(self, buttons_table_dict, batchsequence_table_dict, button_series_table_dict):

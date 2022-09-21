@@ -230,7 +230,7 @@ class Create_sequence(QDialog):
             errormessage += "No buttons selected\n"     
             is_fail = True
         if is_fail:  
-            errormsg = QMessageBox()
+            errormsg = QMessageBox(self)
             errormsg.setIcon(QMessageBox.Icon.Critical)
             errormsg.setText("Error: missing info")
             errormsg.setInformativeText(errormessage)

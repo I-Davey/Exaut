@@ -17,7 +17,7 @@ class delay(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self, folderpath, Popups) -> bool:
+    def main(self, folderpath, ) -> bool:
         print("startdel")
         time.sleep(int(folderpath))
         print("delay")

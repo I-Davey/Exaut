@@ -2,7 +2,7 @@ from PyQt6 import QtGui, QtCore
 #import QVBoxLayout
 from functools import partial
 from PyQt6.QtWidgets import QWidget, QPushButton, QGridLayout,  QScrollArea, QTabWidget, QPushButton, QWidget,  QFormLayout, QVBoxLayout, QMainWindow
-from PyQt6.QtGui import QDrag, QPixmap
+from PyQt6.QtGui import QDrag, QPixmap, QAction
 from PyQt6.QtCore import QMimeData, Qt
 
 from PyQt6 import QtWidgets
@@ -54,14 +54,25 @@ class Edit_Layout(QMainWindow):
 
     def __init__(self, parent_):
         super(Edit_Layout, self).__init__(parent_)
+        self.updating = False
+        self.refreshing = False
         self.tablist = []
         self.tab_buttons = {}
+        self.static = False
         self.start = True
-
         self.SM_Tabs = QtWidgets.QTabWidget()
         centralwdgt = QtWidgets.QWidget(self)
         self.cur_layout = QFormLayout(centralwdgt)
         self.setCentralWidget(centralwdgt)
+
+        #add a menu bar
+        self.menubar = self.menuBar()
+        self.filemenu = self.menubar.addAction("Refresh")
+        self.filemenu.triggered.connect(self.refresh_data)
+        self.static_action = QAction(self, checkable=True)
+        self.static_action.setText("Static (off)")
+        self.menubar.addAction(self.static_action)
+        self.static_action.triggered.connect(self.handle_static)
 
         #add widget
         self.SM_Tabs.setObjectName("SM_Tabs")
@@ -69,7 +80,7 @@ class Edit_Layout(QMainWindow):
         self.SM_Tabs.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
         self.SM_Tabs.setDocumentMode(True)
 
-
+        self.parent_ = parent_
         self.curtabtext = parent_.SM_Tabs.tabText(parent_.SM_Tabs.currentIndex())
         self.curtab = None
         self.curtabindex = 0
@@ -147,6 +158,14 @@ class Edit_Layout(QMainWindow):
         self.handle_refresh(self.curtab)
         self.start = False
 
+    def handle_static(self):
+        self.static = not self.static
+        if self.static:
+            self.static_action.setText("Static (on)")
+        else:
+            self.static_action.setText("Static (off)")
+
+
 
     def clear_all(self):
         for i in reversed(range(0,self.SM_Tabs.count())):
@@ -154,6 +173,7 @@ class Edit_Layout(QMainWindow):
         
     #on close handler
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.parent_.edit_layout = None
         self.pointer = None
         return super().closeEvent(a0)
 
@@ -174,6 +194,20 @@ class Edit_Layout(QMainWindow):
             self.pointer = None
             self.deleteLater()
             self.close()
+
+    def refresh_data(self):
+        self.refreshing = True
+        curtab = self.SM_Tabs.currentIndex()
+
+        self.title = self.parent_.title
+        self.tablist = self.parent_.tablist
+        self.tab_buttons = self.parent_.tab_buttons
+        self.refresh = self.parent_.refresh
+        self.pointer = self.parent_.edit_layout
+        self.handle_refresh(self.curtab)
+        self.SM_Tabs.setCurrentIndex(curtab)
+        self.SM_Tabs.currentChanged.connect(self.ontabchange)
+        self.refreshing = False
 
     def handle_refresh(self, curtab = None):
         
@@ -281,23 +315,35 @@ class Edit_Layout(QMainWindow):
         else:
             #find the index of the tabtext
             self.SM_Tabs.setCurrentIndex(curtab)
-        #set size to self.layout.sizeHint
-
-
+            self.curtabindex = curtab
+        
     def ontabchange(self, index):
-        combo = self.sizeHint() + self.cur_layout.sizeHint() + self.items_grid_centre.sizeHint()
-        if combo.width() > self.width() and combo.height() > self.height():
-            self.resize(combo.width(), combo.height())
         if not self.start:
             self.curtabtext = self.SM_Tabs.tabText(index)
+        if self.refreshing:
+            return
 
+                #get curtabdata for current tab using curtabindex
+        curtabdata = self.tab_buttons[self.tablist[index]]
+        curtabsize = curtabdata["tabsize"]
+        if self.updating or self.static:
+            return
+        if curtabsize:
+            curtabsize = curtabsize.split(",")
+            self.resize(int(int(curtabsize[0])*1.3), int(int(curtabsize[1])*1.2))
+        else:
+            self.resize(650,300)
+        
     def add_grid_x(self):
+        self.updating = True
         curtab = self.SM_Tabs.currentIndex()
         curtabtext = self.SM_Tabs.tabText(curtab)
         self.tab_buttons[curtabtext]["grid"] += 1
         self.handle_refresh(curtab)
+        self.updating = False
 
     def remove_grid_x(self):
+        self.updating = True
         curtab = self.SM_Tabs.currentIndex()
         curtabtext = self.SM_Tabs.tabText(curtab)
         if not self.tab_buttons[curtabtext]["grid"]:
@@ -305,6 +351,7 @@ class Edit_Layout(QMainWindow):
         if self.tab_buttons[curtabtext]["grid"] > 1:
             self.tab_buttons[curtabtext]["grid"] -= 1
             self.handle_refresh(curtab)
+        self.updating = False
 
     def update_layout(self):
         curtab_items = []
@@ -326,6 +373,13 @@ class Edit_Layout(QMainWindow):
                     curtab_items[i][1] = 0
                 if curtab_items[i][1] > item[1]:
                     curtab_items[i][0] += 1
+            
+    def change_tab(self, tab_name:str):
+        for i in range(self.SM_Tabs.count()):
+            if self.SM_Tabs.tabText(i) == tab_name:
+                self.SM_Tabs.setCurrentIndex(i)
+                self.curtabindex = i
+                break
     
     def update_column(self, tab_name, column_num, pos, from_column, text, button_array):
         current_tab_text = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())

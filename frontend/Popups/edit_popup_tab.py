@@ -1,9 +1,10 @@
 from PyQt6 import QtGui, QtCore
-
+from functools import partial
 #import QVBoxLayout
 from PyQt6.QtWidgets import QPushButton,  QFormLayout, QLineEdit, QLabel, QPushButton, QMainWindow,  QMessageBox, QWidget, QGridLayout, QSizePolicy, QMessageBox
 from PyQt6.QtCore import pyqtSignal
-
+import os
+import webbrowser
 class edit_popup_tab(QMainWindow):
     signal_delete = QtCore.pyqtSignal()
     signal_update = pyqtSignal(dict, bool)
@@ -16,7 +17,7 @@ class edit_popup_tab(QMainWindow):
         mainwidget = QWidget(self)
         self.layout = QFormLayout(mainwidget)
         self.setCentralWidget(mainwidget)
-
+        self.variables = parent_.api.var_dict
         self.tabname = tab_name
         self.cur_tabs = cur_tabs
         self.cur_tabs = [tab.lower() for tab in self.cur_tabs]
@@ -62,7 +63,10 @@ class edit_popup_tab(QMainWindow):
         for key, data in data.items():
             if type(data) not in [dict, list]:
                 lineedit = QLineEdit(str(data) if data not in ('None', "", None) else "")
-                self.layout.addRow(QLabel(key), lineedit)
+                label = QLabel_temp(key)
+                label.clicked.connect(partial(self.on_click_label, key))
+
+                self.layout.addRow(label, lineedit)
                 self.changes[key] = lineedit
         self.layout.addRow(self.savedelgrid)
 
@@ -96,6 +100,14 @@ class edit_popup_tab(QMainWindow):
                         self.close()
                 
                 return
+        summary = self.changes['taburl'].text()
+        if summary.find("onenotedesktop:")>-1:
+                    summary =  summary[summary.find("onenotedesktop:"):]
+        elif summary.find("onenote:")>-1:
+                summary =  summary[summary.find("onenote:"):]
+                #repplace onenote: with onenotedesktop:
+                summary = f"onenotedesktop:{summary[8:]}"
+        self.changes['taburl'].setText(summary)
 
         for key, value in self.changes.items():
             if key in self.data:
@@ -119,3 +131,31 @@ class edit_popup_tab(QMainWindow):
                 self.signal_delete.emit()
                 self.complete = True
                 self.close()
+
+    def on_click_label(self, item, event):
+        path_text = str(self.data[item])
+        if path_text == "":
+            return
+        #if realpath
+        if "$$" in path_text:
+            for i, item2 in enumerate(path_text.split("$$")):
+                if i == 0:
+                    continue
+                if item2 in self.variables:
+                    path_text = path_text.replace("$$" + item2 + "$$", self.variables[item2])
+        if os.path.exists(path_text):
+
+            #open file explorer
+            try:
+                os.startfile(path_text)
+            except Exception as e:
+                self.logger.error("cannot open folder")
+                self.logger.error(e)
+        #elif valid url         
+
+
+class QLabel_temp(QLabel):
+    clicked=pyqtSignal(QtGui.QMouseEvent)
+    
+    def mousePressEvent(self, ev):
+        self.clicked.emit(ev)

@@ -138,7 +138,9 @@ class drag_drop(TypeInterface):
 
     def validate_result(self) -> bool:
         self.data = self.q_widget.getText()
-        if self.data in (None, "", "Browse") and not self.is_optional:
+        if self.data == "Browse" and self.is_optional:
+            self.data = None
+        if self.data in (None, "") and not self.is_optional:
             self.q_widget.setStyleSheet("background-color: red")
             return False
         else:

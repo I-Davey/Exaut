@@ -1,28 +1,19 @@
-
 from argparse import Action
 from time import perf_counter
-start_time = perf_counter()
 
+start_time = perf_counter()
 print("loading..")
 from PyQt6 import QtCore,QtGui,QtWidgets
-
 from PyQt6.QtWidgets import *
 from PyQt6 import QtGui
-
 import traceback
-
 import time
 import os,sys
 import math,math
 from functools import partial
 import re
-
 import pyperclip
-
-
-
 import json
-
 import frontend.EXAUT_gui as EXAUT_gui
 from frontend.Popups.Create_sequence import Create_sequence
 from frontend.Popups.edit_popup_tab import edit_popup_tab
@@ -30,6 +21,8 @@ from frontend.Popups.Edit_Popup import Edit_Popup
 from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
 from frontend.Popups.actions.Actions import Actions
+from frontend.Popups.edit_popup_form import edit_popup_form
+
 from time import perf_counter
 from Exaut_backend import Loader
 import webbrowser
@@ -43,6 +36,20 @@ class CustomTab(QtWidgets.QTabWidget):
     def __init__(self, parent):
         super(CustomTab, self).__init__(parent)
         self.parent_ = parent
+        style_data = f"""{{
+                            border-style: solid;
+                            background-color: {QtGui.QColor(229, 241, 251).name()};
+                            border-width: 1px 1px 1px 1px;
+                            border-radius: 2px;
+                            border-color: {QtGui.QColor(0, 120, 215).name()};
+                            padding: 4px;
+                            }}
+                            """
+        stylesheet = f""" 
+        QTabBar::tab:selected {style_data}
+        QTabWidget>QWidget>QWidget{style_data}
+        """
+        self.setStyleSheet(stylesheet)
         #self.add_buttons()
 
     def add_buttons(self):
@@ -277,11 +284,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
     signal_refresh = QtCore.pyqtSignal()
     signal_move_start = QtCore.pyqtSignal(bool)
     signal_popup_yesno = QtCore.pyqtSignal(str,str,str,str)
+    signal_select_file_popup = QtCore.pyqtSignal(str,str,str)
+    signal_select_folder_popup = QtCore.pyqtSignal(str,str,str)
     #pass signal_popup_custom with any data tytpe
     signal_popup_custom = QtCore.pyqtSignal(str, object)
-    signal_popup_data = QtCore.pyqtSignal(str,str,str)
+    signal_popup_data = QtCore.pyqtSignal(str,str,str,str)
     signal_popup_tabto = QtCore.pyqtSignal(str, str, str)
     signal_alert = QtCore.pyqtSignal(str, str)
+    form_tab_kv = {}
 
 
     def __init__(self,parent=None):
@@ -304,8 +314,12 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.lasttab = None
         self.size_static = False
         self.show_hidden_tabs = False
+        self.lastform = None
+        self.form_changing = False
 
         self.SM_Tabs = CustomTab(self)
+
+        self.extra_menu_items()
 
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
@@ -316,6 +330,41 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.load()
         self.refresh(start = True)
 
+
+
+    def extra_menu_items(self):
+        #form import json
+        actionimport_form = QtGui.QAction("Import Form", self)
+        actionimport_form.triggered.connect(self.import_form_json)
+        self.menuAction_form.addAction(actionimport_form)
+
+        #export form
+        actionexport_form = QtGui.QAction("Export Form", self)
+        actionexport_form.triggered.connect(self.export_form_json)
+        self.menuAction_form.addAction(actionexport_form)
+
+        #tab import json
+        actionimport_tab = QtGui.QAction("Import Tab", self)
+        actionimport_tab.triggered.connect(self.import_tab_json)
+        self.menuAction_tab.addAction(actionimport_tab)
+
+        #add_var
+        actionadd_var = QtGui.QAction("Add Variable", self)
+        actionadd_var.triggered.connect(self.add_variable)
+        self.menuAction.addAction(actionadd_var)
+
+        #Edit_var
+        actionedit_var = QtGui.QAction("Edit Variable", self)
+        actionedit_var.triggered.connect(self.edit_variable)
+        self.menuAction.addAction(actionedit_var)
+
+        #open_tab_folder (shortcut ctrl+f)
+        actionopen_tab_folder = QtGui.QAction("Open Tab Folder", self)
+        actionopen_tab_folder.setShortcut("Ctrl+F")
+        actionopen_tab_folder.triggered.connect(self.open_tab_folder)
+        self.menuAction_tab.addAction(actionopen_tab_folder)
+        
+
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
         self.signal_popup_custom.connect(self.popup_custom)
@@ -324,6 +373,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.signal_button_complete.connect(self.handle_button_complete)
         self.signal_popup_tabto.connect(self.tabto)
         self.signal_alert.connect(self.alert)
+        self.signal_select_file_popup.connect(self.select_file_popup)
+        self.signal_select_folder_popup.connect(self.select_folder_popup)
 
         self.actionAbout.triggered.connect(self.about_window)
         self.actionRefresh.triggered.connect(self.refresh)
@@ -342,9 +393,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionTabFolder.triggered.connect(self.add_tab_folder)
         self.actionAdd_tabto.triggered.connect(self.add_tabto)
         self.actionAdd_tablast.triggered.connect(self.add_tablast)
-        self.actionOpen_Files_Explorer.triggered.connect(self.open_tab_folder)
         self.actionOpenTabUrl.triggered.connect(self.open_tab_url)
         self.actionHidden_mode.triggered.connect(self.show_hidden_tabs_handler)
+        self.actionAdd_Form.triggered.connect(self.add_new_form)
+        self.actionForm_Edit.triggered.connect(self.edit_form)
 
 
         #lambda self.size_static = not self.size_static
@@ -359,28 +411,38 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
     def form_change(self):
+        self.form_changing = True
         all_forms = self.api.get_forms()
         form_list = [x.formname for x in all_forms]
 
         #find self.form_title position in form_list
-        pos_form_title = form_list.index(self.form_title)
+        if self.form_title in form_list:
+            pos_form_title = form_list.index(self.form_title)
         response = QtWidgets.QInputDialog.getItem(self, "Form Change", "Select Form", form_list, pos_form_title, False)
         new_title = response[0]
         if new_title:
             self.api.formname = new_title
             self.curTab = 0
 
-            self.load()
             self.refresh()
             self.logger.info("Form changed to: " + new_title)
+            if self.title in self.form_tab_kv:
+                self.curTab = self.form_tab_kv[self.title]
+                self.SM_Tabs.setCurrentIndex(self.form_tab_kv[self.title])
+            else:
+                self.curTab = 0
+                self.SM_Tabs.setCurrentIndex(0)
+                
+    
 
         else:
             self.logger.debug("No form selected")
+        self.form_changing = False
 
     def load(self):
         form_title, form_desc = self.api.load()
         self.form_title = form_title
-        self.form_desc = form_desc
+        self.form_desc = form_desc if form_desc else "Exaut"
         self.title = form_title
         self.setWindowTitle(self.form_desc)
         self.setWindowIcon(self.icon)
@@ -397,6 +459,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             button.reset_clicked_style()
 
     def refresh(self, start = False, layout_mode = False):
+        self.load()
+
         if not start:
             self.refreshing = True
         self.button_cache = {}
@@ -455,7 +519,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.SM_Tabs.setCurrentIndex(0)
         else:
             self.SM_Tabs.setCurrentIndex(self.curTab)
+        #clear self.SM_Tabs connections
+        
+        if not start:
+            self.SM_Tabs.currentChanged.disconnect()
+
         self.SM_Tabs.currentChanged.connect(self.get_tab_change)
+        
         #if self.edit_layout and layout_mode == False:
             #self.edit_layout.resetlayout(initial=True)
         if not start:
@@ -536,6 +606,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if self.refreshing:
             return
         if "start" not in kwargs:
+            if not self.form_changing:
+                self.form_tab_kv[self.form_title] = n
+
             for item in self.button_dict:
                 self.button_dict[item].deleteLater()
             self.button_dict = {}
@@ -563,7 +636,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                             color_hover_border=QtGui.QColor(247, 92, 20),
                             clicked_color=QtGui.QColor(255, 170, 127),
                             clicked_border=QtGui.QColor(255, 170, 0))
-                    elif color != None:
+                    elif color not in (None, "."):
                         button = CustomButton(ScrollAreaContents, *self.handle_color(color))
                     elif type_ == None:
                         #color red
@@ -623,7 +696,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                         button_arr[y] += 1
                     Grid.addWidget(button, x, y, 1, 1)
                     button.clicked.connect(partial(self.button_click,buttonname,curtabtext,button,mode=1))
-
+            if self.edit_layout:
+                self.edit_layout.change_tab(curtabtext)
                     #print(f"{buttonname} {t2-t1} {t4-t2} {final_time-t4}")
 
         #curtabtext
@@ -669,7 +743,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def handle_actions(self):
         curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
-        self.actions_popup = Actions(self.form_title,curtab, self.api.get_actions, self.api.action_get_typemap, self.api.return_plugins_type_map, self.api.action_return_categories, self.api.action_change_category, self.api.actions_save, self.api.actions_update, self.api.actions_delete, self)
+        self.actions_popup = Actions(self.form_title,curtab, self.api.actions, self.api.get_actions, self.api.actions_save, self.api.actions_update, self.api.actions_delete, self)
         self.actions_popup.show()
         None
 
@@ -784,6 +858,20 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         edit_tab.signal_update.connect(partial(self.api.edit_tab_update, tab_name, self.form_title))
         edit_tab.show()
 
+
+    def edit_form(self, tab_name):
+        #two text / label boxes: formname, button description
+        #two buttons, save or delete
+        self.db_refresh()
+        cur_form = self.form_title
+        edit_form = edit_popup_form(self,cur_form)
+        edit_form.signal_delete.connect(partial(self.api.edit_form_delete, cur_form))
+        edit_form.signal_update.connect(partial(self.api.edit_form_update, cur_form))
+
+
+
+
+
     def layout_editor(self):
         self.db_refresh()
         if self.edit_layout != None:
@@ -796,9 +884,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.edit_layout.signal_save.connect(self.api.edit_layout_save)
         self.edit_layout.show()
 
-    def tab_copy(self):
+    def tab_copy(self, tab=None):
         self.db_refresh()
-        tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
+        if not tab:
+            tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
         forms, tabs =  self.api.copy_tab_data()
         #selection box for forms
         #get index for current form in forms
@@ -824,9 +913,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 break
         self.api.copy_tab_insert(new_tab_name[0], form_select_value, tab, cur_form)
     
-    def tab_move(self):
+    def tab_move(self, tab=None):
         self.db_refresh()
-        tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
+        if not tab:
+            tab = str(self.SM_Tabs.tabText(self.SM_Tabs.currentIndex()))
         forms, tabs =  self.api.copy_tab_data()
         #selection box for forms
         #get index for current form in forms
@@ -851,6 +941,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             if not found:
                 break
         self.api.move_tab_insert(new_tab_name[0], form_select_value, tab, cur_form)
+        #change to that tab and form
+        #######aa
+        self.tabto(None, new_tab_name[0], form_select_value)
 
     def button_copy(self,button_name, tab_name, type_, mode, duplicate=False):
 
@@ -932,6 +1025,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 
         self._button_copy_move_form_dropdown.setCurrentIndex(self._button_copy_move_form_dropdown.findText(self.form_title))
+        self._button_copy_move_tab_dropdown.setCurrentIndex(self._button_copy_move_tab_dropdown.findText(tab_name))
         self.button_copy_form_change(self.form_title)
 
         self._button_copy_move_popup.show()
@@ -966,8 +1060,18 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
 #create_todo
 
+    def add_new_form(self):
+        #popup enter form name
+        self.db_refresh()
+        formname = QInputDialog.getText(self, "Add Form", "Form Name:")
+        if not formname[1] or not formname[0]:
+            return
+        curtabtext = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+        self.api.add_form(formname[0], curtabtext, self.title)
+        self.refresh()
 
     def add_tabto(self):
+
 
 
        
@@ -977,13 +1081,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tabto_create_tab_dropdown = QtWidgets.QComboBox()
 
         self.tabto_create_form_dropdown.addItems(list(self.tabto_create_form_dict.keys()))
-        self.tabto_create_form_dropdown.currentTextChanged.connect(self.button_copy_form_change)
+        self.tabto_create_form_dropdown.currentTextChanged.connect(self.tabto_form_change)
 
 
 
         #popup with form dropdown and button dropdown
         self.tabto_create_popup = QtWidgets.QDialog()
         self.tabto_create_popup.setWindowTitle("Create Tabto")
+
 
         self.tabto_create_popup.setFixedSize(300,200)
         self.tabto_create_popup.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint)
@@ -997,16 +1102,16 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.tabto_create_form_dropdown_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.tabto_create_form_dropdown_label.setFixedWidth(50)
         self.tabto_create_form_dropdown_label.setFixedHeight(20)
-        gridlayout.addWidget(self.tabto_create_form_dropdown_label, 0, 0)
-        gridlayout.addWidget(self.tabto_create_form_dropdown, 0, 1)
+        gridlayout.addWidget(self.tabto_create_form_dropdown_label, 1, 0)
+        gridlayout.addWidget(self.tabto_create_form_dropdown, 1, 1)
 
         #add button dropdown
         self.tabto_create_tab_dropdown_label = QtWidgets.QLabel("Tab:")
         self.tabto_create_tab_dropdown_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.tabto_create_tab_dropdown_label.setFixedWidth(50)
         self.tabto_create_tab_dropdown_label.setFixedHeight(20)
-        gridlayout.addWidget(self.tabto_create_tab_dropdown_label, 1, 0)
-        gridlayout.layout().addWidget(self.tabto_create_tab_dropdown, 1, 1)
+        gridlayout.addWidget(self.tabto_create_tab_dropdown_label, 2, 0)
+        gridlayout.layout().addWidget(self.tabto_create_tab_dropdown, 2, 1)
 
 
 
@@ -1015,25 +1120,48 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #save button:
 
         self.tabto_create_save_button = QtWidgets.QPushButton("Create")
+
         #button expand to fill row, columnspan 2
         self.tabto_create_save_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.tabto_create_save_button.setFixedHeight(30)
+
+        self.tabto_use_last_button = QtWidgets.QPushButton("Use Tablast")
+        self.tabto_use_last_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.tabto_use_last_button.setFixedHeight(20)
+        self.tabto_use_last_button.clicked.connect(self.tabto_use_last)
         
         gridlayout.addWidget(self.tabto_create_save_button, 3, 1)
+        gridlayout.addWidget(self.tabto_use_last_button, 0, 1)
         self.tabto_create_save_button.clicked.connect(self.tabto_create_save)
 
 
 
         self.tabto_create_form_dropdown.setCurrentIndex(self.tabto_create_form_dropdown.findText(self.form_title))
-        self.button_copy_form_change(self.form_title)
+        self.tabto_form_change(self.form_title)
 
         self.tabto_create_popup.show()
+
+    def tabto_use_last(self):
+        form_text = self.lastform if self.lastform else self.title
+        tab_text = self.lasttab 
+        curtab_text = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
+        if form_text == self.title and tab_text == curtab_text:
+            self.alert("tablast is current tab")
+            return
+        self.tabto_create_form_dropdown.setCurrentIndex(self.tabto_create_form_dropdown.findText(form_text))
+        self.tabto_form_change(form_text)
+        self.tabto_create_tab_dropdown.setCurrentIndex(self.tabto_create_tab_dropdown.findText(tab_text))
+
+        
+
 
     def tabto_create_save(self):
         #get form and button
         form = self.tabto_create_form_dropdown.currentText()
     
         tab = self.tabto_create_tab_dropdown.currentText()
+        if not tab:
+            tab = " "
 
 
         curtab = self.SM_Tabs.tabText(self.SM_Tabs.currentIndex())
@@ -1043,7 +1171,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         
         self.tabto_create_popup.close()
 
-    def button_copy_form_change(self, form):
+    def tabto_form_change(self, form):
         self.tabto_create_tab_dropdown.clear()
         self.tabto_create_tab_dropdown.addItems(list(self.tabto_create_form_dict[form].keys()))
         
@@ -1104,16 +1232,31 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.popup_msgs[key] = False
 
 
-    def data_entry_popup(self,key, message, title):
+    def data_entry_popup(self,key, message, title, default = ""):
 
-        text, ok = QInputDialog.getText(self, title, message)
+        text, ok = QInputDialog.getText(self, title, message, QLineEdit.EchoMode.Normal, default)
         if not ok: 
             self.popup_msgs[key] = None
         else:
             self.popup_msgs[key] = text
 
-    def popup_custom(self,key, component):
-        component = component(self)
+    def select_file_popup(self,key, title, folderloc):
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, title, folderloc, "All Files (*)")
+        if file_name:
+            self.popup_msgs[key] = file_name
+        else:
+            self.popup_msgs[key] = None
+
+    def select_folder_popup(self,key, title, folderloc):
+        folder_name = QtWidgets.QFileDialog.getExistingDirectory(self, title, folderloc)
+        if folder_name:
+            self.popup_msgs[key] = folder_name
+        else:
+            self.popup_msgs[key] = None
+
+    def popup_custom(self,key, objlist):
+        component, args = objlist
+        component = component(self, *args)
         component.show()
         component.signal.connect(lambda x: self.popup_msgs.update({key:x}))
 
@@ -1187,6 +1330,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 ##############################################################################################################################
 
 ##context menus###############################################################################################################
+
+    def add_variable(self):
+        self.api.call_plugin("add_var", type_="add_var", source="", target="", databasepath=False)
+    
+    def edit_variable(self):
+        self.api.call_plugin("add_var", type_="edit_var", source="", target="", databasepath=False)
+
+
     def button_context_menu(self, button, type_, event):
         menu = QtWidgets.QMenu(self)
         #tab name is current active tab
@@ -1218,19 +1369,246 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                                         button,
                                         type_,
                                         5))
-
         menu.addAction("Edit Layout", self.layout_editor)
+
+        color_menu = menu.addMenu("Color")
+
+
+        color_menu.addAction("Set Type Color", partial(self.color_picker,type_))
+        color_menu.addAction("Set Type Color -> Fill", partial(self.color_picker,type_,True))
+        color_menu.addAction("Remove Type Color", partial(self.api.remove_color,type_))
+        #add dropdown menu for colors   
+
+
         
         menu.exec(QtGui.QCursor.pos())
+
+    def color_picker(self, type_, fill = False):
+        color = QtWidgets.QColorDialog.getColor(parent=self)
+        if color.isValid():
+            self.api.set_color(type_, color.getRgb(), fill)
 
     def tab_context_menu(self, tab_index):
         menu = QtWidgets.QMenu(self)
         #get text from tab
         tab_name = self.SM_Tabs.tabText(tab_index)
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
+        menu.addAction("Export Tab json", partial(self.export_tab_json,tab_name))
+        menu.addAction("Add Export Location", partial(self.add_export_location,tab_name))
+        menu.addAction("Copy Tab", partial(self.tab_copy,tab_name))
+        menu.addAction("Move Tab", partial(self.tab_move,tab_name))
         #menu.addAction("actions popup", self.handle_actions)
 
         menu.exec(QtGui.QCursor.pos())
+
+
+    def export_tab_json(self, tab_name):
+        #if "pipeline_path" not in self.api.var_dict:
+        plpaths = []
+        plnames = []
+        for item in self.api.var_dict:
+            #if item startswith pipeline_path
+            if item.startswith("pipeline_path"):
+                #get the value of the key
+                plpaths.append(self.api.var_dict[item])
+                plnames.append(item)
+        
+        
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
+            self.logger.warning("Tabs Pipeline path not set")
+            dlg = QtWidgets.QFileDialog()
+            dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+            dlg.setFileMode(QFileDialog.FileMode.Directory)
+            dlg.setWindowTitle("Select Tabs Pipeline Folder")
+            if dlg.exec():
+                path = dlg.selectedFiles()[0]
+                self.api.addvar("pipeline_path", path, global_var=True)
+
+        choices = []
+        results = []
+        for plname in plnames:
+            if len(plname)< 13:
+                continue
+            elif len(plname) == 13:
+                choices.append("default")
+                results.append(plname)
+            else:
+                choices.append(plname[14:])
+                results.append(plname)
+        if choices == []:
+            self.logger.warning("No pipeline paths found")
+            return
+
+        choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
+        if choice[1]:
+            #index of the choice within the choices list
+            index = choices.index(choice[0])
+            self.api.export_tab(tab_name, results[index])
+
+    def import_tab_json(self):
+        #if "pipeline_path" not in self.api.var_dict:
+        plpaths = []
+        plnames = []
+        for item in self.api.var_dict:
+            #if item startswith pipeline_path
+            if item.startswith("pipeline_path"):
+                #get the value of the key
+                plpaths.append(self.api.var_dict[item])
+                plnames.append(item)
+        
+        
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
+            self.logger.warning("Forms Pipeline path not set")
+            dlg = QtWidgets.QFileDialog()
+            dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+            dlg.setFileMode(QFileDialog.FileMode.Directory)
+            dlg.setWindowTitle("Select Forms Pipeline Folder")
+            if dlg.exec():
+                path = dlg.selectedFiles()[0]
+                self.api.addvar("pipeline_path", path, global_var=True)
+                plnames.append("pipeline_path")
+
+        choices = []
+        results = []
+        for plname in plnames:
+            if len(plname)< 13:
+                continue
+            elif len(plname) == 13:
+                choices.append("default")
+                results.append(plname)
+            else:
+                choices.append(plname[14:])
+                results.append(plname)
+        if choices == []:
+            self.logger.warning("No pipeline paths found")
+            return
+
+        choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
+        if choice[1]:
+            #index of the choice within the choices list
+            index = choices.index(choice[0])
+            self.api.call_plugin("load_tabjson", source= f"$${results[index]}$$\\db_tabs\\")
+
+
+    def export_form_json(self):
+        form_name = self.title
+        #if "pipeline_path" not in self.api.var_dict:
+        plpaths = []
+        plnames = []
+        for item in self.api.var_dict:
+            #if item startswith pipeline_path
+            if item.startswith("pipeline_path"):
+                #get the value of the key
+                plpaths.append(self.api.var_dict[item])
+                plnames.append(item)
+        
+        
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
+            self.logger.warning("Forms Pipeline path not set")
+            dlg = QtWidgets.QFileDialog()
+            dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+            dlg.setFileMode(QFileDialog.FileMode.Directory)
+            dlg.setWindowTitle("Select Forms Pipeline Folder")
+            if dlg.exec():
+                path = dlg.selectedFiles()[0]
+                self.api.addvar("pipeline_path", path, global_var=True)
+
+        choices = []
+        results = []
+        for plname in plnames:
+            if len(plname)< 13:
+                continue
+            elif len(plname) == 13:
+                choices.append("default")
+                results.append(plname)
+            else:
+                choices.append(plname[14:])
+                results.append(plname)
+        if choices == []:
+            self.logger.warning("No pipeline paths found")
+            return
+
+        choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
+        if choice[1]:
+            #index of the choice within the choices list
+            index = choices.index(choice[0])
+            self.api.export_form_json(form_name, results[index])
+
+    def import_form_json(self):
+        #if "pipeline_path" not in self.api.var_dict:
+        plpaths = []
+        plnames = []
+        for item in self.api.var_dict:
+            #if item startswith pipeline_path
+            if item.startswith("pipeline_path"):
+                #get the value of the key
+                plpaths.append(self.api.var_dict[item])
+                plnames.append(item)
+        
+        
+        if plpaths == [] and "pipeline_path" not in  self.api.var_dict:
+            self.logger.warning("Forms Pipeline path not set")
+            dlg = QtWidgets.QFileDialog()
+            dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+            dlg.setFileMode(QFileDialog.FileMode.Directory)
+            dlg.setWindowTitle("Select Forms Pipeline Folder")
+            if dlg.exec():
+                path = dlg.selectedFiles()[0]
+                self.api.addvar("pipeline_path", path, global_var=True)
+                plnames.append("pipeline_path")
+
+        choices = []
+        results = []
+        for plname in plnames:
+            if len(plname)< 13:
+                continue
+            elif len(plname) == 13:
+                choices.append("default")
+                results.append(plname)
+            else:
+                choices.append(plname[14:])
+                results.append(plname)
+        if choices == []:
+            self.logger.warning("No pipeline paths found")
+            return
+
+        choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
+        if choice[1]:
+            #index of the choice within the choices list
+            index = choices.index(choice[0])
+            self.api.call_plugin("import_form_json", source= f"$${results[index]}$$\\db_forms\\")
+
+
+    def add_export_location(self, tab_name):
+        #export location name:
+        name = QInputDialog.getText(self, "Add Tab Export Location", "Enter Export Location Name", text="*")
+        if not name[1]:
+            return
+        name = name[0]
+        dlg = QtWidgets.QFileDialog()
+        dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+        dlg.setFileMode(QFileDialog.FileMode.Directory)
+        dlg.setWindowTitle("Select Tab Export Location")
+        if dlg.exec():
+            path = dlg.selectedFiles()[0]
+            self.api.addvar(f"pipeline_path_{name}", path)
+
+    def add_export_location_forms(self):
+        #export location name:
+        name = QInputDialog.getText(self, "Add Form Export Location", "Enter Export Location Name", text="*")
+        if not name[1]:
+            return
+        name = name[0]
+        dlg = QtWidgets.QFileDialog()
+        dlg.setOption(QFileDialog.Option.ShowDirsOnly, True)
+        dlg.setFileMode(QFileDialog.FileMode.Directory)
+        dlg.setWindowTitle("Select Form Export Location")
+        if dlg.exec():
+            path = dlg.selectedFiles()[0]
+            self.api.addvar(f"pipeline_path_{name}", path)  
+
+
+
 
 class GUI_Handler:
     def __init__(self,title=None):
@@ -1244,6 +1622,7 @@ class GUI_Handler:
         self.app = QtWidgets.QApplication(sys.argv)
         self.window = UI_Window()
         self.window.show()
+
         x = self.app.exec()
 
         sys.exit()
@@ -1252,7 +1631,12 @@ class GUI_Handler:
         return self.window
 
 if __name__ == "__main__":
+    sys._excepthook = sys.excepthook 
+    def exception_hook(exctype, value, traceback):
+        print(exctype, value, traceback)
+        sys._excepthook(exctype, value, traceback) 
+        input("Press any key to close -- SHOW IAN D THIS ERROR")
+        sys.exit(1) 
+    sys.excepthook = exception_hook
     gui = GUI_Handler(title="ExAuT")
     gui.start()
-
-        
