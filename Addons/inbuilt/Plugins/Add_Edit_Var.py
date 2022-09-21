@@ -51,7 +51,7 @@ class Add_Edit_Var(PluginInterface):
             x = self.Popups.custom(Add_Dialog, self.variable_name, self.value, self.is_global)
             if x == (None,):
                 return False
-            self.variable_name, self.value, self.is_global_form = x
+            self.variable_name, self.value, self.is_global = x
         formname = "*" if self.is_global else self.form_
         variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == formname))
         list_of_keys = [item["key"] for item in variables_list]
