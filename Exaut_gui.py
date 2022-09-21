@@ -358,6 +358,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         actionedit_var.triggered.connect(self.edit_variable)
         self.menuAction.addAction(actionedit_var)
 
+        #open_tab_folder (shortcut ctrl+f)
+        actionopen_tab_folder = QtGui.QAction("Open Tab Folder", self)
+        actionopen_tab_folder.setShortcut("Ctrl+F")
+        actionopen_tab_folder.triggered.connect(self.open_tab_folder)
+        self.menuAction_tab.addAction(actionopen_tab_folder)
+        
+
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
         self.signal_popup_custom.connect(self.popup_custom)
@@ -386,7 +393,6 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.actionTabFolder.triggered.connect(self.add_tab_folder)
         self.actionAdd_tabto.triggered.connect(self.add_tabto)
         self.actionAdd_tablast.triggered.connect(self.add_tablast)
-        self.actionOpen_Files_Explorer.triggered.connect(self.open_tab_folder)
         self.actionOpenTabUrl.triggered.connect(self.open_tab_url)
         self.actionHidden_mode.triggered.connect(self.show_hidden_tabs_handler)
         self.actionAdd_Form.triggered.connect(self.add_new_form)

@@ -113,8 +113,7 @@ class Ui_EXAUT_GUI():
         self.actionTabsize = QtGui.QAction(EXAUT_GUI)
         self.actionTabsize.setObjectName("actionTabsize")
         self.actionstaticsize = QtGui.QAction(EXAUT_GUI, checkable=True)
-        self.actionOpen_Files_Explorer = QtGui.QAction(EXAUT_GUI)
-        self.actionOpen_Files_Explorer.setObjectName("actionOpen_Files_Explorer")
+
 
 
         self.actionAdd_exe = QtGui.QAction(EXAUT_GUI)
@@ -202,7 +201,6 @@ class Ui_EXAUT_GUI():
         self.actionForm_Edit.setObjectName("actionForm_Edit")
 
 
-        self.menuTools.addAction(self.actionOpen_Files_Explorer)
         self.menuTools.addAction(self.actionOpenTabUrl)
 
         
@@ -281,8 +279,7 @@ class Ui_EXAUT_GUI():
         tf.setPointSize(10)
         self.actionTabsize.setFont(tf)
         #set background very light grey
-        self.actionOpen_Files_Explorer.setText(_translate("EXAUT_GUI", "Open Files Explorer"))
-        self.actionOpen_Files_Explorer.setShortcut(_translate("EXAUT_GUI", "Ctrl+O"))
+
         self.actionOpenTabUrl.setText(_translate("EXAUT_GUI", "Open Tab URL"))
         self.actionOpenTabUrl.setShortcut(_translate("EXAUT_GUI", "Ctrl+U"))
         self.actionAdd_exe.setText(_translate("EXAUT_GUI", "Add .exe"))
