@@ -10,3 +10,5 @@ dirtyjson
 sqlalchemy
 openpyxl
 psycopg2
+pgcopydb
+pexpect
