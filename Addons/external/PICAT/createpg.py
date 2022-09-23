@@ -52,11 +52,14 @@ class createpg(PluginInterface):
 
     def main(self, folderpath,filename,type_,source,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,bname) -> bool:    
 
+
             if str(source)=="" or source==None:
                 self.Popups.alert("No Postgres credentials specified in source field.","Failed "+str(type_)+": "+bname+"! \\"+str(runsequence))
             elif str(target)=="" or target==None:
                 self.Popups.alert("No Postgres credentials specified in target field.","Failed "+str(type_)+": "+bname+"! \\"+str(runsequence))
+            
             else:
+
                 pg_data_src = str(source)
                 pg_data_src = pg_data_src.split('|')
                 pg_data_trg = str(target)
@@ -175,4 +178,5 @@ class createpg(PluginInterface):
                 #if str(type_)=="alterdb":
                 #    self.WritePG("vacuum")
                 self.conn.close()
-            self.logger.info("Finished")
+                self.logger.info("Finished")
+
