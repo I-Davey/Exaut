@@ -7,7 +7,7 @@ class clonedb(PluginInterface):
     types = {"source":3,"target":4}
     #type_types = {"source":{"type":"drag_drop_folder", "description":"please select the Source Folder", "optional":True}}
 
-    callname = "clonedb"
+    callname = "clonepg"
     hooks_handler = ["log"]
     Popups = object
 
@@ -48,7 +48,7 @@ class clonedb(PluginInterface):
             cnn = psycopg2.connect(target_uri)
             cur = cnn.cursor()
             cnn.autocommit = True
-            cur.execute(f"CREATE DATABASE IF NOT EXISTS {target_dict['db']}")
+            cur.execute(f"CREATE DATABASE {target_dict['db']}")
             cnn.close()
             self.logger.success(f"creating target db successful")
 
