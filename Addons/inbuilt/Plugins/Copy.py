@@ -7,7 +7,7 @@ class Copy(PluginInterface):
     load = True
     #types = {"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
     types = {"batch_name":2, "file_name":1, "file_source":3,"file_destination":4,"run_sequence":9,"new_name":6}
-    type_types = {"path_exe":["drag_drop", "Select File to copy"], "target":["drag_drop_folder", "Select File destination"],  "databasename":["text", "New name"], "__Name":"Copy File"}
+    type_types = {"path_exe":["drag_drop", "Select File to copy"], "target":["drag_drop_folder", "Select File destination"],  "databasename":["text", "New name", None, True], "__Name":"Copy File"}
     callname = "copy"
     hooks_handler = ["log"]
 

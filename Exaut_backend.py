@@ -739,15 +739,9 @@ class UserInterfaceHandlerPyQT():
             self.alert(f"Pipeline path not set in variables, please set it")
             return
         path = self.var_dict[export_loc] + "/db_forms"
-        path2 = self.var_dict[export_loc] + "/forms_json"
         if not os.path.exists(path):
-            if not os.path.exists(path2):
-                self.alert(f"Pipeline path {path} or {path2} does not exist")
-                return
-            else:
-                path = path2
-
-
+            self.alert(f"Pipeline path {path} does not exist")
+            return
         if not os.path.isdir(path):
             self.alert(f"Pipeline path {path} is not a directory")
             return
