@@ -52,19 +52,25 @@ class createpg(PluginInterface):
 
     def main(self, folderpath,filename,type_,source,target,databasepath,databasename,keypath,keyfile,runsequence,treepath,bname) -> bool:    
 
+
             if str(source)=="" or source==None:
                 self.Popups.alert("No Postgres credentials specified in source field.","Failed "+str(type_)+": "+bname+"! \\"+str(runsequence))
             elif str(target)=="" or target==None:
                 self.Popups.alert("No Postgres credentials specified in target field.","Failed "+str(type_)+": "+bname+"! \\"+str(runsequence))
+            
             else:
+
                 pg_data_src = str(source)
                 pg_data_src = pg_data_src.split('|')
                 pg_data_trg = str(target)
                 pg_data_trg = pg_data_trg.split('|')
                 self.conn = psycopg2.connect(dbname=pg_data_trg[0],user=pg_data_trg[1],password=self.variables["pg_pass"],host=pg_data_trg[2],port=pg_data_trg[3])
                 self.cursor = self.conn.cursor()
-                statements = self.readsql(select(pgtables).where(pgtables.hostip == str(pg_data_src[2])).where(pgtables.port == str(pg_data_src[3])).where(pgtables.username == str(pg_data_src[1])).where(pgtables.password == str(pg_data_src[4])).where(pgtables.dbname == str(pg_data_src[0])))
-                statements = [dict(item._mapping) for item in statements]
+                statements = self.readsql(select('*').where(pgtables.hostip == str(pg_data_src[2])).where(pgtables.port == str(pg_data_src[3])).where(pgtables.username == str(pg_data_src[1])).where(pgtables.password == str(pg_data_src[4])).where(pgtables.dbname == str(pg_data_src[0])))
+                #turn each array of a dict into an array of a keyless array
+                for i in range(len(statements)):
+                    statements[i] = list(statements[i].values())
+                    
                 warning = ""
                 
                 if str(type_)=="alterpg":
@@ -76,6 +82,7 @@ class createpg(PluginInterface):
                         all_constraints = self.ReadPG("select constraint_name from information_schema.table_constraints where table_schema = 'public' and table_name = '"+
                                                         str(all_tables[i][0])+"' and (constraint_type = 'FOREIGN KEY' or constraint_type = 'PRIMARY KEY')")
                         for j in range(len(all_constraints)):
+                            self.logger.info("alter table "+str(all_tables[i][0])+" drop constraint "+str(all_constraints[j][0]))
                             self.WritePG("alter table "+str(all_tables[i][0])+" drop constraint if exists "+str(all_constraints[j][0])+" cascade")
                     self.WritePG("commit")
                     self.WritePG("begin transaction")
@@ -90,6 +97,7 @@ class createpg(PluginInterface):
                 creation = statements
                 self.WritePG("begin transaction")
                 while len(creation)>0:
+
                     references = creation[0][6].split("REFERENCES ")
                     if len(references)>1:
                         all_exist = True
@@ -103,15 +111,23 @@ class createpg(PluginInterface):
                                 creation.pop(0)
                                 break
                         if all_exist==True:
+                            self.logger.info(creation[0][5])
                             self.WritePG(creation[0][6])
                             creation.pop(0)
                     else:
+                        self.logger.info(creation[0][5])
                         self.WritePG(creation[0][6])
                         creation.pop(0)
                 self.WritePG("commit")
 
-                statements = self.readsql(select(pgtables).where(pgtables.hostip == str(pg_data_src[2])).where(pgtables.port == str(pg_data_src[3])).where(pgtables.username == str(pg_data_src[1])).where(pgtables.password == str(pg_data_src[4])).where(pgtables.dbname == str(pg_data_src[0])))
-                statements = [dict(item._mapping) for item in statements]
+                statements = self.readsql(select('*').where(pgtables.hostip == str(pg_data_src[2])).where(pgtables.port == str(pg_data_src[3])).where(pgtables.username == str(pg_data_src[1])).where(pgtables.password == str(pg_data_src[4])).where(pgtables.dbname == str(pg_data_src[0])))
+                #turn statements into multidimensional array
+                for i in range(len(statements)):
+                    statements[i] = list(statements[i].values())
+
+
+                    
+
                 if str(type_)=="alterpg":
                     self.WritePG("begin transaction")
                     for i in range(len(statements)):
@@ -162,3 +178,5 @@ class createpg(PluginInterface):
                 #if str(type_)=="alterdb":
                 #    self.WritePG("vacuum")
                 self.conn.close()
+                self.logger.info("Finished")
+
