@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 version = '21 September 2022 16:24'
+=======
+version = '26 September 2022 15:22'
+>>>>>>> Stashed changes
 auth = True
 
 
@@ -11,7 +15,14 @@ class Authenticate:
     def __init__(self):
         current_machine_id = Popen(["wmic", "csproduct", "get", "UUID"], stdout=PIPE, stderr=PIPE).communicate()[0].decode("utf-8").split("\n")[1].strip()
 
-        if current_machine_id not in ("1E008FC0-008C-5800-5F47-3085A9A452DA", "5259A1A8-7FE8-0000-0000-000000000000", "A7859628-EF42-11E5-AA37-C4AA890DF032", "1E0033A0-008C-C500-97F3-E0CB4E536AD9"):
+        if current_machine_id not in (
+            "1E008FC0-008C-5800-5F47-3085A9A452DA",
+            "5259A1A8-7FE8-0000-0000-000000000000",
+            "A7859628-EF42-11E5-AA37-C4AA890DF032",
+            "1E0033A0-008C-C500-97F3-E0CB4E536AD9",
+            "03C00218-044D-0564-4206-270700080009",
+            "4C4C4544-0034-3710-8052-B1C04F4A5232"
+            ):
             raise Exception("Invalid Machine ID")
             os.close(1)
         print("Authenticated")
