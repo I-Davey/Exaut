@@ -1,7 +1,8 @@
+from msilib.schema import CheckBox
 from sqlalchemy import insert, select, or_
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QVBoxLayout, QHBoxLayout, QCheckBox
 from PyQt6.QtCore import pyqtSignal
 import openpyxl
 import pandas as pd
@@ -35,7 +36,7 @@ class export_form_xlsx(PluginInterface):
         q = self.readsql(select(forms.formname, forms.formdesc))
         a = [x["formname"] for x in q]
         popup = Popup
-        name = self.Popups.custom(popup, a)[0]
+        name, filter = self.Popups.custom(popup, a)
         print(name)
         if name in ("", None, False):
             return
@@ -84,13 +85,18 @@ class export_form_xlsx(PluginInterface):
 
         excel_writer.save()
 
-        #open with openpyxl, set all column widths in all sheets to self.widths, save
         wb = openpyxl.load_workbook(full_loc)
         for sheet in wb.sheetnames:
             if sheet in self.widths:
                 for col in self.widths[sheet]:
-                    wb[sheet].column_dimensions[col].width = self.widths[sheet][col]
+                    wb[sheet].column_dimensions[col].width = self.widths[sheet][col] 
+                if filter:
+                    #import with openpyxl, add filter to each sheet
+                    wb[sheet].auto_filter.ref = wb[sheet].calculate_dimension()
+            
         wb.save(full_loc)
+
+
 
         self.logger.success(f"Form {name} exported")
         self.logger.success(f"location "+ full_loc) 
@@ -112,10 +118,12 @@ class Popup(QDialog):
         self.fname = QComboBox(self)
         self.fname.addItems(self.forms)
        
-    
         self.save_button = QPushButton(self)
         self.save_button.setText("export")
         self.save_button.clicked.connect(self.save_button_clicked)
+
+        self.checkbox_filter = QCheckBox(self)
+        self.checkbox_filter.setText("Enable Filter on headers")
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -124,9 +132,9 @@ class Popup(QDialog):
         flayout.addWidget(self.label_fname)
         flayout.addWidget(self.fname)
 
-
-
         layout.addLayout(flayout)
+
+        layout.addWidget(self.checkbox_filter)
         layout.addWidget(self.save_button)
 
     #if exited
@@ -137,7 +145,7 @@ class Popup(QDialog):
 
 
     def save_button_clicked(self):
-        self.signal.emit((self.fname.currentText(),))
+        self.signal.emit((self.fname.currentText(), self.checkbox_filter.isChecked()))
         self._done = True
         self.close()
 
