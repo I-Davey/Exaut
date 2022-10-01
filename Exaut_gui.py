@@ -787,6 +787,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 self.add_tab_url()
             return
         #open on default browser
+        if "onenote:" in url:
+            url = url[url.find("onenote:"):]
+            
+            #split url at 
         webbrowser.get('windows-default').open(url)
             
     def add_tab_url(self):

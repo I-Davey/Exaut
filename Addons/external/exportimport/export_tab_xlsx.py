@@ -1,7 +1,7 @@
 from sqlalchemy import insert, select, or_
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QHBoxLayout, QLineEdit
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QHBoxLayout, QLineEdit, QCheckBox
 from PyQt6.QtCore import pyqtSignal
 import openpyxl
 import pandas as pd
@@ -42,7 +42,7 @@ class export_tab_xlsx(PluginInterface):
         forms_array = []
         for items in forms_data:
             forms_array.append(items["formname"])   
-        formname, tabname, savename = self.Popups.custom(Popup, data, forms_array)
+        formname, tabname, savename, filter = self.Popups.custom(Popup, data, forms_array)
         if not formname or not tabname:
             return False
         if not savename:
@@ -98,6 +98,10 @@ class export_tab_xlsx(PluginInterface):
             if sheet in self.widths:
                 for col in self.widths[sheet]:
                     wb[sheet].column_dimensions[col].width = self.widths[sheet][col]
+            if filter:
+                #import with openpyxl, add filter to each sheet
+                wb[sheet].auto_filter.ref = wb[sheet].calculate_dimension()
+        
         wb.save(full_loc)
 
         self.logger.success(f"tab {tabname} exported")
@@ -132,6 +136,9 @@ class Popup(QDialog):
         self.export_name = QLineEdit(self)
 
 
+        self.checkbox_filter = QCheckBox(self)
+        self.checkbox_filter.setText("Enable Filter on headers")
+
         self.button = QPushButton('OK', self)
         self.button.clicked.connect(self.save_button_clicked)
 
@@ -142,7 +149,8 @@ class Popup(QDialog):
         self.layout.addWidget(self.tname, 1, 1)
         self.layout.addWidget(self.label_export_name, 2, 0)
         self.layout.addWidget(self.export_name, 2, 1)
-        self.layout.addWidget(self.button, 3, 0, 1, 2)
+        self.layout.addWidget(self.checkbox_filter, 3, 0)
+        self.layout.addWidget(self.button, 4, 0, 1, 2)
         
 
     
@@ -159,11 +167,11 @@ class Popup(QDialog):
 
     def closeEvent(self, event):
         if not self._done:
-            self.signal.emit((False, False, False))
+            self.signal.emit((False, False, False, False))
         event.accept()
 
 
     def save_button_clicked(self):
-        self.signal.emit((self.fname.currentText(), self.tname.currentText(), self.export_name.text()))
+        self.signal.emit((self.fname.currentText(), self.tname.currentText(), self.export_name.text(), self.checkbox_filter.isChecked()))
         self._done = True
         self.close()
