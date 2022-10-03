@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QV
 from PyQt6.QtCore import pyqtSignal
 import openpyxl
 import pandas as pd
+import os
 class export_form_xlsx(PluginInterface):
     load = True
     types = {"target":4}
@@ -100,6 +101,8 @@ class export_form_xlsx(PluginInterface):
 
         self.logger.success(f"Form {name} exported")
         self.logger.success(f"location "+ full_loc) 
+        if self.Popups.yesno("Open the created XLSX document?"):
+            os.startfile(full_loc)
 
 class Popup(QDialog):
     signal = pyqtSignal(tuple)

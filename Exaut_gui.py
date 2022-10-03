@@ -371,16 +371,13 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         actionopen_tab_folder.triggered.connect(self.open_tab_folder)
         self.menuAction_tab.addAction(actionopen_tab_folder)
 
-
-        actionexport_form_xlsx = QtGui.QAction("Export Form -> xlsx", self)
-        actionexport_form_xlsx.triggered.connect(partial(self.export_form_json, xlsx = True))
-        self.menuAction_form.addAction(actionexport_form_xlsx)
-
         actionimport_form_xlsx = QtGui.QAction("Import Form <- xlsx", self)
         actionimport_form_xlsx.triggered.connect(partial(self.import_form_json, xlsx = True))
         self.menuAction_form.addAction(actionimport_form_xlsx)
 
-        
+        actionexport_form_xlsx = QtGui.QAction("Export Form -> xlsx", self)
+        actionexport_form_xlsx.triggered.connect(partial(self.export_form_json, xlsx = True))
+        self.menuAction_form.addAction(actionexport_form_xlsx)   
 
     def handle_connects(self):
         self.signal_popup_yesno.connect(self.yes_no_popup)
@@ -1471,7 +1468,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
                 loc = choice[0]
                 loc = "pipeline_path" if loc == "default" else "pipeline_path_" + loc 
                 loc = self.api.var_dict[loc]
-                self.api.call_plugin("export_tab_xlsx", target=f"$${loc}$$\\db_tabs", source=tab_name, databasepath=formname)
+                self.api.call_plugin("export_tab_xlsx", target=f"{loc}\\db_tabs", source=tab_name, databasepath=formname)
             else:
                 index = choices.index(choice[0])
                 self.api.export_tab(tab_name, results[index])
