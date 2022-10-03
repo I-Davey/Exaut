@@ -334,19 +334,26 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 
     def extra_menu_items(self):
         #form import json
-        actionimport_form = QtGui.QAction("Import Form", self)
+        actionimport_form = QtGui.QAction("Import Form <- json", self)
         actionimport_form.triggered.connect(self.import_form_json)
         self.menuAction_form.addAction(actionimport_form)
 
         #export form
-        actionexport_form = QtGui.QAction("Export Form", self)
+        actionexport_form = QtGui.QAction("Export Form -> json", self)
         actionexport_form.triggered.connect(self.export_form_json)
         self.menuAction_form.addAction(actionexport_form)
 
         #tab import json
-        actionimport_tab = QtGui.QAction("Import Tab", self)
+        actionimport_tab = QtGui.QAction("Import Tab <- json", self)
         actionimport_tab.triggered.connect(self.import_tab_json)
         self.menuAction_tab.addAction(actionimport_tab)
+
+        #export tab
+        actionimport_tab_xlsx = QtGui.QAction("import Tab <- xlsx", self)
+        actionimport_tab_xlsx.triggered.connect(partial(self.import_tab_json, xlsx=True))
+        self.menuAction_tab.addAction(actionimport_tab_xlsx)
+        
+
 
         #add_var
         actionadd_var = QtGui.QAction("Add Variable", self)
@@ -363,6 +370,16 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         actionopen_tab_folder.setShortcut("Ctrl+F")
         actionopen_tab_folder.triggered.connect(self.open_tab_folder)
         self.menuAction_tab.addAction(actionopen_tab_folder)
+
+
+        actionexport_form_xlsx = QtGui.QAction("Export Form -> xlsx", self)
+        actionexport_form_xlsx.triggered.connect(partial(self.export_form_json, xlsx = True))
+        self.menuAction_form.addAction(actionexport_form_xlsx)
+
+        actionimport_form_xlsx = QtGui.QAction("Import Form <- xlsx", self)
+        actionimport_form_xlsx.triggered.connect(partial(self.import_form_json, xlsx = True))
+        self.menuAction_form.addAction(actionimport_form_xlsx)
+
         
 
     def handle_connects(self):
@@ -1397,7 +1414,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         #get text from tab
         tab_name = self.SM_Tabs.tabText(tab_index)
         menu.addAction("Edit Tab", partial(self.edit_tab,tab_name))
-        menu.addAction("Export Tab json", partial(self.export_tab_json,tab_name))
+        menu.addAction("Export Tab -> json", partial(self.export_tab_json,tab_name))
+        menu.addAction("Export Tab -> xlsx", partial(self.export_tab_json,tab_name, xlsx = True))
         menu.addAction("Add Export Location", partial(self.add_export_location,tab_name))
         menu.addAction("Copy Tab", partial(self.tab_copy,tab_name))
         menu.addAction("Move Tab", partial(self.tab_move,tab_name))
@@ -1406,7 +1424,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         menu.exec(QtGui.QCursor.pos())
 
 
-    def export_tab_json(self, tab_name):
+    def export_tab_json(self, tab_name, xlsx = False):
         #if "pipeline_path" not in self.api.var_dict:
         plpaths = []
         plnames = []
@@ -1446,10 +1464,20 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
         if choice[1]:
             #index of the choice within the choices list
-            index = choices.index(choice[0])
-            self.api.export_tab(tab_name, results[index])
 
-    def import_tab_json(self):
+            if xlsx:
+
+                formname = self.title
+                loc = choice[0]
+                loc = "pipeline_path" if loc == "default" else "pipeline_path_" + loc 
+                loc = self.api.var_dict[loc]
+                self.api.call_plugin("export_tab_xlsx", target=f"$${loc}$$\\db_tabs", source=tab_name, databasepath=formname)
+            else:
+                index = choices.index(choice[0])
+                self.api.export_tab(tab_name, results[index])
+
+
+    def import_tab_json(self, xlsx = False):
         #if "pipeline_path" not in self.api.var_dict:
         plpaths = []
         plnames = []
@@ -1491,10 +1519,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if choice[1]:
             #index of the choice within the choices list
             index = choices.index(choice[0])
-            self.api.call_plugin("load_tabjson", source= f"$${results[index]}$$\\db_tabs\\")
+            self.api.call_plugin("import_tab_xlsx", source= f"$${results[index]}$$\\db_tabs\\")
 
 
-    def export_form_json(self):
+    def export_form_json(self, xlsx = False):
         form_name = self.title
         #if "pipeline_path" not in self.api.var_dict:
         plpaths = []
@@ -1535,10 +1563,14 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
         if choice[1]:
             #index of the choice within the choices list
-            index = choices.index(choice[0])
-            self.api.export_form_json(form_name, results[index])
+            if xlsx:
+                index = choices.index(choice[0])
+                self.api.call_plugin("export_form_xlsx", target=f"$${results[index]}$$\\db_forms\\")
+            else:
+                index = choices.index(choice[0])
+                self.api.export_form_json(form_name, results[index])
 
-    def import_form_json(self):
+    def import_form_json(self, xlsx=False):
         #if "pipeline_path" not in self.api.var_dict:
         plpaths = []
         plnames = []
@@ -1579,8 +1611,12 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         choice = QtWidgets.QInputDialog.getItem(self, "Select Pipeline Path", "Pipeline Path", choices, 0, False)
         if choice[1]:
             #index of the choice within the choices list
-            index = choices.index(choice[0])
-            self.api.call_plugin("import_form_json", source= f"$${results[index]}$$\\db_forms\\")
+            if xlsx:
+                index = choices.index(choice[0])
+                self.api.call_plugin("import_form_xlsx", target=f"$${results[index]}$$\\db_forms\\")
+            else:
+                index = choices.index(choice[0])
+                self.api.call_plugin("import_form_json", source= f"$${results[index]}$$\\db_forms\\")
 
 
     def add_export_location(self, tab_name):

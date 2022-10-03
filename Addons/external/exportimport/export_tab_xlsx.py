@@ -2,12 +2,12 @@ from sqlalchemy import insert, select, or_
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QHBoxLayout, QLineEdit, QCheckBox
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, Qt
 import openpyxl
 import pandas as pd
 class export_tab_xlsx(PluginInterface):
     load = True
-    types = {"target":4}
+    types = {"target":4, "tab":3, "form":5}
     type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"Export tab -> xlsx"}
 
 
@@ -29,7 +29,7 @@ class export_tab_xlsx(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, save_loc) -> bool: 
+    def main(self, save_loc, tabname, form) -> bool: 
         tabs_data = self.readsql(select(tabs.formname, tabs.tab))
         forms_data = self.readsql(select(forms.formname))
         data = {}
@@ -42,7 +42,7 @@ class export_tab_xlsx(PluginInterface):
         forms_array = []
         for items in forms_data:
             forms_array.append(items["formname"])   
-        formname, tabname, savename, filter = self.Popups.custom(Popup, data, forms_array)
+        formname, tabname, savename, filter = self.Popups.custom(Popup, data, forms_array, tabname, form)
         if not formname or not tabname:
             return False
         if not savename:
@@ -108,11 +108,13 @@ class export_tab_xlsx(PluginInterface):
         self.logger.success(f"location "+ full_loc) 
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
-    def __init__(self, parent=None, form_tabs = {}, forms = []):
+    def __init__(self, parent=None, form_tabs = {}, forms = [], tabname = "", form = ""):
         super(Popup, self).__init__(parent)
         self._done = False
         self.form_tabs = form_tabs
         self.forms = forms
+        self.tabname = tabname
+        self.form = form
 
         self.initUI()
 
@@ -124,12 +126,26 @@ class Popup(QDialog):
         self.label_fname.setText("Select Form")
         self.fname = QComboBox(self)
         self.fname.addItems(self.forms)
+
        
         self.label_tname = QLabel(self)
         self.label_tname.setText("Select Tab")
         self.tname = QComboBox(self)
         self.tname.addItems(self.form_tabs[self.forms[0]])
         self.fname.currentTextChanged.connect(self.update_tabs)
+        
+        if self.form:
+            #find index of self.form in self.fname
+            index = self.fname.findText(self.form, Qt.MatchFlag.MatchFixedString)
+            if index >= 0:
+                self.fname.setCurrentIndex(index)
+        if self.tabname:
+            #find index of self.tabname in self.tname
+            index = self.tname.findText(self.tabname, Qt.MatchFlag.MatchFixedString)
+            if index >= 0:
+                self.tname.setCurrentIndex(index)
+
+        
 
         self.label_export_name = QLabel(self)
         self.label_export_name.setText("Export Name")
