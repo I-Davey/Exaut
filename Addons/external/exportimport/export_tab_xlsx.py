@@ -4,6 +4,7 @@ from backend.db.Exaut_sql import *
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QHBoxLayout, QLineEdit, QCheckBox
 from PyQt6.QtCore import pyqtSignal, Qt
 import openpyxl
+import os
 import pandas as pd
 class export_tab_xlsx(PluginInterface):
     load = True
@@ -106,6 +107,12 @@ class export_tab_xlsx(PluginInterface):
 
         self.logger.success(f"tab {tabname} exported")
         self.logger.success(f"location "+ full_loc) 
+
+        open_doc = self.Popups.yesno("Open the created XLSX document?")
+        if open_doc:
+            os.startfile(full_loc)
+
+
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
     def __init__(self, parent=None, form_tabs = {}, forms = [], tabname = "", form = ""):
