@@ -1516,7 +1516,10 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         if choice[1]:
             #index of the choice within the choices list
             index = choices.index(choice[0])
-            self.api.call_plugin("import_tab_xlsx", source= f"$${results[index]}$$\\db_tabs\\")
+            if xlsx:
+                self.api.call_plugin("import_tab_xlsx", source= f"$${results[index]}$$\\db_tabs\\")
+            else:
+                self.api.call_plugin("load_tabjson", source= f"$${results[index]}$$\\db_tabs\\")
 
 
     def export_form_json(self, xlsx = False):
