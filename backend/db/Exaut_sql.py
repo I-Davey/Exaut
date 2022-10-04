@@ -49,7 +49,7 @@ class batchsequence(Base):
     formname = Column(String(63), primary_key=True)
     tab = Column(String(63), primary_key=True)
     buttonname = Column(String(63), primary_key=True)
-    runsequence = Column(Integer, primary_key=True, nullable=True, autoincrement=True)
+    runsequence = Column(Integer, primary_key=True)
     folderpath = Column(String(1023))
     filename = Column(String(255))
     type = Column(String(63))
