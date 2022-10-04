@@ -52,6 +52,8 @@ class Add_Edit_Var(PluginInterface):
             if x == (None,):
                 return False
             self.variable_name, self.value, self.is_global = x
+            #remove $$ from variable name
+            self.variable_name = self.variable_name.replace("$$", "")
         formname = "*" if self.is_global else self.form_
         variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == formname))
         list_of_keys = [item["key"] for item in variables_list]
