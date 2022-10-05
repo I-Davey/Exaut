@@ -56,13 +56,13 @@ class export_tab_xlsx(PluginInterface):
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='forms', index=False)
 
-        data = self.readsql(select('*').where(tabs.formname == formname).where(tabs.tab == tabname))
+        data = self.readsql(select('*').where(tabs.formname == formname).where(tabs.tab == tabname).order_by(tabs.tabsequence))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='tabs', index=False)
         
 
 
-        data = self.readsql(select('*').where(buttons.formname == formname).where(buttons.tab == tabname))
+        data = self.readsql(select('*').where(buttons.formname == formname).where(buttons.tab == tabname).order_by(buttons.columnnum).order_by(buttons.buttonsequence))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='buttons', index=False)
 
