@@ -49,13 +49,13 @@ class export_form_xlsx(PluginInterface):
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='forms', index=False)
 
-        data = self.readsql(select('*').where(tabs.formname == name))
+        data = self.readsql(select('*').where(tabs.formname == name).order_by(tabs.tabsequence))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='tabs', index=False)
         
 
 
-        data = self.readsql(select('*').where(buttons.formname == name))
+        data = self.readsql(select('*').where(buttons.formname == name).order_by(buttons.columnnum).order_by(buttons.buttonsequence))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='buttons', index=False)
 
