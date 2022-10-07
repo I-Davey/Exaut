@@ -19,6 +19,9 @@ class Folder_Copy(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
     def main(self, type_,source, target, ) -> bool:
+        self.logger.debug(f"copying {source} to {target}")
+        source = source.replace("/", "\\")
+        self.type_ = type_
         #check if dir exists
         if not os.path.exists(target):
             os.makedirs(target)
@@ -55,16 +58,37 @@ class Folder_Copy(PluginInterface):
         else:
             self.logger.success(f"Copied all files in {source} to {target} newer than the old files")
         return True
-            
+    
     def tryCopy(self, source, file, target):
         try:
             fulldir = os.path.join(source,file)
             if os.path.isdir(fulldir):
-                shutil.copytree(fulldir, os.path.join(target,file))
+                #makedir
+                if not os.path.exists(os.path.join(target,file)):
+                    os.makedirs(os.path.join(target,file))
+                for file in os.listdir(fulldir):
+                    self.tryCopy(fulldir, file, os.path.join(target,os.path.basename(fulldir)))
             else:
-                shutil.copy(os.path.join(source,file),os.path.join(target,file))
-            self.copylist.append(file)
-        except:
+                if os.path.exists(os.path.join(target,file)):
+                    if self.type_ == "foldercopynew":
+                        if os.path.getmtime(os.path.join(source,file)) > os.path.getmtime(os.path.join(target,file)):
+                            shutil.copy2(os.path.join(source,file), target)
+                            self.copylist.append(file)  
+                    elif self.type_ == "foldercopyforce":
+                        shutil.copy2(os.path.join(source,file), target)
+                        self.copylist.append(file)
+                    elif self.type_ == "foldercopynonx":
+                        if not os.path.exists(os.path.join(target,file)):
+                            #replace file
+                            shutil.copy2(os.path.join(source,file), target)
+                            self.copylist.append(file)
+                else:
+                    shutil.copy2(os.path.join(source,file), target)
+                    self.copylist.append(file)
+        except Exception as e:
             self.logger.error(f"could not copy {file}, check if it is open")
-            return False
-        return True
+            self.logger.error(e)
+            return False     
+
+
+

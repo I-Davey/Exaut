@@ -6,7 +6,7 @@ class Delete_all(PluginInterface):
     load = True
     types = {"source":0,"buttonname":11, "type_":2}
 
-    type_types = {"folderpath":["drag_drop_folder", "Select Folder"], "__Name":"Delete all in Folder", "type_":["selection", "Select Delete Type", ["all items", "Non (.) Items"]]}
+    type_types = {"folderpath":["drag_drop_folder", "Select Folder"], "__Name":"Delete Files and Sub-Folders in Folder", "type_":["selection", "Select Delete Type", ["all items", "Non (.) Items"]]}
     callname = "delall", "delalldot"
     hooks_handler = ["log"]
 
@@ -38,7 +38,6 @@ class Delete_all(PluginInterface):
                 file_path = os.path.join(folder, filename)
                 try:
                     if os.path.isfile(file_path) or os.path.islink(file_path):
-                        
                         os.unlink(file_path)
                     elif os.path.isdir(file_path):
                         shutil.rmtree(file_path)

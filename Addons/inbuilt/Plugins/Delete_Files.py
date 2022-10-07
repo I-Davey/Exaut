@@ -23,12 +23,10 @@ class Delete_Files(PluginInterface):
                 if os.path.isfile(source+"\\"+f)==True:
                     try:
                         os.remove(source+"\\"+f)
-                        self.logger.success("file deleted: "+source+"\\"+f)
-                        return True
+                        self.logger.debug("file deleted: "+source+"\\"+f)
                     except:
                         self.Popups.alert(f"Problem deleting {source}\\{f}", f"Failed delete: {bname}!")
-                        return False
-
+            return True
         else:
             self.logger.error("Source path does not exist: "+source)
             self.Popups.alert(f"Problem removing {source}", f"Warning: cleardir: {bname}!")
