@@ -1680,3 +1680,4 @@ if __name__ == "__main__":
     sys.excepthook = exception_hook
     gui = GUI_Handler(title="ExAuT")
     gui.start()
+ 
