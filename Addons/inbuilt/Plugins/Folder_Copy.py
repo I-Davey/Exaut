@@ -31,7 +31,7 @@ class Folder_Copy(PluginInterface):
             #copy all files in folder from source to target that have a more recent date stamp then the old files
             for file in os.listdir(source):
                 #if file is in target, check if it is newer
-                if os.path.exists(os.path.join(target,file)):
+                if os.path.exists(os.path.join(target,file)) and not os.path.isdir(os.path.join(source,file)):
                     if os.path.getmtime(os.path.join(source,file)) > os.path.getmtime(os.path.join(target,file)):
                         self.tryCopy(source, file, target)
                 else:
