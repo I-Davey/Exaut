@@ -110,7 +110,7 @@ class Add_Edit_Var(PluginInterface):
                 else:
                     cur_loc = '*'     
                     
-
+            print(f"updating {self.variable_name} to {self.value} in {cur_loc}")
             self.writesql(update(variables).where(variables.loc == cur_loc).where(variables.form == formname).where(variables.key == self.variable_name).values(value = self.value))
             self.logger.success(f"Variable {self.variable_name} Updated to {self.value}")
             return True
