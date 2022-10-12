@@ -74,6 +74,7 @@ class Add_Edit_Var(PluginInterface):
 
     def edit_var(self):
         formname = "*" if self.is_global else self.form_
+
         global_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*"))
         local_local_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == self.form_))
         local_global_variables_list = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*"))
@@ -94,32 +95,42 @@ class Add_Edit_Var(PluginInterface):
         if not self.variable_name or not self.value:
 
             x = self.Popups.custom(Edit_Dialog, self.variable_name, self.value, self.is_global, global_keys, global_values,  local_keys, local_values)
+
+
+
             if x == (None,):
                 return False
+
+
             self.variable_name, self.value, self.is_global = x
             list_of_keys = global_keys if self.is_global else local_keys
-        if self.variable_name in list_of_keys:
-            cur_loc = self.loc_
-            if self.is_global:
+            formname = "*" if self.is_global else self.form_
+            if self.variable_name in list_of_keys:
+                cur_loc = self.loc_
+                if self.is_global:
 
-                in_loc_global = self.readsql(select('*').where(variables.loc == '*').where(variables.form == "*").where(variables.key == self.variable_name))
-                in_loc_local = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*").where(variables.key == self.variable_name))
-                #if both ghave a value
-                if in_loc_global and in_loc_local:
-                    cur_loc = self.orig_loc       
-                else:
-                    cur_loc = '*'     
+                    in_loc_global = self.readsql(select('*').where(variables.loc == '*').where(variables.form == "*").where(variables.key == self.variable_name))
+                    in_loc_local = self.readsql(select('*').where(variables.loc == self.loc_).where(variables.form == "*").where(variables.key == self.variable_name))
+                    #if both ghave a value
+                    if in_loc_global and in_loc_local:
+                        cur_loc = self.orig_loc       
+                    elif in_loc_global:
+                        cur_loc = '*'  
+                    elif in_loc_local:
+                        cur_loc = self.loc_   
                     
-           
-            self.writesql(update(variables).where(variables.loc == cur_loc).where(variables.form == formname).where(variables.key == self.variable_name).values(value = self.value), log=True)
-            self.logger.success(f"Variable {self.variable_name} Updated to {self.value}")
-            return True
-        else:
-            res = self.Popups.yesno(f"Variable {self.variable_name} Does not Exists", f"Variable {self.variable_name} Does not Exists, Do you want to create it?")
-            if res:
-                self.writesql(insert(variables).values(loc = self.loc_, form = formname, key = self.variable_name, value = self.value))
-                self.logger.success(f"Variable {self.variable_name} Created with value {self.value}")
+
+                    
+            
+                self.writesql(update(variables).where(variables.loc == cur_loc).where(variables.form == formname).where(variables.key == self.variable_name).values(value = self.value))
+                self.logger.success(f"Variable {self.variable_name} Updated to {self.value}")
                 return True
+            else:
+                res = self.Popups.yesno(f"Variable {self.variable_name} Does not Exists", f"Variable {self.variable_name} Does not Exists, Do you want to create it?")
+                if res:
+                    self.writesql(insert(variables).values(loc = self.loc_, form = formname, key = self.variable_name, value = self.value))
+                    self.logger.success(f"Variable {self.variable_name} Created with value {self.value}")
+                    return True
         self.logger.error(f"Variable {self.variable_name} Not Found")
         return False
         
