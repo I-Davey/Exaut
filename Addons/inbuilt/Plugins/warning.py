@@ -18,7 +18,7 @@ class warning(PluginInterface):
 
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
-    def main(self,message , ) -> bool:
+    def main(self,message) -> bool:
         if message in ("", None):
             self.logger.warning("no message given, default used")
             message = "Are you sure you want to Proceed?"
