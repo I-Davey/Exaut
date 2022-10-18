@@ -1068,6 +1068,9 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             self.api.move_button_insert(self._button_copy_move_mode[1], self._button_copy_move_mode[2], self._button_copy_move_mode[3],  form, tab, button_name)
         self._button_copy_move_popup.close()
 
+        self.tabto(None, tab, form)
+
+
     def button_copy_form_change(self, form):
         self._button_copy_move_tab_dropdown.clear()
         self._button_copy_move_tab_dropdown.addItems(list(self._button_copy_move_form_dict[form].keys()))
@@ -1243,6 +1246,8 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Yes)
         else:
             yes_no_popup.setDefaultButton(QtWidgets.QMessageBox.StandardButton.No)
+        #allow the user to highlight the text
+        yes_no_popup.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
         yes_no_popup.exec()
         if yes_no_popup.result() == QtWidgets.QMessageBox.StandardButton.Yes:
             self.popup_msgs[key] = True
