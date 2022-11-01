@@ -20,7 +20,7 @@ class Compile_Exaut(PluginInterface):
 
     def main(self, folderpath, ) -> bool:
         main_code = "py -m PyInstaller -F  exaut_gui.py --key PrivateKeySecure2002020 --icon=./frontend/favicon.ico"
-        hidden_imports = ['xml','xml.dom','xml.etree', 'email.mime', 'email.mime.multipart', 'email.mime.nonmultipart']
+        hidden_imports = ['xml','xml.dom','xml.etree', 'email.mime', 'email.mime.multipart', 'email.mime.nonmultipart', "bs4"]
         for item in hidden_imports:
             main_code += " --hidden-import " + item
 

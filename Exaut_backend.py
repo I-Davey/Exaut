@@ -693,7 +693,7 @@ class UserInterfaceHandlerPyQT():
 
         tab_clean = "".join(c for c in tab["tab"] if c.isalnum() or c in ("_", "-"))
         
-        filename = "".join(e for e in fnametab if e.isalnum() or e in ("_","-")) + "_" + tab_clean + ".json"
+        filename = "".join(e for e in fnametab if e.isalnum() or e in ("_","-")) + "__" + tab_clean + ".json"
 
 
         for i, button in enumerate(tab["buttons"]):

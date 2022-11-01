@@ -37,8 +37,6 @@ class writesql(MethodInterface):
                             self.logger.error(e)
                             sess.rollback()
                             return False     
-                        else:
-                            self.logger.error(e)
                 sess.commit()
                 return True
 
