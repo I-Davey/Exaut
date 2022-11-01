@@ -13,7 +13,7 @@ from PyQt6.QtCore import *
 from functools import partial
 import random
 import time
-from random_words  import RandomWords
+
 import openpyxl
 import pyperclip
 import datetime
@@ -28,7 +28,7 @@ from .__db import gw_db
 from .__orm import *
 from sqlalchemy import insert, and_, or_, not_, func
 
-rw = RandomWords()
+
 class DailyUpdates(PluginInterface):
     load = True
     types = Types.source | Types.type_ | Types.keyfile | Types.keypath | Types.databasename
@@ -123,6 +123,11 @@ class DailyUpdates(PluginInterface):
         for row in completed_jobs_data:
             if row[0] == "AV#":
                 continue
+            #remove .0 from sqm
+            if type(row[4]) == str:
+                row[4] = row[4].split(".")[0] if "." in row[4] else row[4]
+            if type(row[3]) == str:
+                row[3] = row[3].split(".")[0] if "." in row[3] else row[3]
             cleaned_sqm += int(row[4])
             painted_sqm += int(row[3])
 
@@ -772,7 +777,7 @@ class Dialog(QDialog):
         #button_layout.addWidget(self.completed_jobs_button)
         self.table_list = {}
         for k,v in self.tables.items():
-            if k == "CompletedJobs":
+            if k == "Completed Jobs":
                 table = CompletedJobs(self.formGroupBox, self.session, v)
             else:
                 table = TabSheets(self.formGroupBox, k, v)
