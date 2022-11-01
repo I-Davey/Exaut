@@ -12,3 +12,4 @@ openpyxl
 psycopg2
 RandomWords
 what3words
+bs4
