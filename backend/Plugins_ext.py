@@ -52,6 +52,8 @@ class PluginManager:
 
         
         plugin = plugin[:-3]
+        if plugin.startswith("__"):
+            return
         if fullplg:
             fullplg = fullplg[:-3]
             exec(f"import {fullplg} as {plugin}")
