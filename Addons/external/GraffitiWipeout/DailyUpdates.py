@@ -58,12 +58,13 @@ class DailyUpdates(PluginInterface):
         #if exe exists:   
         dialog = Dialog
         x = self.Popups.custom(dialog, self.excel_handle_import, self.load_av_session)
-        if len(x) == 1 and not x[0]:
+        if len(x) == 1 or not x[0]:
             return False
-        completed_jobs_data,self.filename = x
+        completed_jobs_data,self.filename, self.cur_date = x
 
         main_array = completed_jobs_data
-        
+
+        self.cur_date = self.cur_date.strftime("%d/%m/%Y")
         #dump to excel
         openpxl = openpyxl.Workbook()
         for sheet in main_array:
@@ -348,7 +349,7 @@ class DailyUpdates(PluginInterface):
         self.json_client = json_data_xcel
         self.json_db = json_data
         document = Document(self.template_file)
-        self.replace_text(document, "{{DATE}}", datetime.datetime.now().strftime("%d/%m/%Y"))
+        self.replace_text(document, "{{DATE}}", self.cur_date)
         sqp = self.savings["sqp"]
         sqm = self.savings["sqm"]
         total_savings = self.savings["total_savings"]
@@ -430,7 +431,7 @@ class DailyUpdates(PluginInterface):
                     if header[i] in header_map.keys():
                         record[header_map[header[i]]] = row[i]
                     #TODO: Add Date properly
-                record["date"] = datetime.datetime.now().strftime("%d/%m/%Y")
+                record["date"] = self.cur_date
                 records.append(insert(table_object).values(record))
             db_con.writesql(records)
             
@@ -492,6 +493,8 @@ class CompletedJobs:
 
         self.av_btn = QPushButton("Load AV")
         self.av_btn.clicked.connect(self.load_av)
+
+
 
 
         #create a + button for completed_jobs to add a new row
@@ -694,11 +697,23 @@ class Dialog(QDialog):
         mainLayout.addWidget(self.formGroupBox)
         #current datetime
         h1 = QHBoxLayout()
+
+
+        #self.date_selector = QDateEdit()
+        #top right
+        self.date_selector = QDateEdit()
+        self.date_selector.setCalendarPopup(True)
+        self.date_selector.setDisplayFormat("yyyy-MM-dd")
+        self.date_selector.setDate(QDate.currentDate())
+        h1.addWidget(self.date_selector)
+
         h1.addWidget(QLabel("File Name:"))
 
         self.filename= QLineEdit(f"DailyReport-{datetime.datetime.now().strftime('%Y-%m-%d')}")
-        h1.addWidget(self.filename)
         h1.addWidget(buttonBox)
+        h1.addWidget(self.date_selector)
+        h1.addWidget(self.filename)
+
         mainLayout.addLayout(h1)
 
 
@@ -803,7 +818,7 @@ class Dialog(QDialog):
         all_data = {}
         for table_name, table in self.table_list.items():
             all_data[table_name] = self.data_getter(table)
-        self.signal.emit((all_data, self.filename.text()))
+        self.signal.emit((all_data, self.filename.text(), self.date_selector.date().toPyDate()))
 
     def data_getter(self, object_):
         #first item in object_data are column keys as an array
