@@ -22,7 +22,7 @@ class PluginInterface:
         return(bseq, btn)
     
 
-class Types:
+class Types():
     #types
     folderpath   = {"folderpath":0}
     filename     = {"filename":1}

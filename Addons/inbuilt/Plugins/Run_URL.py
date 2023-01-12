@@ -5,9 +5,9 @@ import subprocess
 class Run_URL(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"source":3, "buttonname":11, "target":4}
-    type_types = {"url_type":["selection", "Select URL Type", ["Classic URL", "URL OneNote Win10", "URL OneNote Desktop", "URL Telegram",  "URL TradingView", "URL Slack", "MS Edge"]], "source":["text", "Enter URL"], "__Name":"URL"}
+    type_types = {"url_type":["selection", "Select URL Type", ["Classic URL", "URL OneNote Win10", "URL OneNote Desktop", "URL Telegram",  "URL TradingView", "URL Slack", "MS Edge",  "URL Miro"]], "source":["text", "Enter URL"], "__Name":"URL"}
 
-    callname = "url","url_1ndesktop","url_1nwin10","url_telegram","url_tradingview","url_slack"
+    callname = "url","url_1ndesktop","url_1nwin10","url_telegram","url_tradingview","url_slack","url_miro"
     hooks_handler = ["log"]
 
     def load_self(self, hooks):
@@ -57,6 +57,13 @@ class Run_URL(PluginInterface):
                     elif "/archives/" in bseq["source"]: 
                             if "buttondesc" not in btn:
                                 btn["buttondesc"] = "Slack Application URL"
+
+        elif bseq["url_type"] == "URL Miro":
+                    #remove http or https :// from start
+                    bseq["source"] =  "miroapp:" + bseq["source"][bseq["source"].find("://")+3:]
+                    bseq["type"] = "url_miro"
+
+
 
         elif bseq["url_type"] == "URL Telegram":
             #spit by / and take the last and second lsat items
@@ -126,6 +133,7 @@ class Run_URL(PluginInterface):
                         self.logger.error(e)
             else:
                 try:
+                    #make sure default browser isnt internet explorer
                     webbrowser.open(str(source))  # Go to example.com
                 except Exception as e:
                     self.Popups.alert(path+" does not exist?","Failed url: "+buttonname+"!")

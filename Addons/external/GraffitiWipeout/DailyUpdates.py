@@ -708,11 +708,12 @@ class Dialog(QDialog):
         h1.addWidget(self.date_selector)
 
         h1.addWidget(QLabel("File Name:"))
-
         self.filename= QLineEdit(f"DailyReport-{datetime.datetime.now().strftime('%Y-%m-%d')}")
+
+        h1.addWidget(self.filename)
+
         h1.addWidget(buttonBox)
         h1.addWidget(self.date_selector)
-        h1.addWidget(self.filename)
 
         mainLayout.addLayout(h1)
 
