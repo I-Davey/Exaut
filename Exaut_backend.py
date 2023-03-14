@@ -376,6 +376,8 @@ class UserInterfaceHandlerPyQT():
             if nowait:
                 return self.call_nowait(self.gui.signal_popup_custom, ([component, args]))
             return self.call(self.gui.signal_popup_custom, ([component, args]))
+        
+
 
         
 
@@ -383,7 +385,7 @@ class UserInterfaceHandlerPyQT():
             
         def call(self, signal, args):
             key = str(self.random())
-            if type(args) != tuple:
+            if type(args) != tuple: 
                 args = (args,)
             signal.emit(key, *args)
             while key not in self.gui.popup_msgs:

@@ -22,6 +22,7 @@ from frontend.Popups.Edit_Layout import Edit_Layout
 from frontend.Popups.Create_Process.Create_Process import Create_Process
 from frontend.Popups.actions.Actions import Actions
 from frontend.Popups.edit_popup_form import edit_popup_form
+from PyQt6 import QtWebEngineWidgets
 
 from time import perf_counter
 from Exaut_backend import Loader
