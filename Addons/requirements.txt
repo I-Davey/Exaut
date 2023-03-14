@@ -5,3 +5,14 @@ pypdf2
 openpyxl
 pydrive2
 pydrive
+PyQt6
+dirtyjson
+sqlalchemy
+openpyxl
+psycopg2
+what3words
+bs4
+python-docx
+pycryptodome
+PyQt6-WebEngine
+folium

@@ -10,7 +10,6 @@ from PyQt6 import QtWidgets
 from PyQt6.QtCore import pyqtSignal
 
 #webengine
-from PyQt6 import QtWebEngineWidgets
 class w3w_map(PluginInterface):
     load = True
     types = {"folderpath":0,"filename":1,"type_":2,"source":3,"target":4,"databasepath":5,"databasename":6,"keypath":7,"keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
@@ -64,7 +63,7 @@ class Dialog(QtWidgets.QDialog):
     def __init__(self,  parent, data, size):
         super().__init__(parent)
         self.setWindowTitle("Webview")
-        self.webview = QtWebEngineWidgets.QWebEngineView()
+        self.webview = parent.QtWebEngineWidgets.QWebEngineView()
         self.webview.setHtml(data.getvalue().decode("utf-8"))
         self.webview.resize(size[0], size[1])
         self.webview.show()
