@@ -318,6 +318,7 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
         self.show_hidden_tabs = False
         self.lastform = None
         self.form_changing = False
+        self.QtWebEngineWidgets = QtWebEngineWidgets
 
         self.SM_Tabs = CustomTab(self)
 
