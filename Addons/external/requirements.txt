@@ -13,3 +13,5 @@ psycopg2
 what3words
 bs4
 python-docx
+pycryptodome
+PyQt6-WebEngine

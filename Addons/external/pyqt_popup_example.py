@@ -3,7 +3,7 @@ import os
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 class pyqt_popup_example(PluginInterface):
-    load = False
+    load = True
     types = {}
     type_types = { "__Name":"t1"}
 
