@@ -12,7 +12,7 @@ import sys
 found = False
 python_starts = ["py", "python", "python3"]
 for python_start in python_starts:
-    stream = os.popen('python -c "import sys; print(sys.path)"')
+    stream = os.popen(python_start + ' -c "import sys; print(sys.path)"')
     python_install_location = stream.read()
     python_install_location = python_install_location.strip()
     stream.close()
@@ -21,7 +21,6 @@ for python_start in python_starts:
     try:
         python_install_location = eval(python_install_location)
         found = True
-        break
     except:
         pass
 
