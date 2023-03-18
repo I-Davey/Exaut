@@ -11,6 +11,7 @@ import sys
 #then find the python packages folder
 found = False
 python_starts = ["py", "python", "python3"]
+all_python_loc = []
 for python_start in python_starts:
     stream = os.popen(python_start + ' -c "import sys; print(sys.path)"')
     python_install_location = stream.read()
@@ -19,15 +20,23 @@ for python_start in python_starts:
     print("python install location: " + python_install_location)
     #check if string can be converted to list
     try:
+        if "Python was not found" in python_install_location:
+            continue
         python_install_location = eval(python_install_location)
+        all_python_loc.append(python_install_location)
         found = True
-    except:
+    except Exception as E:
+        
+        print("Could not find python install location")
+        print(E)
         pass
 
 if not found:
     print("Could not find python install location")
 #check for DLLS, lib folders in the python install location
-for path in python_install_location:
+print(python_install_location)
+print(all_python_loc)
+for path in all_python_loc:
     if path not in sys.path:
         sys.path.append(path)
 
