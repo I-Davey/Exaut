@@ -1,4 +1,3 @@
-from msilib.schema import CheckBox
 from sqlalchemy import insert, select, or_
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
