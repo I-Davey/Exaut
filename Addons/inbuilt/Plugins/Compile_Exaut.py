@@ -23,7 +23,7 @@ class Compile_Exaut(PluginInterface):
         hidden_imports = ['xml','xml.dom','xml.etree', 'email.mime', 'email.mime.multipart', 'email.mime.nonmultipart', "bs4"]
         for item in hidden_imports:
             main_code += " --hidden-import " + item
-
+        self.logger.info(main_code)
         curdir = os.getcwd()
         os.chdir(folderpath)
         os.system(main_code)

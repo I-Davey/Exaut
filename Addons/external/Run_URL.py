@@ -39,7 +39,7 @@ class Run_URL(PluginInterface):
 
             if btn["buttondesc"] == "section":
                 btn["buttondesc"] = "URL OneNote Desktop -> Section"
-                btn["type"] = "url_1ndesktop"
+                bseq["type"] = "url_1ndesktop"
 
 
         elif bseq["url_type"] == "URL TradingView":
