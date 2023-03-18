@@ -37,12 +37,13 @@ class w3w_map(PluginInterface):
         all_coords = []
         #open csv file
         #read csv file
-        #csg = [location_name, w3w]
-        locnames_w3w = pd.read_csv(filepath)
+        #csg = [w3w_name, w3w]
+        #read excel with sheet w3w_map
+        locnames_w3w = pd.read_excel(filepath, sheet_name="w3w")
         for index, row in locnames_w3w.iterrows():
-            #print(row['location_name'], row['w3w'])
+            #print(row['w3w_name'], row['w3w'])
             coords = w3w.convert_to_coordinates(row['w3w'])
-            all_coords.append([row['location_name'], coords['coordinates']['lat'], coords['coordinates']['lng']])
+            all_coords.append([row['w3w_name'], coords['coordinates']['lat'], coords['coordinates']['lng']])
             #define the view the map will have, the zoom level and the center of the map with midpoint
         midpoint = [np.nanmean([x[1] for x in all_coords]), np.nanmean([x[2] for x in all_coords])]
 
