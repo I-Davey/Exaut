@@ -23,7 +23,10 @@ for python_start in python_starts:
         if "Python was not found" in python_install_location:
             continue
         python_install_location = eval(python_install_location)
-        all_python_loc.append(python_install_location)
+        #turn to set then back to list to remove duplicates
+        #for path python_install_location, import into all_python_loc
+
+        all_python_loc += python_install_location
         found = True
     except Exception as E:
         
@@ -33,7 +36,7 @@ for python_start in python_starts:
 
 if not found:
     print("Could not find python install location")
-#check for DLLS, lib folders in the python install location
+python_install_location = list(set(python_install_location))
 print(python_install_location)
 print(all_python_loc)
 for path in all_python_loc:
