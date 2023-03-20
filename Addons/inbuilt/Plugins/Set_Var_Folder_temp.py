@@ -22,6 +22,7 @@ class Set_Var_Folder_temp(PluginInterface):
 
     def main(self, variable) -> bool:
         folderpath = self.Popups.select_folder("Select Folder",)
+        folderpath = folderpath.replace("/", "\\")
         if variable in self.variables:
             self.logger.debug(f"variable {variable} already exists")
             if self.variables[variable] == folderpath:

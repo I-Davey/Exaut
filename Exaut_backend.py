@@ -271,9 +271,10 @@ class UserInterfaceHandlerPyQT():
             if type(types) == tuple:
                 types = ",".join(types)
                 plugin_map[plugin] = types
-        #from pluginmap db get all plugins and types
+        
         try:
-            data = self.readsql(select([pluginmap.plugin, pluginmap.types]))
+            ##from pluginmap db get all plugins and types
+            data = self.readsql(select(pluginmap.plugin, pluginmap.types))
             for row in data:
                 if "," in row.types:
                     self.writesql(delete(pluginmap).where(pluginmap.plugin == row.plugin).where(pluginmap.types == row.types))
@@ -313,7 +314,7 @@ class UserInterfaceHandlerPyQT():
                                 
 
 
-        data = self.readsql(select([actions.plugin]))
+        data = self.readsql(select(actions.plugin))
         action_arr = [action.plugin for action in data]
         for plugin, values in self.pmgr.plugin_type_types.items():
             if plugin not in action_arr:
@@ -327,7 +328,7 @@ class UserInterfaceHandlerPyQT():
                     self.logger.error(f"Error adding action {name} to db")
                     input("Press enter to continue")
                 self.logger.success(f'Successfully added action "{name}" to db')     
-        pluginmap_items = [item.plugin for item in self.readsql(select([pluginmap.plugin]))]
+        pluginmap_items = [item.plugin for item in self.readsql(select(pluginmap.plugin))]
         #values in pmgr.plugin_map
         #combine actions_all with action_arr without duplicates
         actions_all =[x for x in  self.pmgr.plugin_map]
@@ -376,6 +377,8 @@ class UserInterfaceHandlerPyQT():
             if nowait:
                 return self.call_nowait(self.gui.signal_popup_custom, ([component, args]))
             return self.call(self.gui.signal_popup_custom, ([component, args]))
+        
+
 
         
 
@@ -383,7 +386,7 @@ class UserInterfaceHandlerPyQT():
             
         def call(self, signal, args):
             key = str(self.random())
-            if type(args) != tuple:
+            if type(args) != tuple: 
                 args = (args,)
             signal.emit(key, *args)
             while key not in self.gui.popup_msgs:
@@ -693,7 +696,7 @@ class UserInterfaceHandlerPyQT():
 
         tab_clean = "".join(c for c in tab["tab"] if c.isalnum() or c in ("_", "-"))
         
-        filename = "".join(e for e in fnametab if e.isalnum() or e in ("_","-")) + "_" + tab_clean + ".json"
+        filename = "".join(e for e in fnametab if e.isalnum() or e in ("_","-")) + "__" + tab_clean + ".json"
 
 
         for i, button in enumerate(tab["buttons"]):

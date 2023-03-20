@@ -100,6 +100,7 @@ class edit_popup_tab(QMainWindow):
                         self.close()
                 
                 return
+        """
         summary = self.changes['taburl'].text()
         if summary.find("onenotedesktop:")>-1:
                     summary =  summary[summary.find("onenotedesktop:"):]
@@ -108,7 +109,7 @@ class edit_popup_tab(QMainWindow):
                 #repplace onenote: with onenotedesktop:
                 summary = f"onenotedesktop:{summary[8:]}"
         self.changes['taburl'].setText(summary)
-
+        """
         for key, value in self.changes.items():
             if key in self.data:
                 if value.text() != self.data[key]:

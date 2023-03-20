@@ -9,7 +9,7 @@ from PyQt6.QtCore import pyqtSignal
 import pandas as pd
 class import_tab_xlsx(PluginInterface):
     load = True
-    types = {"source":3}
+    types = {"source":3, "target":4, "databasepath":5}
     type_types = {"source":["drag_drop_folder", "Please select Pipeline"], "__Name":"Import Tab <- xlsx"}
 
     callname = "import_tab_xlsx"
@@ -30,7 +30,7 @@ class import_tab_xlsx(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, folder) -> bool: 
+    def main(self, folder, form, tab) -> bool: 
         folder = folder.replace("/", "\\")
         #for file in folder
         filelist = {}
@@ -41,7 +41,7 @@ class import_tab_xlsx(PluginInterface):
         print("done")
         for file in filelist:
             print(file)
-        tabname, dataset, formname, vars = self.Popups.custom(Popup, filelist)
+        tabname, dataset, formname, vars = self.Popups.custom(Popup, filelist, form, tab)
         if not dataset and not formname:
             return False
         #select dataset from filelist
@@ -114,11 +114,13 @@ class import_tab_xlsx(PluginInterface):
 
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
-    def __init__(self, parent=None, data=""):
+    def __init__(self, parent=None, data="", form="", tab=""):
         super(Popup, self).__init__(parent)
         self.parent_ = parent
         self._done = False
         self.data = data
+        self.form = form
+        self.tab = tab
         self.initUI()
 
 
@@ -159,6 +161,16 @@ class Popup(QDialog):
         self.form = QComboBox(self)
         self.form.addItems(list(self.parent_.api.button_map().keys()))
         self.form.setCurrentIndex(self.form.findText(self.parent_.form_title))
+
+        curtabtext = self.parent_.SM_Tabs.tabText(self.parent_.SM_Tabs.currentIndex())
+        x = self.select_tab.findText(curtabtext)
+        self.select_tab.setCurrentIndex(x)
+        
+
+
+        
+
+        
 
         flayout2 = QHBoxLayout()
         flayout2.addWidget(form_label)
