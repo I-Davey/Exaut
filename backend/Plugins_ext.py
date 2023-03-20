@@ -11,24 +11,35 @@ import sys
 #then find the python packages folder
 found = False
 python_starts = ["py", "python", "python3"]
+all_python_loc = []
 for python_start in python_starts:
-    stream = os.popen('python -c "import sys; print(sys.path)"')
+    stream = os.popen(python_start + ' -c "import sys; print(sys.path)"')
     python_install_location = stream.read()
     python_install_location = python_install_location.strip()
     stream.close()
     print("python install location: " + python_install_location)
     #check if string can be converted to list
     try:
+        if "Python was not found" in python_install_location:
+            continue
         python_install_location = eval(python_install_location)
+        #turn to set then back to list to remove duplicates
+        #for path python_install_location, import into all_python_loc
+
+        all_python_loc += python_install_location
         found = True
-        break
-    except:
+    except Exception as E:
+        
+        print("Could not find python install location")
+        print(E)
         pass
 
 if not found:
     print("Could not find python install location")
-#check for DLLS, lib folders in the python install location
-for path in python_install_location:
+python_install_location = list(set(python_install_location))
+print(python_install_location)
+print(all_python_loc)
+for path in all_python_loc:
     if path not in sys.path:
         sys.path.append(path)
 
@@ -52,6 +63,8 @@ class PluginManager:
 
         
         plugin = plugin[:-3]
+        if plugin.startswith("__"):
+            return
         if fullplg:
             fullplg = fullplg[:-3]
             exec(f"import {fullplg} as {plugin}")
@@ -109,8 +122,7 @@ class PluginManager:
             except Exception as e:
                 logger.error("There was an error when loading types. Make sure you follow the naming convention when writing your own types.")
                 logger.error(f"Error: {e} on type {plugin}")
-                exit()
-                return self.plugins, self.plugin_loc, self.plugin_type_types
+
             
         logger.success(f"[Initializer]: Successfully loaded {len(self.plugins)} external {'Plugins.' if len(self.plugins) > 1 else 'Plugin'}: {[*self.plugins]}")
         return self.plugins, self.plugin_loc, self.plugin_type_types

@@ -1,4 +1,4 @@
-from .__important.PluginInterface import PluginInterface
+from __important.PluginInterface import PluginInterface
 import os
 import webbrowser
 import subprocess
@@ -39,7 +39,7 @@ class Run_URL(PluginInterface):
 
             if btn["buttondesc"] == "section":
                 btn["buttondesc"] = "URL OneNote Desktop -> Section"
-                btn["type"] = "url_1ndesktop"
+                bseq["type"] = "url_1ndesktop"
 
 
         elif bseq["url_type"] == "URL TradingView":

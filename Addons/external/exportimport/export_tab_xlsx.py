@@ -1,13 +1,14 @@
 from sqlalchemy import insert, select, or_
 from __important.PluginInterface import PluginInterface
 from backend.db.Exaut_sql import *
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QHBoxLayout, QLineEdit
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QDialog, QComboBox, QGridLayout, QHBoxLayout, QLineEdit, QCheckBox
+from PyQt6.QtCore import pyqtSignal, Qt
 import openpyxl
+import os
 import pandas as pd
 class export_tab_xlsx(PluginInterface):
     load = True
-    types = {"target":4}
+    types = {"target":4, "tab":3, "form":5}
     type_types = {"target":{"type":"drag_drop_folder", "description":"please select the export location"}, "__Name":"Export tab -> xlsx"}
 
 
@@ -29,7 +30,7 @@ class export_tab_xlsx(PluginInterface):
     # "keyfile":8,"runsequence":9,"treepath":10,"buttonname":11}
 
 
-    def main(self, save_loc) -> bool: 
+    def main(self, save_loc, tabname, form) -> bool: 
         tabs_data = self.readsql(select(tabs.formname, tabs.tab))
         forms_data = self.readsql(select(forms.formname))
         data = {}
@@ -42,7 +43,7 @@ class export_tab_xlsx(PluginInterface):
         forms_array = []
         for items in forms_data:
             forms_array.append(items["formname"])   
-        formname, tabname, savename = self.Popups.custom(Popup, data, forms_array)
+        formname, tabname, savename, filter = self.Popups.custom(Popup, data, forms_array, tabname, form)
         if not formname or not tabname:
             return False
         if not savename:
@@ -55,13 +56,13 @@ class export_tab_xlsx(PluginInterface):
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='forms', index=False)
 
-        data = self.readsql(select('*').where(tabs.formname == formname).where(tabs.tab == tabname))
+        data = self.readsql(select('*').where(tabs.formname == formname).where(tabs.tab == tabname).order_by(tabs.tabsequence))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='tabs', index=False)
         
 
 
-        data = self.readsql(select('*').where(buttons.formname == formname).where(buttons.tab == tabname))
+        data = self.readsql(select('*').where(buttons.formname == formname).where(buttons.tab == tabname).order_by(buttons.columnnum).order_by(buttons.buttonsequence))
         df = pd.DataFrame(data)
         df.to_excel(excel_writer, sheet_name='buttons', index=False)
 
@@ -98,17 +99,29 @@ class export_tab_xlsx(PluginInterface):
             if sheet in self.widths:
                 for col in self.widths[sheet]:
                     wb[sheet].column_dimensions[col].width = self.widths[sheet][col]
+            if filter:
+                #import with openpyxl, add filter to each sheet
+                wb[sheet].auto_filter.ref = wb[sheet].calculate_dimension()
+        
         wb.save(full_loc)
 
         self.logger.success(f"tab {tabname} exported")
         self.logger.success(f"location "+ full_loc) 
+
+        open_doc = self.Popups.yesno("Open the created XLSX document?")
+        if open_doc:
+            os.startfile(full_loc)
+
+
 class Popup(QDialog):
     signal = pyqtSignal(tuple)
-    def __init__(self, parent=None, form_tabs = {}, forms = []):
+    def __init__(self, parent=None, form_tabs = {}, forms = [], tabname = "", form = ""):
         super(Popup, self).__init__(parent)
         self._done = False
         self.form_tabs = form_tabs
         self.forms = forms
+        self.tabname = tabname
+        self.form = form
 
         self.initUI()
 
@@ -120,17 +133,34 @@ class Popup(QDialog):
         self.label_fname.setText("Select Form")
         self.fname = QComboBox(self)
         self.fname.addItems(self.forms)
+
        
         self.label_tname = QLabel(self)
         self.label_tname.setText("Select Tab")
         self.tname = QComboBox(self)
         self.tname.addItems(self.form_tabs[self.forms[0]])
         self.fname.currentTextChanged.connect(self.update_tabs)
+        
+        if self.form:
+            #find index of self.form in self.fname
+            index = self.fname.findText(self.form, Qt.MatchFlag.MatchFixedString)
+            if index >= 0:
+                self.fname.setCurrentIndex(index)
+        if self.tabname:
+            #find index of self.tabname in self.tname
+            index = self.tname.findText(self.tabname, Qt.MatchFlag.MatchFixedString)
+            if index >= 0:
+                self.tname.setCurrentIndex(index)
+
+        
 
         self.label_export_name = QLabel(self)
         self.label_export_name.setText("Export Name")
         self.export_name = QLineEdit(self)
 
+
+        self.checkbox_filter = QCheckBox(self)
+        self.checkbox_filter.setText("Enable Filter on headers")
 
         self.button = QPushButton('OK', self)
         self.button.clicked.connect(self.save_button_clicked)
@@ -142,7 +172,8 @@ class Popup(QDialog):
         self.layout.addWidget(self.tname, 1, 1)
         self.layout.addWidget(self.label_export_name, 2, 0)
         self.layout.addWidget(self.export_name, 2, 1)
-        self.layout.addWidget(self.button, 3, 0, 1, 2)
+        self.layout.addWidget(self.checkbox_filter, 3, 0)
+        self.layout.addWidget(self.button, 4, 0, 1, 2)
         
 
     
@@ -159,11 +190,11 @@ class Popup(QDialog):
 
     def closeEvent(self, event):
         if not self._done:
-            self.signal.emit((False, False, False))
+            self.signal.emit((False, False, False, False))
         event.accept()
 
 
     def save_button_clicked(self):
-        self.signal.emit((self.fname.currentText(), self.tname.currentText(), self.export_name.text()))
+        self.signal.emit((self.fname.currentText(), self.tname.currentText(), self.export_name.text(), self.checkbox_filter.isChecked()))
         self._done = True
         self.close()

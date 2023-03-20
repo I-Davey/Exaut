@@ -19,14 +19,18 @@ class writesql(MethodInterface):
 
         return True
 
-    def main(self, queries) -> bool:
+    def main(self, queries, log=False) -> bool:
+
         if type(queries) is not list:
             queries = [queries]
+
         with self.session.begin() as sess:
                 for query in queries:
                     #log query
                     try:
                         #self.logger.info(query.compile(dialect=self.engine.dialect))
+                        if log:
+                            self.logger.info(query.compile(dialect=self.engine.dialect))
                         sess.execute(query).all()
                     except Exception as e:
                         if "result object does not return rows." not in str(e):
