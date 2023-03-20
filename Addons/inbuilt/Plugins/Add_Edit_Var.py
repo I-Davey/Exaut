@@ -124,6 +124,7 @@ class Add_Edit_Var(PluginInterface):
             
                 self.writesql(update(variables).where(variables.loc == cur_loc).where(variables.form == formname).where(variables.key == self.variable_name).values(value = self.value))
                 self.logger.success(f"Variable {self.variable_name} Updated to {self.value}")
+
                 return True
             else:
                 res = self.Popups.yesno(f"Variable {self.variable_name} Does not Exists", f"Variable {self.variable_name} Does not Exists, Do you want to create it?")
