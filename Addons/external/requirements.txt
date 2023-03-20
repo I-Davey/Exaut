@@ -16,3 +16,4 @@ python-docx
 pycryptodome
 PyQt6-WebEngine
 folium
+
