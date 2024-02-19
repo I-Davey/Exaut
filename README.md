@@ -6,7 +6,7 @@ Exaut is a comprehensive execution automation tool designed to streamline and si
 
 ## Features
 
-- **Customizable Buttons:** Users can create buttons for specific tasks or scripts, offering a flexible approach to automation.
+- **Personalised Functions:** Users can create buttons for specific tasks or scripts, offering a flexible approach to automation.
 - **Workflow Sequences:** Allows the combination of buttons into sequences for comprehensive workflows, covering tasks from code compilation to distribution.
 - **Fully Customizable:** Exaut provides users with the ability to tailor the tool to their specific needs, modify existing scripts, and add new functionalities as required.
 - **Cross-Platform Compatibility:** Designed to operate seamlessly across different operating systems, ensuring usability for a wide audience.
