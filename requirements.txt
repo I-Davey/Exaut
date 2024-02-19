@@ -38,8 +38,10 @@ pycryptodome==3.19.1
 pycryptodomex==3.19.1
 
 PyDrive==1.3.1
+
+pyinstaller==5.13.1
 PyDrive2==1.16.2
-pyinstaller==5.9.0
+
 pyinstaller-hooks-contrib==2023.0
 pyOpenSSL==23.0.0
 pyparsing==3.0.9
@@ -66,6 +68,6 @@ tabula==1.0.5
 tinyaes==1.0.4
 typing_extensions==4.5.0
 uritemplate==4.1.1
-urllib3==1.26.18
+urllib3==1.26.15
 what3words==3.1.1
 win32-setctime==1.1.0
