@@ -16,8 +16,8 @@ from wsgiref.simple_server import make_server
 class Temp:
 
     def __init__(self) -> None:
-        self.APPLICATION_ID = '***REMOVED***'
-        self.CLIENT_SECRET = '***REMOVED***k'
+        self.APPLICATION_ID = ''
+        self.CLIENT_SECRET = ''
         self.authority_url = 'https://login.microsoftonline.com/consumers/'
         self.base_url = 'https://graph.microsoft.com/v1.0/'
         self.endpoint = self.base_url + 'me'

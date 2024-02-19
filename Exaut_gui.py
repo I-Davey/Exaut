@@ -1332,11 +1332,11 @@ class UI_Window(QMainWindow,EXAUT_gui.Ui_EXAUT_GUI):
 ##others######################################################################################################################
     def about_window(self):
         about = QtWidgets.QMessageBox(self)
-        about.setWindowTitle("About ExAuT - ***REMOVED***")
+        about.setWindowTitle("About ExAuT")
         #set QtWidgets.QMessageBox.Icon.Information
         about.setWindowIcon(self.icon)
         #add two text fields
-        about.setText(f"Version: {self.api.version}\n\nForm: {self.title}\n\nCopyright (c) 2022 ***REMOVED***\n\nAll rights reserved.")
+        about.setText(f"Version: {self.api.version}\n\nForm: {self.title}")
         about.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         about.exec()
 

@@ -147,7 +147,7 @@ class DailyUpdates(PluginInterface):
 
     def load_av_session(self):
         url = "https://vicroads.assetvision.com.au/api/Authenticate/UserLogin"
-        payload = {"userName":"***REMOVED***", "password":"***REMOVED***!"}
+        payload = {}
         headers = {'Content-Type': 'application/json'}
         #session:
         session = requests.Session()
