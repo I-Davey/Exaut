@@ -14,3 +14,6 @@ Exaut is a comprehensive execution automation tool designed to streamline and si
 ## Customization
 
 Exaut is fully customizable, enabling users to edit existing buttons and workflows, as well as to introduce new Python scripts for specific tasks. This feature ensures that Exaut can be adapted to meet the evolving needs of its users, making it a versatile tool for a wide range of automation tasks.
+
+
+Exaut is built to be compiled with PyInstaller but also runs as a standalone python app
