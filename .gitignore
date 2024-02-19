@@ -7,3 +7,5 @@ dist/
 *.session
 *.spec
 *.db
+
+passwords.txt
