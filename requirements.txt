@@ -68,6 +68,6 @@ tabula==1.0.5
 tinyaes==1.0.4
 typing_extensions==4.5.0
 uritemplate==4.1.1
-urllib3==1.26.15
+urllib3==1.26.18
 what3words==3.1.1
 win32-setctime==1.1.0
